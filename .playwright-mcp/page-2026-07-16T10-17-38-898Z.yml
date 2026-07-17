@@ -1,0 +1,310 @@
+- generic [ref=f2e2]:
+  - banner [ref=f2e3]:
+    - generic [ref=f2e4]:
+      - link "Udyaan home" [ref=f2e5] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f2e6]: Udyaan
+      - img "JAIN Group" [ref=f2e7]
+    - navigation "Main navigation" [ref=f2e8]:
+      - link "The model" [ref=f2e9] [cursor=pointer]:
+        - /url: /#model
+      - link "Projects" [ref=f2e10] [cursor=pointer]:
+        - /url: /#projects
+      - link "Journey" [ref=f2e11] [cursor=pointer]:
+        - /url: /#journey
+    - generic [ref=f2e12]:
+      - link "Sign in" [ref=f2e13] [cursor=pointer]:
+        - /url: /login
+      - link "Apply now" [ref=f2e14] [cursor=pointer]:
+        - /url: /signup
+  - main [ref=f2e17]:
+    - region [ref=f2e18]:
+      - generic [ref=f2e19]:
+        - paragraph [ref=f2e20]: A 1,000-acre living lab for students
+        - heading [level=1] [ref=f2e21]:
+          - text: Build what theworld needs
+          - emphasis [ref=f2e22]: next.
+        - paragraph [ref=f2e23]: Bring the question you cannot stop thinking about. At Udyaan, students from every discipline test it in the field, build the prototype, and take the strongest ideas toward market.
+        - generic [ref=f2e24]:
+          - link "Find your project" [ref=f2e25] [cursor=pointer]:
+            - /url: "#projects"
+          - link [ref=f2e28] [cursor=pointer]:
+            - /url: "#model"
+        - generic "Student journey" [ref=f2e32]:
+          - generic [ref=f2e33]:
+            - strong [ref=f2e34]: Field
+            - generic [ref=f2e35]: find the real problem
+          - generic [ref=f2e36]:
+            - strong [ref=f2e37]: Lab
+            - generic [ref=f2e38]: make the idea work
+          - generic [ref=f2e39]:
+            - strong [ref=f2e40]: Market
+            - generic [ref=f2e41]: prove that it matters
+      - generic "Interactive 3D campus showing students moving an idea from field research to a market pilot" [ref=f2e42]:
+        - generic [ref=f2e43]:
+          - generic:
+            - generic:
+              - generic: "01"
+              - strong: Observe
+              - generic: Field intelligence
+            - generic:
+              - generic: "02"
+              - strong: Build
+              - generic: Student prototype
+            - generic:
+              - generic: "03"
+              - strong: Launch
+              - generic: Market pilot
+          - paragraph [ref=f2e46]: Move to explore
+        - generic [ref=f2e52]:
+          - generic [ref=f2e53]: Your role
+          - strong [ref=f2e54]: Co-founder of the solution
+    - region [ref=f2e55]:
+      - generic [ref=f2e56]:
+        - img "Rows of crops growing inside a working greenhouse" [ref=f2e57]
+        - generic [ref=f2e58]:
+          - generic [ref=f2e59]: Field note / 01
+          - strong [ref=f2e60]: Real conditions.Real consequences.
+        - generic [ref=f2e61]: "Photo: Mark Stebnicki / Pexels"
+      - generic [ref=f2e62]:
+        - paragraph [ref=f2e63]: Not another classroom exercise
+        - heading [level=2] [ref=f2e64]:
+          - text: Leave with morethan a
+          - emphasis [ref=f2e65]: grade.
+        - paragraph [ref=f2e66]: The work is physical, technical, collaborative, and visible. You will make decisions with real constraints, collect evidence, and defend what you built.
+        - generic [ref=f2e67]:
+          - article [ref=f2e68]:
+            - generic [ref=f2e69]: "01"
+            - generic [ref=f2e70]:
+              - heading "Work worth showing" [level=3] [ref=f2e71]
+              - paragraph [ref=f2e72]: A tested prototype, field evidence, and a story your portfolio can prove.
+          - article [ref=f2e73]:
+            - generic [ref=f2e74]: "02"
+            - generic [ref=f2e75]:
+              - heading "People worth building with" [level=3] [ref=f2e76]
+              - paragraph [ref=f2e77]: Teammates across disciplines, with faculty and industry mentors in the loop.
+          - article [ref=f2e78]:
+            - generic [ref=f2e79]: "03"
+            - generic [ref=f2e80]:
+              - heading "A real next move" [level=3] [ref=f2e81]
+              - paragraph [ref=f2e82]: Strong work can continue toward research, IP, incubation, or a market pilot.
+    - generic [ref=f2e83]:
+      - generic [ref=f2e84]:
+        - paragraph [ref=f2e85]: The Udyaan model
+        - heading [level=2] [ref=f2e86]:
+          - text: Academic rigor.Research depth.
+          - emphasis [ref=f2e87]: Venture traction.
+        - paragraph [ref=f2e88]: The farm is not a field trip. It is shared infrastructure for teaching, research, prototyping, and enterprise across the JAIN Group ecosystem.
+      - generic [ref=f2e89]:
+        - article [ref=f2e90]:
+          - text: "01"
+          - heading "Applied immersion" [level=3] [ref=f2e91]
+          - paragraph [ref=f2e92]: Semester-long field projects replace passive assignments. Students earn academic credit by solving measurable, real-world problems.
+        - article [ref=f2e93]:
+          - text: "02"
+          - heading "IP pipeline" [level=3] [ref=f2e94]
+          - paragraph [ref=f2e95]: The campus becomes a data-rich research environment where evidence can lead to patents, publications, and validated processes.
+        - article [ref=f2e96]:
+          - text: "03"
+          - heading "Venture studio" [level=3] [ref=f2e97]
+          - paragraph [ref=f2e98]: Promising work moves from prototype to market pilot, with compliance, business modeling, incubation, and investor readiness built in.
+    - region [ref=f2e99]:
+      - generic [ref=f2e100]:
+        - paragraph [ref=f2e101]: One campus. Connected systems.
+        - heading [level=2] [ref=f2e102]:
+          - text: A living lab you can
+          - emphasis [ref=f2e103]: walk through.
+        - paragraph [ref=f2e104]: Every zone produces more than crops. It produces operational data, research questions, prototypes, business cases, and work students can put in a portfolio.
+      - generic [ref=f2e105]:
+        - generic [ref=f2e106]:
+          - generic: Controlled environment
+          - generic: Drone intelligence
+          - generic: Hydroponic rack
+          - generic: Bio-CNG loop
+        - generic:
+          - generic: Live system map
+          - strong: Farm + lab + factory
+      - generic "Living lab systems" [ref=f2e107]:
+        - paragraph [ref=f2e108]:
+          - generic [ref=f2e109]: "01"
+          - text: Precision sensing
+        - paragraph [ref=f2e110]:
+          - generic [ref=f2e111]: "02"
+          - text: Controlled cultivation
+        - paragraph [ref=f2e112]:
+          - generic [ref=f2e113]: "03"
+          - text: Renewable operations
+        - paragraph [ref=f2e114]:
+          - generic [ref=f2e115]: "04"
+          - text: Circular bioeconomy
+    - generic [ref=f2e116]:
+      - generic [ref=f2e117]:
+        - generic [ref=f2e118]:
+          - paragraph [ref=f2e119]: Projects with a market on the other side
+          - heading [level=2] [ref=f2e120]:
+            - text: Build the system.
+            - emphasis [ref=f2e121]: Prove the value.
+        - paragraph [ref=f2e122]: Udyaan projects connect technical performance to financial and social outcomes. Students learn to test both the machine and the model around it.
+      - generic [ref=f2e123]:
+        - article [ref=f2e124]:
+          - generic [ref=f2e125]:
+            - generic [ref=f2e126]: "01"
+            - generic [ref=f2e127]: Precision agriculture
+          - generic [ref=f2e128]:
+            - heading "Drone + robot farming" [level=3] [ref=f2e129]
+            - paragraph [ref=f2e130]: A connected field system for multispectral scouting, soil sensing, precision spraying, and autonomous crop monitoring.
+          - generic [ref=f2e131]:
+            - strong [ref=f2e132]: 20-35%
+            - generic [ref=f2e133]: target chemical savings
+        - article [ref=f2e134]:
+          - generic [ref=f2e135]:
+            - generic [ref=f2e136]: "02"
+            - generic [ref=f2e137]: Urban food systems
+          - generic [ref=f2e138]:
+            - heading "Vertical microgreens" [level=3] [ref=f2e139]
+            - paragraph [ref=f2e140]: A compact high-intensity production model combining controlled environments, fast harvest cycles, and direct market channels.
+          - generic [ref=f2e141]:
+            - strong [ref=f2e142]: 180 sq ft
+            - generic [ref=f2e143]: reference footprint
+        - article [ref=f2e144]:
+          - generic [ref=f2e145]:
+            - generic [ref=f2e146]: "03"
+            - generic [ref=f2e147]: Hydro-aeroponics
+          - generic [ref=f2e148]:
+            - heading "More crop. Less water." [level=3] [ref=f2e149]
+            - paragraph [ref=f2e150]: Integrated towers and nutrient-film channels turn limited urban space into a measurable, climate-aware growing system.
+          - generic [ref=f2e151]:
+            - strong [ref=f2e152]: 92%
+            - generic [ref=f2e153]: water reduction target
+        - article [ref=f2e154]:
+          - generic [ref=f2e155]:
+            - generic [ref=f2e156]: "04"
+            - generic [ref=f2e157]: Circular bioeconomy
+          - generic [ref=f2e158]:
+            - heading "Waste to wealth" [level=3] [ref=f2e159]
+            - paragraph [ref=f2e160]: A Bio-CNG living lab where feedstock logistics, process biology, compliance, and commercial viability meet in one project.
+          - generic [ref=f2e161]:
+            - strong [ref=f2e162]: 100 TPD
+            - generic [ref=f2e163]: model processing capacity
+    - generic [ref=f2e164]:
+      - generic [ref=f2e165]:
+        - paragraph [ref=f2e166]: Student selection
+        - heading [level=2] [ref=f2e167]:
+          - text: Less resume.
+          - emphasis [ref=f2e168]: More readiness.
+        - paragraph [ref=f2e169]: The selection process looks for resilience, practical intelligence, ethical judgment, and the ability to turn an uncertain field problem into action.
+      - generic [ref=f2e170]:
+        - article [ref=f2e171]:
+          - generic [ref=f2e172]: "01"
+          - paragraph [ref=f2e173]: Phase 01
+          - heading "The initial filter" [level=3] [ref=f2e174]
+          - generic [ref=f2e175]: A pitch-deck resume and cognitive assessment surface curiosity, reasoning, and the ability to frame a useful problem.
+        - article [ref=f2e176]:
+          - generic [ref=f2e177]: "02"
+          - paragraph [ref=f2e178]: Phase 02
+          - heading "The mud test" [level=3] [ref=f2e179]
+          - generic [ref=f2e180]: A one-day field boot camp tests resilience, observation, collaboration, and grit through work that cannot be solved from a desk.
+        - article [ref=f2e181]:
+          - generic [ref=f2e182]: "03"
+          - paragraph [ref=f2e183]: Phase 03
+          - heading "The boardroom" [level=3] [ref=f2e184]
+          - generic [ref=f2e185]: Candidates translate field insight into a commercial story and defend it before a cross-functional evaluation panel.
+      - generic "Selection qualities" [ref=f2e186]:
+        - generic [ref=f2e187]: Resilience + pivot logic
+        - generic [ref=f2e188]: Innovation under constraint
+        - generic [ref=f2e189]: Ethical integrity
+    - generic [ref=f2e190]:
+      - generic [ref=f2e191]:
+        - paragraph [ref=f2e192]: The interdisciplinary sprint
+        - heading [level=2] [ref=f2e193]:
+          - text: Four weeks from question to
+          - emphasis [ref=f2e194]: proof.
+      - generic [ref=f2e195]:
+        - article [ref=f2e196]:
+          - text: Week 01
+          - heading "Research + strategy" [level=3] [ref=f2e197]
+          - paragraph [ref=f2e198]: Map the system, define the stakeholder, and turn a broad challenge into a testable brief.
+        - article [ref=f2e199]:
+          - text: Week 02
+          - heading "Prototype + testing" [level=3] [ref=f2e200]
+          - paragraph [ref=f2e201]: Build the first working model and collect evidence from the field, lab, or customer.
+        - article [ref=f2e202]:
+          - text: Week 03
+          - heading "Production + policy" [level=3] [ref=f2e203]
+          - paragraph [ref=f2e204]: Design operations, financial viability, safety, compliance, and intellectual-property pathways.
+        - article [ref=f2e205]:
+          - text: Week 04
+          - heading "Exhibit + launch" [level=3] [ref=f2e206]
+          - paragraph [ref=f2e207]: Present the proof, publish the learning, and move viable ideas toward incubation or market pilots.
+    - generic [ref=f2e208]:
+      - generic [ref=f2e209]:
+        - paragraph [ref=f2e210]: Cross-campus integration
+        - heading [level=2] [ref=f2e211]:
+          - text: Every discipline has a place
+          - emphasis [ref=f2e212]: in the field.
+        - paragraph [ref=f2e213]: Engineers build the system. Scientists validate it. Designers make it usable. Business teams find the market. Policy and humanities teams ask who benefits.
+      - generic "Participating disciplines" [ref=f2e214]:
+        - generic [ref=f2e215]:
+          - generic [ref=f2e216]: "01"
+          - text: Engineering + automation
+        - generic [ref=f2e217]:
+          - generic [ref=f2e218]: "02"
+          - text: Life sciences
+        - generic [ref=f2e219]:
+          - generic [ref=f2e220]: "03"
+          - text: Food technology
+        - generic [ref=f2e221]:
+          - generic [ref=f2e222]: "04"
+          - text: Design + creative arts
+        - generic [ref=f2e223]:
+          - generic [ref=f2e224]: "05"
+          - text: Business + commerce
+        - generic [ref=f2e225]:
+          - generic [ref=f2e226]: "06"
+          - text: Humanities + policy
+        - generic [ref=f2e227]:
+          - generic [ref=f2e228]: "07"
+          - text: Data + AI
+        - generic [ref=f2e229]:
+          - generic [ref=f2e230]: "08"
+          - text: Sustainability
+      - generic [ref=f2e231]:
+        - generic [ref=f2e232]:
+          - strong [ref=f2e233]: INR 15,000*
+          - generic [ref=f2e234]: monthly stipend pathway
+        - generic [ref=f2e235]:
+          - strong [ref=f2e236]: Expert mentors
+          - generic [ref=f2e237]: faculty + industry guidance
+        - generic [ref=f2e238]:
+          - strong [ref=f2e239]: Working MVPs
+          - generic [ref=f2e240]: portfolio-ready outcomes
+        - generic [ref=f2e241]:
+          - strong [ref=f2e242]: TBI access
+          - generic [ref=f2e243]: incubation + investor readiness
+      - paragraph [ref=f2e244]: "*Subject to project eligibility and current program terms."
+    - generic [ref=f2e245]:
+      - generic [ref=f2e246]:
+        - paragraph [ref=f2e247]: Applications are open
+        - heading [level=2] [ref=f2e248]:
+          - text: Build somethingthe world can
+          - emphasis [ref=f2e249]: use.
+        - paragraph [ref=f2e250]: Bring your discipline. Leave with proof that it works.
+        - link "Apply to Udyaan" [ref=f2e251] [cursor=pointer]:
+          - /url: /signup
+      - generic [ref=f2e255]: JAIN GROUP / UDYAAN / 2026
+  - contentinfo [ref=f2e256]:
+    - generic [ref=f2e257]:
+      - generic "Udyaan by Jain Group of Institutions" [ref=f2e258]:
+        - img "Udyaan" [ref=f2e259]
+        - strong [ref=f2e260]: Udyaan
+        - img "JAIN Group" [ref=f2e261]
+      - paragraph [ref=f2e262]: © 2026 JAIN Group. All rights reserved.
+      - navigation "Footer navigation" [ref=f2e263]:
+        - link "About" [ref=f2e264] [cursor=pointer]:
+          - /url: /#model
+        - link "Contact" [ref=f2e265] [cursor=pointer]:
+          - /url: /contact
+        - link "Terms & Conditions" [ref=f2e266] [cursor=pointer]:
+          - /url: /terms
+        - link "Privacy Policy" [ref=f2e267] [cursor=pointer]:
+          - /url: /privacy
