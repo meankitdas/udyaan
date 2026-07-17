@@ -339,7 +339,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .main-nav a::after, .header-signin::after { content: ""; position: absolute; right: 0; bottom: -6px; left: 0; height: 1px; background: currentColor; transform: scaleX(0); transition: transform .25s ease; transform-origin: right; }
 .main-nav a:hover::after, .header-signin:hover::after { transform: scaleX(1); transform-origin: left; }
 .header-actions { display: flex; align-items: center; gap: 24px; }
-.header-apply { display: inline-flex; min-height: 46px; padding: 0 21px; align-items: center; gap: 10px; color: var(--seed); background: var(--pine); border-radius: 999px; font-size: 14px; font-weight: 700; transition: transform .25s, background .25s; }
+.header-apply { display: inline-flex; min-height: 46px; padding: 0 21px; align-items: center; gap: 10px; flex-shrink: 0; white-space: nowrap; color: var(--seed); background: var(--pine); border-radius: 999px; font-size: 14px; font-weight: 700; transition: transform .25s, background .25s; }
 .header-apply:hover { background: var(--clay); transform: translateY(-2px); }
 .header-apply svg { width: 15px; height: 15px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
@@ -1777,33 +1777,39 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .challenge-rail > a small { display: none; }
   .cinematic-credit { display: none; }
   .cinematic-scroll { display: none; }
-  .home-page:has(.cinematic-hero) .site-header { height: 86px; }
+  .home-page:has(.cinematic-hero) .site-header {
+    height: 84px;
+    padding-right: 16px;
+    padding-left: 16px;
+  }
   .home-page:has(.cinematic-hero) .brand-cluster {
-    position: relative;
-    width: 142px;
-    height: 58px;
-    flex: 0 0 142px;
+    flex-direction: column;
     align-items: flex-start;
-    gap: 0;
+    gap: 7px;
+    min-width: 0;
   }
   .home-page:has(.cinematic-hero) .udyaan-brand {
-    height: 34px;
     gap: 8px;
     font-size: 19px;
   }
   .home-page:has(.cinematic-hero) .udyaan-brand img { width: 34px; height: 34px; }
   .home-page:has(.cinematic-hero) .jgi-logo {
-    position: absolute;
-    top: 33px;
-    left: 42px;
-    width: 106px;
+    width: 116px;
     margin: 0;
-    padding: 4px 7px;
+    padding: 4px 8px;
     border: 0;
     background: rgba(255, 255, 255, .92);
     border-radius: 6px;
     box-shadow: 0 2px 8px rgba(5, 22, 14, .28);
   }
+  .home-page:has(.cinematic-hero) .header-apply {
+    min-height: 40px;
+    padding: 0 14px;
+    font-size: 12.5px;
+    gap: 6px;
+  }
+  .home-page:has(.cinematic-hero) .header-apply svg { width: 13px; height: 13px; }
+  .home-page:has(.cinematic-hero) .mobile-nav summary { width: 40px; height: 40px; }
 }
 
 @media (max-width: 390px) {
