@@ -5,3 +5,8 @@ out/
 !.env.example
 *.log
 .DS_Store
+backend/.venv/
+backend/data/
+__pycache__/
+tsconfig.tsbuildinfo
+backend/secrets/

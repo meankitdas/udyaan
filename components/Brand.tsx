@@ -42,7 +42,7 @@ export function Header() {
       </details>
       <div className="header-actions">
         <Link className="header-signin" href="/login">Sign in</Link>
-        <Link className="header-apply" href="/signup">Apply now <ArrowUpRightIcon /></Link>
+        <Link className="header-apply" href="/survey">Apply now <ArrowUpRightIcon /></Link>
       </div>
     </header>
   );

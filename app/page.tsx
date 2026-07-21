@@ -115,7 +115,7 @@ export default function Home() {
               outside your major. Leave with proof that your idea works.
             </p>
             <div className="cinematic-actions">
-              <Link className="cinematic-primary" href="/signup">Apply for 2026 <ArrowRightIcon /></Link>
+              <Link className="cinematic-primary" href="/survey">Apply for 2026 <ArrowRightIcon /></Link>
               <Link className="cinematic-secondary" href="#projects">Explore the work <ArrowDownIcon /></Link>
             </div>
           </div>

@@ -1,0 +1,349 @@
+{
+  "id": "farm-logic-test",
+  "title": "Are You Smarter Than a 5th Grader? – Farm Logic Test 🌱",
+  "subtitle": "90% of engineers fail this simple farm logic test.",
+  "published": true,
+  "collectEmails": true,
+  "updatedAt": "2026-07-21T00:00:00.000Z",
+  "sections": [
+    {
+      "id": "start",
+      "title": "Start",
+      "heading": "Are You Smarter Than a 5th Grader? – Farm Logic Test 🌱",
+      "subheading": "Pass all 3 levels to prove your common sense.",
+      "icon": "sprout",
+      "questions": [
+        {
+          "id": "campus",
+          "type": "select",
+          "label": "Campus",
+          "placeholder": "Select campus",
+          "required": true,
+          "options": [
+            "School of Commerce",
+            "School of Engineering and Technology",
+            "School of Aerospace Engineering",
+            "School of Computer Science and Engineering",
+            "School of Sciences",
+            "School of Computer Science and IT",
+            "School of Allied Healthcare and Sciences",
+            "School of Design, Media and Creative Arts",
+            "School of Aviation and Aerospace Management",
+            "School of Sports Education and Research",
+            "School of Law",
+            "CMS Business School - Lalbagh",
+            "CMS Business School - Seshadri"
+          ]
+        },
+        {
+          "id": "ug_pg",
+          "type": "choice",
+          "label": "UG/PG",
+          "required": true,
+          "options": [
+            "UG",
+            "PG"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "details",
+      "title": "Details",
+      "heading": "Candidate Details",
+      "subheading": "This information is only used to share your result and feedback.",
+      "icon": "person",
+      "questions": [
+        {
+          "id": "full_name",
+          "type": "text",
+          "label": "Full Name",
+          "placeholder": "Your full name",
+          "required": true
+        },
+        {
+          "id": "email",
+          "type": "email",
+          "label": "Email ID",
+          "placeholder": "you@example.com",
+          "required": true
+        },
+        {
+          "id": "phone",
+          "type": "phone",
+          "label": "Phone Number",
+          "placeholder": "+91",
+          "required": true
+        },
+        {
+          "id": "location",
+          "type": "select",
+          "label": "Location",
+          "placeholder": "Select location",
+          "required": true,
+          "options": [
+            "Bangalore",
+            "Kochi"
+          ]
+        },
+        {
+          "id": "department",
+          "type": "select",
+          "label": "Department",
+          "placeholder": "Select department",
+          "required": true,
+          "options": [
+            "Department of Humanities & Social Sciences",
+            "Department of Economics",
+            "Department of Journalism and Mass Communication",
+            "Department of Languages",
+            "Department of Law",
+            "Department of Performing Arts and Cultural Studies",
+            "Department of Computer Science and IT",
+            "Department of Allied Healthcare and Sciences",
+            "Department of Biotechnology and Genetics",
+            "Department of Chemistry and Biochemistry",
+            "Department of Data Analytics and Mathematical Science",
+            "Department of Forensic Science",
+            "Department of Microbiology and Botany",
+            "Department of Physics and Electronics",
+            "Department of Psychology and Allied Sciences",
+            "Department of Animation and Virtual Reality",
+            "Department of Commerce",
+            "Department of Art and Design",
+            "Department of Design",
+            "Department of Aerospace Engineering",
+            "Department of Computer Science and Engineering",
+            "Department of Electrical and Electronics Engineering",
+            "Department of Electronics and Communication Engineering",
+            "Department of Food Technology",
+            "Department of Information Science and Engineering",
+            "Department of Civil Engineering",
+            "Department of Mechanical Engineering",
+            "Department of Management Studies - UG",
+            "Area - School of Sports Education and Research",
+            "CeRSSE",
+            "Department of Management Studies - PG",
+            "Department of Art and Design (Interior Design)"
+          ]
+        },
+        {
+          "id": "course",
+          "type": "text",
+          "label": "Course",
+          "placeholder": "e.g. B.Tech CSE",
+          "required": true
+        },
+        {
+          "id": "usn",
+          "type": "text",
+          "label": "USN",
+          "placeholder": "University Seat Number",
+          "required": true
+        },
+        {
+          "id": "cv",
+          "type": "file",
+          "label": "CV",
+          "required": false
+        }
+      ]
+    },
+    {
+      "id": "level1",
+      "title": "Level 1",
+      "heading": "Level 1 — Seedling 🌿",
+      "subheading": "Warm up with the basics. A 5th grader gets these right.",
+      "icon": "leaf",
+      "questions": [
+        {
+          "id": "l1_q1",
+          "type": "choice",
+          "label": "A farmer has 17 sheep. All but 9 run away. How many are left?",
+          "required": true,
+          "options": [
+            "8",
+            "9",
+            "17",
+            "0"
+          ],
+          "correctOption": "9",
+          "points": 1
+        },
+        {
+          "id": "l1_q2",
+          "type": "choice",
+          "label": "Which of these does a plant NOT need to grow?",
+          "required": true,
+          "options": [
+            "Sunlight",
+            "Water",
+            "Wi-Fi",
+            "Nutrients"
+          ],
+          "correctOption": "Wi-Fi",
+          "points": 1
+        },
+        {
+          "id": "l1_q3",
+          "type": "choice",
+          "label": "If you plant a seed 2x deeper, does it grow 2x taller?",
+          "required": true,
+          "options": [
+            "Yes, obviously",
+            "No — depth doesn't work that way",
+            "Only in winter",
+            "Depends on the brand of seed"
+          ],
+          "correctOption": "No — depth doesn't work that way",
+          "points": 1
+        }
+      ]
+    },
+    {
+      "id": "level2",
+      "title": "Level 2",
+      "heading": "Level 2 — Farmhand 🚜",
+      "subheading": "Now think like someone who has actually stepped on soil.",
+      "icon": "tractor",
+      "questions": [
+        {
+          "id": "l2_q1",
+          "type": "choice",
+          "label": "A drip line waters 40 plants using 2 litres/hour. Sprinklers use 9 litres/hour for the same plants. Roughly how much water does drip save in 5 hours?",
+          "required": true,
+          "options": [
+            "10 litres",
+            "35 litres",
+            "45 litres",
+            "It uses more"
+          ],
+          "correctOption": "35 litres",
+          "points": 2
+        },
+        {
+          "id": "l2_q2",
+          "type": "choice",
+          "label": "Your tomato leaves turn yellow from the bottom up. The most likely first suspect?",
+          "required": true,
+          "options": [
+            "Too much music",
+            "Nitrogen deficiency",
+            "Moonlight exposure",
+            "Leaves are just old-fashioned"
+          ],
+          "correctOption": "Nitrogen deficiency",
+          "points": 2
+        },
+        {
+          "id": "l2_q3",
+          "type": "choice",
+          "label": "Why do farmers rotate crops between seasons?",
+          "required": true,
+          "options": [
+            "To confuse the birds",
+            "Soil nutrients recover and pest cycles break",
+            "Tractors get bored driving straight",
+            "Government mandates variety"
+          ],
+          "correctOption": "Soil nutrients recover and pest cycles break",
+          "points": 2
+        }
+      ]
+    },
+    {
+      "id": "level3",
+      "title": "Level 3",
+      "heading": "Level 3 — Agronomist 📈",
+      "subheading": "The 90% fail here. Slow down and think in systems.",
+      "icon": "chart",
+      "questions": [
+        {
+          "id": "l3_q1",
+          "type": "choice",
+          "label": "A vertical farm stacks 6 layers in 180 sq ft. Each layer yields 80% of open-field yield per sq ft. Total yield vs the same 180 sq ft open field?",
+          "required": true,
+          "options": [
+            "Half as much",
+            "About the same",
+            "~4.8x more",
+            "~6x more"
+          ],
+          "correctOption": "~4.8x more",
+          "points": 3
+        },
+        {
+          "id": "l3_q2",
+          "type": "choice",
+          "label": "A drone maps 100 acres and flags 12 stressed zones. Spraying everything costs ₹60,000; targeted spraying costs ₹800/zone + ₹15,000 drone ops. What should the farmer do?",
+          "required": true,
+          "options": [
+            "Spray everything — simpler is better",
+            "Targeted: ~₹24,600 total, saves ~₹35,400",
+            "Do nothing and hope",
+            "Sell the farm"
+          ],
+          "correctOption": "Targeted: ~₹24,600 total, saves ~₹35,400",
+          "points": 3
+        },
+        {
+          "id": "l3_q3",
+          "type": "choice",
+          "label": "Biogas digester input drops 30% in winter. Gas output falls 45%. The disproportionate drop is most likely because…",
+          "required": true,
+          "options": [
+            "Bacteria slow down in cold — biology is temperature-sensitive",
+            "Gas freezes inside the pipes",
+            "Cows produce premium dung only in summer",
+            "The meter is lying"
+          ],
+          "correctOption": "Bacteria slow down in cold — biology is temperature-sensitive",
+          "points": 3
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "title": "Reflect",
+      "heading": "Reflect 🌀",
+      "subheading": "No right answers here — we want to hear how you think.",
+      "icon": "spiral",
+      "questions": [
+        {
+          "id": "reflect_why",
+          "type": "longtext",
+          "label": "Why do you want to join Udyaan?",
+          "placeholder": "What pulls you toward hands-on farm-tech work?",
+          "required": true
+        },
+        {
+          "id": "reflect_build",
+          "type": "longtext",
+          "label": "If you had one semester on a live farm, what would you build or study?",
+          "placeholder": "Sketch your idea in a few sentences…",
+          "required": true
+        },
+        {
+          "id": "reflect_hours",
+          "type": "choice",
+          "label": "How many hours per week can you realistically commit?",
+          "required": true,
+          "options": [
+            "2–4 hours",
+            "5–8 hours",
+            "9–15 hours",
+            "This is my main thing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "review",
+      "title": "Review",
+      "heading": "Review & Submit 🎊",
+      "subheading": "Check your answers before you submit. You can go back to any section.",
+      "icon": "confetti",
+      "questions": []
+    }
+  ]
+}
