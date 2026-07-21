@@ -1,0 +1,545 @@
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  ArrowRight,
+  BatteryMedium,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
+  FileKey,
+  FileSpreadsheet,
+  FileText,
+  Folder,
+  HardDrive,
+  KeyRound,
+  Leaf,
+  LockKeyhole,
+  Minus,
+  Monitor,
+  Network,
+  PanelBottom,
+  Power,
+  RotateCw,
+  Search,
+  Server,
+  ShieldAlert,
+  Square,
+  Users,
+  Volume2,
+  Wifi,
+  X,
+} from "lucide-react";
+import styles from "./RemoteArchive.module.css";
+
+type Stage = "rdp" | "connecting" | "desktop" | "locked" | "recovery" | "reveal";
+type DocId = "capex" | "bank" | "exam" | "students" | "wifi" | "board";
+
+type ArchiveDoc = {
+  id: DocId;
+  name: string;
+  type: string;
+  size: string;
+  modified: string;
+  fragment: string;
+  color: string;
+};
+
+const DOCS: ArchiveDoc[] = [
+  {
+    id: "capex",
+    name: "CANOPY_Phase2_CAPEX_FINAL.xlsx",
+    type: "Microsoft Excel Worksheet",
+    size: "684 KB",
+    modified: "18/07/2026 22:41",
+    fragment: "U",
+    color: "#1f8f59",
+  },
+  {
+    id: "bank",
+    name: "CANOPY_vendor_bank_register.pdf",
+    type: "PDF Document",
+    size: "1.8 MB",
+    modified: "17/07/2026 16:08",
+    fragment: "D",
+    color: "#d65050",
+  },
+  {
+    id: "exam",
+    name: "Sem6_CANOPY_field_problems.docx",
+    type: "Microsoft Word Document",
+    size: "226 KB",
+    modified: "12/07/2026 09:13",
+    fragment: "Y",
+    color: "#3977d3",
+  },
+  {
+    id: "students",
+    name: "CANOPY_cohort_zero_access.csv",
+    type: "Comma Separated Values",
+    size: "3.2 MB",
+    modified: "09/07/2026 07:52",
+    fragment: "A",
+    color: "#188a70",
+  },
+  {
+    id: "wifi",
+    name: "CANOPY_site_networks.txt",
+    type: "Text Document",
+    size: "4 KB",
+    modified: "04/07/2026 14:30",
+    fragment: "A",
+    color: "#7c68c5",
+  },
+  {
+    id: "board",
+    name: "CANOPY_board_note_RESTRICTED.pdf",
+    type: "PDF Document",
+    size: "942 KB",
+    modified: "01/07/2026 23:19",
+    fragment: "N",
+    color: "#d65050",
+  },
+];
+
+const TARGET = "UDYAAN";
+
+function shuffle<T>(source: T[]): T[] {
+  const result = [...source];
+  for (let index = result.length - 1; index > 0; index -= 1) {
+    const swap = Math.floor(Math.random() * (index + 1));
+    [result[index], result[swap]] = [result[swap], result[index]];
+  }
+  return result;
+}
+
+function WindowsMark({ small = false }: { small?: boolean }) {
+  return (
+    <span className={`${styles.windowsMark} ${small ? styles.windowsMarkSmall : ""}`} aria-hidden>
+      <i /><i /><i /><i />
+    </span>
+  );
+}
+
+function FileGlyph({ doc, size = 26 }: { doc: ArchiveDoc; size?: number }) {
+  const Icon = doc.id === "capex" || doc.id === "students" ? FileSpreadsheet : doc.id === "wifi" ? FileText : FileKey;
+  return <Icon size={size} strokeWidth={1.7} style={{ color: doc.color }} />;
+}
+
+function WindowButtons() {
+  return (
+    <div className={styles.windowButtons} aria-hidden>
+      <span><Minus size={14} /></span>
+      <span><Square size={11} /></span>
+      <span><X size={14} /></span>
+    </div>
+  );
+}
+
+function Taskbar({ clock }: { clock: Date }) {
+  return (
+    <div className={styles.taskbar}>
+      <div className={styles.taskIcons}>
+        <button type="button" title="Start" aria-label="Start"><WindowsMark small /></button>
+        <button type="button" title="Search" aria-label="Search"><Search size={20} /></button>
+        <button type="button" title="Task view" aria-label="Task view"><PanelBottom size={20} /></button>
+        <button type="button" className={styles.taskActive} title="File Explorer" aria-label="File Explorer"><Folder size={21} fill="#f3c94f" color="#dcae2f" /></button>
+        <button type="button" title="Remote Desktop" aria-label="Remote Desktop"><Monitor size={20} color="#4e88d9" /></button>
+      </div>
+      <div className={styles.tray}>
+        <ChevronUp size={14} />
+        <Wifi size={16} />
+        <Volume2 size={16} />
+        <BatteryMedium size={17} />
+        <span>
+          <b>{clock.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</b>
+          <small>{clock.toLocaleDateString([], { day: "2-digit", month: "2-digit", year: "numeric" })}</small>
+        </span>
+      </div>
+    </div>
+  );
+}
+
+export function RemoteArchive() {
+  const [stage, setStage] = useState<Stage>("rdp");
+  const [connectionStep, setConnectionStep] = useState(0);
+  const [openDoc, setOpenDoc] = useState<DocId | null>(null);
+  const [opened, setOpened] = useState<Set<DocId>>(new Set());
+  const [triggered, setTriggered] = useState(false);
+  const [recoveryEntry, setRecoveryEntry] = useState("");
+  const [usedTiles, setUsedTiles] = useState<Set<number>>(new Set());
+  const [recoveryShake, setRecoveryShake] = useState(false);
+  const [solved, setSolved] = useState(false);
+  const [clock, setClock] = useState(() => new Date());
+  const [server, setServer] = useState("JGI-ARCHIVE-02.internal");
+  const [user, setUser] = useState("campus\\temporary-user");
+  const tiles = useMemo(() => shuffle([..."UDYAANRX"].map((letter, id) => ({ letter, id }))), []);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setClock(new Date()), 30000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    if (stage !== "connecting") return;
+    setConnectionStep(0);
+    const timers = [
+      window.setTimeout(() => setConnectionStep(1), 480),
+      window.setTimeout(() => setConnectionStep(2), 1150),
+      window.setTimeout(() => setConnectionStep(3), 1850),
+      window.setTimeout(() => setStage("desktop"), 2550),
+    ];
+    return () => timers.forEach(window.clearTimeout);
+  }, [stage]);
+
+  useEffect(() => {
+    if (stage !== "desktop" || triggered || opened.size < 4) return;
+    const timer = window.setTimeout(() => {
+      setTriggered(true);
+      setStage("locked");
+    }, 1500);
+    return () => window.clearTimeout(timer);
+  }, [stage, triggered, opened.size]);
+
+  const connect = () => {
+    if (!server.trim()) return;
+    setStage("connecting");
+  };
+
+  const openArchiveDoc = (id: DocId) => {
+    setOpenDoc(id);
+    setOpened((current) => new Set(current).add(id));
+  };
+
+  const resetConnection = () => {
+    setStage("rdp");
+    setOpenDoc(null);
+    setOpened(new Set());
+    setTriggered(false);
+    setRecoveryEntry("");
+    setUsedTiles(new Set());
+    setSolved(false);
+  };
+
+  const pressRecoveryTile = useCallback((id: number, letter: string) => {
+    if (solved || usedTiles.has(id)) return;
+    if (letter === TARGET[recoveryEntry.length]) {
+      const next = recoveryEntry + letter;
+      setRecoveryEntry(next);
+      setUsedTiles((current) => new Set(current).add(id));
+      if (next === TARGET) {
+        setSolved(true);
+        window.setTimeout(() => setStage("reveal"), 1400);
+      }
+      return;
+    }
+    setRecoveryEntry("");
+    setUsedTiles(new Set());
+    setRecoveryShake(true);
+    window.setTimeout(() => setRecoveryShake(false), 360);
+  }, [recoveryEntry, solved, usedTiles]);
+
+  const selected = openDoc ? DOCS.find((doc) => doc.id === openDoc) ?? null : null;
+  const progress = Math.min(100, Math.round((opened.size / DOCS.length) * 100));
+
+  return (
+    <main className={styles.shell}>
+      <div className={styles.wallpaper} aria-hidden />
+      <div className={styles.desktopIcon}>
+        <span><Folder size={31} fill="#f3c94f" color="#dcae2f" /></span>
+        <small>Shared Archive</small>
+      </div>
+      <div className={`${styles.desktopIcon} ${styles.desktopIconSecond}`}>
+        <span><Monitor size={30} color="#63a0ef" /></span>
+        <small>Remote Desktop</small>
+      </div>
+
+      {stage === "rdp" && (
+        <section className={styles.rdpWindow} aria-label="Remote Desktop Connection">
+          <div className={styles.titlebar}>
+            <span><Monitor size={16} color="#2768ba" /> Remote Desktop Connection</span>
+            <WindowButtons />
+          </div>
+          <div className={styles.rdpHero}>
+            <div className={styles.remoteLogo}><Monitor size={42} strokeWidth={1.35} /><span>→</span><Server size={42} strokeWidth={1.35} /></div>
+            <div><strong>Remote Desktop Connection</strong><small>Connect to a remote PC or workspace.</small></div>
+          </div>
+          <div className={styles.rdpForm}>
+            <label>
+              Computer:
+              <input value={server} onChange={(event) => setServer(event.target.value)} spellCheck={false} />
+            </label>
+            <label>
+              User name:
+              <input value={user} onChange={(event) => setUser(event.target.value)} spellCheck={false} />
+            </label>
+            <p><Network size={15} /> Gateway discovered on campus guest network</p>
+          </div>
+          <div className={styles.rdpFooter}>
+            <button type="button" className={styles.showOptions}>Show Options</button>
+            <button type="button" className={styles.winButton} onClick={connect}>Connect</button>
+            <button type="button" className={styles.winButtonSecondary}>Help</button>
+          </div>
+        </section>
+      )}
+
+      {stage === "connecting" && (
+        <section className={styles.connecting}>
+          <div className={styles.connectLogo}><Monitor size={44} /></div>
+          <h1>Connecting to JGI-ARCHIVE-02</h1>
+          <p>{[
+            "Initiating remote connection…",
+            "Negotiating network credentials…",
+            "Applying display configuration…",
+            "Loading remote session…",
+          ][connectionStep]}</p>
+          <div className={styles.connectBar}><i style={{ width: `${(connectionStep + 1) * 25}%` }} /></div>
+          <button type="button" onClick={resetConnection}>Cancel</button>
+        </section>
+      )}
+
+      {stage !== "rdp" && stage !== "connecting" && (
+        <>
+          <div className={styles.remoteStrip}>
+            <span>JGI-ARCHIVE-02.internal</span>
+            <div><Minus size={13} /><Square size={11} /><X size={13} /></div>
+          </div>
+
+          <section className={styles.explorer} aria-label="File Explorer">
+            <div className={styles.titlebar}>
+              <span><Folder size={17} fill="#f3c94f" color="#dcae2f" /> Project Archive</span>
+              <WindowButtons />
+            </div>
+            <div className={styles.explorerTabs}>
+              <button type="button">New <span>+</span></button>
+              <button type="button">Cut</button>
+              <button type="button">Copy</button>
+              <button type="button">Paste</button>
+              <button type="button">Sort</button>
+              <button type="button">View</button>
+            </div>
+            <div className={styles.addressRow}>
+              <div className={styles.navButtons}><ChevronLeft /><ChevronRight /><ChevronUp /><RotateCw /></div>
+              <div className={styles.address}><HardDrive size={15} /> This PC <b>›</b> JGI Secure Archive <b>›</b> Operation CANOPY</div>
+              <div className={styles.search}><Search size={15} /> Search Operation CANOPY</div>
+            </div>
+            <div className={styles.explorerBody}>
+              <aside className={styles.sidebar}>
+                <p><Folder /> Home</p>
+                <p><Folder /> Gallery</p>
+                <span>Quick access</span>
+                <p><Monitor /> Desktop</p>
+                <p><Folder /> Downloads</p>
+                <p><Folder /> Documents</p>
+                <span>This PC</span>
+                <p><HardDrive /> Local Disk (C:)</p>
+                <p className={styles.sideActive}><Server /> JGI Secure Archive</p>
+                <p><Network /> Network</p>
+              </aside>
+              <div className={styles.fileArea}>
+                <div className={styles.folderHeading}>
+                  <div><h2>Operation CANOPY</h2><p>Restricted programme archive · synthetic/redacted records</p></div>
+                  <div className={styles.discovery}><span>{opened.size}/{DOCS.length} opened</span><i><b style={{ width: `${progress}%` }} /></i></div>
+                </div>
+                <div className={styles.fileHeader}><span>Name</span><span>Date modified</span><span>Type</span><span>Size</span></div>
+                <div className={styles.fileList}>
+                  {DOCS.map((doc) => (
+                    <button key={doc.id} type="button" className={`${styles.fileRow} ${opened.has(doc.id) ? styles.fileOpened : ""}`} onDoubleClick={() => openArchiveDoc(doc.id)} onClick={() => openArchiveDoc(doc.id)}>
+                      <span className={styles.fileName}><FileGlyph doc={doc} /><span>{doc.name}<small>{opened.has(doc.id) ? "Opened" : ""}</small></span></span>
+                      <span>{doc.modified}</span><span>{doc.type}</span><span>{doc.size}</span>
+                    </button>
+                  ))}
+                </div>
+                <div className={styles.explorerStatus}>{DOCS.length} items <span>{opened.size > 0 ? `${opened.size} item${opened.size === 1 ? "" : "s"} examined` : ""}</span></div>
+              </div>
+            </div>
+          </section>
+
+          {selected && (
+            <section className={styles.documentWindow} aria-label={selected.name}>
+              <div className={styles.titlebar}>
+                <span><FileGlyph doc={selected} size={17} /> {selected.name}</span>
+                <div className={styles.windowButtons}>
+                  <span><Minus size={14} /></span><span><Square size={11} /></span>
+                  <button type="button" onClick={() => setOpenDoc(null)} aria-label="Close document"><X size={14} /></button>
+                </div>
+              </div>
+              <div className={styles.docToolbar}><span>File</span><span>Home</span><span>Insert</span><span>Layout</span><span>Review</span><span>View</span></div>
+              <div className={styles.documentBody}>{renderDocument(selected)}</div>
+              <div className={styles.fragmentStamp}>archive checksum {selected.fragment}/{DOCS.length}</div>
+            </section>
+          )}
+
+          {(stage === "locked" || stage === "recovery") && (
+            <div className={styles.securityOverlay}>
+              {stage === "locked" ? (
+                <section className={styles.securityDialog}>
+                  <div className={styles.securityTop}><ShieldAlert size={28} fill="#d83a3a" color="#fff" /><span>Windows Security</span><button type="button" aria-label="Close"><X size={17} /></button></div>
+                  <div className={styles.securityContent}>
+                    <ShieldAlert className={styles.bigShield} size={58} color="#d83a3a" />
+                    <div>
+                      <h2>Illegal remote access detected</h2>
+                      <p>This session has accessed restricted files on <b>JGI-ARCHIVE-02</b>.</p>
+                      <dl>
+                        <div><dt>Incident</dt><dd>JGI-SOC-7714</dd></div>
+                        <div><dt>Session</dt><dd>{user}</dd></div>
+                        <div><dt>Status</dt><dd>Isolated · pending termination</dd></div>
+                      </dl>
+                      <p className={styles.securityNote}>Remote input has been suspended. Disconnect now, or complete archive recovery to regain access.</p>
+                    </div>
+                  </div>
+                  <div className={styles.securityActions}>
+                    <button type="button" onClick={resetConnection}>Disconnect</button>
+                    <button type="button" className={styles.dangerButton} onClick={() => setStage("recovery")}><KeyRound size={16} /> Regain access</button>
+                  </div>
+                </section>
+              ) : (
+                <section className={`${styles.recoveryWindow} ${recoveryShake ? styles.recoveryShake : ""}`}>
+                  <div className={styles.recoveryTitle}><span><LockKeyhole size={17} /> Archive Recovery Console</span><span>JGI-SOC</span></div>
+                  <div className={styles.terminal}>
+                    <p>device trust ............. <b className={styles.fail}>failed</b></p>
+                    <p>session token ............ <b className={styles.fail}>revoked</b></p>
+                    <p>archive checksum ......... <b className={styles.ok}>{opened.size} fragments cached</b></p>
+                    <br />
+                    <p className={styles.challenge}>check 3 — the name.</p>
+                    <p className={styles.challenge}>it was in every document. six letters.</p>
+                    <p className={styles.challenge}>spell it and regain access.</p>
+                    <div className={`${styles.recoveryEntry} ${solved ? styles.recoverySolved : ""}`}>
+                      {TARGET.split("").map((_, index) => <span key={index}>{solved ? TARGET[index] : recoveryEntry[index] ?? "_"}</span>)}
+                    </div>
+                    {!solved ? (
+                      <div className={styles.recoveryTiles}>
+                        {tiles.map((tile) => (
+                          <button key={tile.id} type="button" disabled={usedTiles.has(tile.id)} onClick={() => pressRecoveryTile(tile.id, tile.letter)}>{tile.letter}</button>
+                        ))}
+                      </div>
+                    ) : <p className={styles.accessRestored}>ACCESS RESTORED · decrypting programme identity…</p>}
+                  </div>
+                </section>
+              )}
+            </div>
+          )}
+
+          {stage === "reveal" && (
+            <div className={styles.revealOverlay}>
+              <section className={styles.revealWindow}>
+                <div className={styles.revealMedia}><Image src="/udyaan-greenhouse.jpg" alt="Udyaan greenhouse site" fill priority sizes="(max-width: 800px) 100vw, 760px" /></div>
+                <div className={styles.revealContent}>
+                  <p>OPERATION CANOPY · IDENTITY DECLASSIFIED</p>
+                  <div className={styles.revealBrand}><span><Leaf size={27} /></span><h1>Udyaan</h1></div>
+                  <h2>The ₹14.38 crore file was never just a farm.</h2>
+                  <p>It is a 100+ acre working campus for drone and robot farming, vertical microgreens, hydro-aeroponics and a live Bio-CNG loop.</p>
+                  <p>The student roster was real: academic credit, field immersion, patent ownership and a venture path for what gets built.</p>
+                  <div className={styles.metrics}>
+                    <span><b>₹14.38 Cr</b>phase-II deployment</span>
+                    <span><b>100+ acres</b>live field systems</span>
+                    <span><b>cohort-01</b>intake now open</span>
+                  </div>
+                  <p className={styles.revealHint}>Your recovered session has been converted into an intake pass.</p>
+                  <Link href="/survey" className={styles.surveyButton}>Open the Udyaan intake <ArrowRight size={18} /></Link>
+                </div>
+              </section>
+            </div>
+          )}
+
+          <Taskbar clock={clock} />
+        </>
+      )}
+
+      {stage === "rdp" && <Taskbar clock={clock} />}
+      <span className={styles.fictionTag}>interactive fiction · records shown are synthetic and redacted</span>
+    </main>
+  );
+}
+
+function renderDocument(doc: ArchiveDoc) {
+  switch (doc.id) {
+    case "capex":
+      return (
+        <div className={styles.sheetDoc}>
+          <header><h3>OPERATION CANOPY · PHASE II CAPITAL PLAN</h3><p>Finance Controller Draft · Board circulation prohibited</p></header>
+          <div className={styles.sheetGrid + " " + styles.sheetGridHead}><span>Cost centre</span><span>Description</span><span>FY26 allocation</span></div>
+          <div className={styles.sheetGrid}><span>CN-LAND-02</span><span>112-acre land consolidation + soil restoration</span><span>₹4,20,00,000</span></div>
+          <div className={styles.sheetGrid}><span>CN-AUTO-04</span><span>18 survey drones + 4 autonomous field rovers</span><span>₹2,64,00,000</span></div>
+          <div className={styles.sheetGrid}><span>CN-CEA-07</span><span>Vertical grow stacks + hydro-aeroponic controls</span><span>₹3,18,00,000</span></div>
+          <div className={styles.sheetGrid}><span>CN-CIRC-03</span><span>Bio-CNG digester and campus micro-grid</span><span>₹2,75,00,000</span></div>
+          <div className={styles.sheetGrid}><span>CN-STU-01</span><span>Student field housing, labs and prototype fund</span><span>₹1,61,00,000</span></div>
+          <div className={`${styles.sheetGrid} ${styles.sheetTotal}`}><span /><span>PHASE II TOTAL</span><span>₹14,38,00,000</span></div>
+          <p className={styles.docComment}>Comment by R. Menon: “Keep CANOPY off the public deck until the intake signal is validated.”</p>
+        </div>
+      );
+    case "bank":
+      return (
+        <div className={styles.pdfDoc}>
+          <p className={styles.classified}>RESTRICTED · FINANCE COPY · SYNTHETIC/REDACTED</p>
+          <h3>Operation CANOPY · Vendor Disbursement Register</h3>
+          <table><thead><tr><th>Beneficiary</th><th>Bank / account</th><th>Purpose</th><th>Released</th></tr></thead>
+            <tbody>
+              <tr><td>Verdant Robotics Pvt Ltd</td><td>HDFC · XXXX 4417</td><td>Field rover fleet</td><td>₹1.08 Cr</td></tr>
+              <tr><td>AeroCrop Systems</td><td>ICICI · XXXX 9022</td><td>Drone mapping stack</td><td>₹86.4 L</td></tr>
+              <tr><td>Closed Loop Energy</td><td>SBI · XXXX 7734</td><td>Bio-CNG commissioning</td><td>₹1.44 Cr</td></tr>
+              <tr><td>GreenRise CEA</td><td>AXIS · XXXX 1180</td><td>Vertical farm phase</td><td>₹92.8 L</td></tr>
+            </tbody>
+          </table>
+          <p>Instruction: invoices must refer only to “Operation CANOPY”. Public programme identity remains embargoed.</p>
+        </div>
+      );
+    case "exam":
+      return (
+        <div className={styles.wordDoc}>
+          <p className={styles.watermark}>SPECIMEN · NOT A LIVE EXAM PAPER</p>
+          <h3>Semester VI · Applied Systems Assessment</h3>
+          <p><b>Q4.</b> A CANOPY drip line uses 2 L/hr while overhead irrigation uses 9 L/hr for the same 40 plants. Calculate five-hour savings and identify a sensor that could validate flow. <b>[10]</b></p>
+          <p><b>Q5.</b> An autonomous rover flags three high-stress zones in a 112-acre field. Design a queue that prioritises intervention by yield risk. <b>[12]</b></p>
+          <p><b>Q6.</b> The CANOPY Bio-CNG digester loses 45% output when feedstock drops 30%. Explain the non-linear effect and propose telemetry. <b>[10]</b></p>
+          <blockquote>Moderator note: “Why are CANOPY field cases appearing across CS, design, management and biotech papers?”</blockquote>
+        </div>
+      );
+    case "students":
+      return (
+        <div className={styles.sheetDoc}>
+          <header><h3>CANOPY COHORT-ZERO · FIELD ACCESS EXPORT</h3><p>Names and identifiers redacted · synthetic records</p></header>
+          <div className={styles.rosterGrid + " " + styles.sheetGridHead}><span>Student</span><span>Discipline</span><span>Field hours</span><span>Prototype</span></div>
+          <div className={styles.rosterGrid}><span>A████ S████</span><span>Computer Science</span><span>142</span><span>Drone stress mapper</span></div>
+          <div className={styles.rosterGrid}><span>M████ R██</span><span>Biotechnology</span><span>118</span><span>Bio-CNG feed model</span></div>
+          <div className={styles.rosterGrid}><span>S████ D█████</span><span>Mechanical</span><span>96</span><span>Low-cost field rover</span></div>
+          <div className={styles.rosterGrid}><span>P████ K█████</span><span>Design</span><span>104</span><span>Farmer telemetry UX</span></div>
+          <p className={styles.docComment}>Academic status: credit-bearing field immersion · Patent ownership: retained by student inventor.</p>
+        </div>
+      );
+    case "wifi":
+      return (
+        <div className={styles.textDoc}>
+          <p># CANOPY field network handover</p>
+          <p># credentials below are fictional / non-functional</p>
+          <br />
+          <p>CANOPY-GREENHOUSE-01&nbsp;&nbsp;:&nbsp;&nbsp;[rotates weekly]</p>
+          <p>CANOPY-DRONE-BAY&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;[certificate only]</p>
+          <p>CANOPY-BIOCNG-SCADA&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;[hardware key]</p>
+          <p>CANOPY-COHORT-ZERO&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;[student badge auth]</p>
+          <p>CANOPY-VENTURE-LAB&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;[not commissioned]</p>
+          <br />
+          <p># Site: 112 acres · Gateway uplink: JGI private fibre</p>
+          <p># Do not expose programme name in SSID until launch approval.</p>
+        </div>
+      );
+    case "board":
+      return (
+        <div className={styles.pdfDoc}>
+          <p className={styles.classified}>BOARD EYES ONLY · OPERATION CANOPY</p>
+          <h3>Phase II Positioning Note</h3>
+          <p>CANOPY is not to be described as a “college farm”. The ₹14.38 crore commitment funds a living academic and venture system:</p>
+          <ul>
+            <li>students embedded in operational farmland for formal credit;</li>
+            <li>cross-disciplinary teams building against measurable field constraints;</li>
+            <li>student-owned patents and publications routed through an IP pipeline;</li>
+            <li>a venture studio moving viable prototypes into market pilots.</li>
+          </ul>
+          <p>Public recruitment is intentionally withheld. Cohort-one should be sourced through a limited discovery experience that selects for curiosity, judgement and persistence.</p>
+          <p className={styles.signature}>Approved in principle · JGI Strategic Projects Committee</p>
+        </div>
+      );
+  }
+}
