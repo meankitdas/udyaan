@@ -283,7 +283,7 @@ export const DEFAULT_FORM: SurveyForm = {
           id: "reflect_idea",
           type: "multichoice",
           label:
-            "Picture yourself six months into building this agri idea alone. What have you actually built, and what would convince you it's worth continuing?",
+            "Picture yourself six months into building this alone. What have you actually built, and what would convince you it's worth continuing?",
           required: true,
           options: [
             "A tested idea with early signal",

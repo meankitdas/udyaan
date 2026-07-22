@@ -35,45 +35,6 @@ function buildScreens(form: SurveyForm): Screen[] {
 
 type TimingDraft = Record<string, { activeMs: number; visits: number; changes: number }>;
 
-type SurveyDraft = {
-  answers: Record<string, AnswerValue>;
-  screenIndex: number;
-  maxVisitedSection: number;
-  timings: TimingDraft;
-  startedAt: string;
-  savedAt: string;
-};
-
-const draftKey = (formId: string) => `udyaan_survey_draft_${formId}`;
-
-function loadDraft(formId: string): SurveyDraft | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = window.localStorage.getItem(draftKey(formId));
-    return raw ? (JSON.parse(raw) as SurveyDraft) : null;
-  } catch {
-    return null;
-  }
-}
-
-function saveDraft(formId: string, draft: Omit<SurveyDraft, "savedAt">) {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(draftKey(formId), JSON.stringify({ ...draft, savedAt: new Date().toISOString() }));
-  } catch {
-    /* ignore storage quota / privacy-mode errors */
-  }
-}
-
-function clearDraft(formId: string) {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.removeItem(draftKey(formId));
-  } catch {
-    /* ignore */
-  }
-}
-
 export function SurveyApp() {
   const [form, setForm] = useState<SurveyForm | null>(null);
   const [screenIndex, setScreenIndex] = useState(0);
@@ -83,29 +44,17 @@ export function SurveyApp() {
   const [showErrors, setShowErrors] = useState(false);
   const [phase, setPhase] = useState<"loading" | "form" | "submitting" | "done">("loading");
   const [result, setResult] = useState<SurveyResponse | null>(null);
-  const [resumed, setResumed] = useState(false);
 
   const timingsRef = useRef<TimingDraft>({});
   const screenEnteredAtRef = useRef<number>(Date.now());
   const startedAtRef = useRef<string>(new Date().toISOString());
   const doneRef = useRef<HTMLDivElement>(null);
-  const restoreIndexRef = useRef<number | null>(null);
 
   useEffect(() => {
     fetchForm().then((f) => {
       setForm(f);
-      const draft = loadDraft(f.id);
-      if (draft) {
-        setAnswers(draft.answers ?? {});
-        setMaxVisitedSection(draft.maxVisitedSection ?? 0);
-        timingsRef.current = draft.timings ?? {};
-        startedAtRef.current = draft.startedAt ?? new Date().toISOString();
-        restoreIndexRef.current = draft.screenIndex ?? 0;
-        if (Object.keys(draft.answers ?? {}).length > 0) setResumed(true);
-      } else {
-        startedAtRef.current = new Date().toISOString();
-      }
       setPhase("form");
+      startedAtRef.current = new Date().toISOString();
       screenEnteredAtRef.current = Date.now();
     });
   }, []);
@@ -113,26 +62,6 @@ export function SurveyApp() {
   const screens = useMemo(() => (form ? buildScreens(form) : []), [form]);
   const screen = screens[screenIndex];
   const section = form && screen ? form.sections[screen.sectionIndex] : null;
-
-  // Restore the screen the respondent left off on, once screens are built.
-  useEffect(() => {
-    if (restoreIndexRef.current != null && screens.length) {
-      setScreenIndex(Math.min(Math.max(0, restoreIndexRef.current), screens.length - 1));
-      restoreIndexRef.current = null;
-    }
-  }, [screens]);
-
-  // Auto-save progress so a half-filled survey can be resumed later.
-  useEffect(() => {
-    if (phase !== "form" || !form) return;
-    saveDraft(form.id, {
-      answers,
-      screenIndex,
-      maxVisitedSection,
-      timings: timingsRef.current,
-      startedAt: startedAtRef.current,
-    });
-  }, [answers, screenIndex, maxVisitedSection, phase, form]);
 
   const commitScreenTime = useCallback(() => {
     if (!screen) return;
@@ -165,7 +94,6 @@ export function SurveyApp() {
   const goTo = useCallback(
     (nextIndex: number, dir: number) => {
       commitScreenTime();
-      setResumed(false);
       setDirection(dir);
       setShowErrors(false);
       setScreenIndex(nextIndex);
@@ -235,7 +163,6 @@ export function SurveyApp() {
     try {
       await submitResponse(response);
     } finally {
-      clearDraft(form.id);
       setResult(response);
       setPhase("done");
     }
@@ -378,12 +305,6 @@ export function SurveyApp() {
                     </>
                   )}
                 </header>
-
-                {resumed && (
-                  <div className="sv-banner">
-                    <span>Welcome back {"\u2014"} we saved your progress. Continue right where you left off.</span>
-                  </div>
-                )}
 
                 {screen.sectionIndex === 0 && form.collectEmails && (
                   <div className="sv-banner">

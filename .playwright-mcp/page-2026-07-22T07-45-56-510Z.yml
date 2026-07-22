@@ -1,0 +1,43 @@
+- generic [ref=f5e1]:
+  - generic [ref=f5e2]:
+    - complementary [ref=f5e4]:
+      - generic [ref=f5e5]:
+        - paragraph [ref=f5e6]: Udyaan Survey
+        - paragraph [ref=f5e7]:
+          - generic [ref=f5e8]: 🌱
+          - text: Section 1 of 7
+      - navigation "Survey sections" [ref=f5e9]:
+        - button "Start" [active] [ref=f5e10] [cursor=pointer]
+        - button "Details" [ref=f5e15] [cursor=pointer]
+        - button "Level 1" [ref=f5e20] [cursor=pointer]
+        - button "Level 2" [disabled] [ref=f5e26]
+        - button "Level 3" [disabled] [ref=f5e35]
+        - button "Reflect" [disabled] [ref=f5e41]
+        - button "Review" [disabled] [ref=f5e46]
+      - paragraph [ref=f5e53]:
+        - generic [ref=f5e54]: "01"
+        - text: / 07
+    - main [ref=f5e55]:
+      - generic [ref=f5e99]:
+        - generic [ref=f5e100]:
+          - heading "Are You Smarter Than a 5th Grader? – Farm Logic Test 🌱" [level=1] [ref=f5e101]
+          - paragraph [ref=f5e102]: Pass all 3 levels to prove your common sense.
+        - generic [ref=f5e103]: This form is automatically collecting emails from all respondents.
+        - generic [ref=f5e105]:
+          - generic [ref=f5e106]:
+            - generic [ref=f5e107]: Campus *
+            - button "School of Law" [ref=f5e109] [cursor=pointer]
+          - generic [ref=f5e114]:
+            - generic [ref=f5e115]: UG/PG *
+            - generic [ref=f5e116]:
+              - button "A UG" [ref=f5e117] [cursor=pointer]:
+                - generic [ref=f5e118]: A
+                - generic [ref=f5e119]: UG
+              - button "B PG" [ref=f5e120] [cursor=pointer]:
+                - generic [ref=f5e121]: B
+                - generic [ref=f5e122]: PG
+        - generic [ref=f5e123]:
+          - button "Back" [disabled] [ref=f5e124]
+          - button "Continue" [ref=f5e127] [cursor=pointer]
+  - button "Open Next.js Dev Tools" [ref=f5e87] [cursor=pointer]
+  - alert [ref=f5e91]
