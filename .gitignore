@@ -10,3 +10,7 @@ backend/data/
 __pycache__/
 tsconfig.tsbuildinfo
 backend/secrets/
+
+# Local tooling artifacts (VS Code Local History, Playwright MCP captures)
+.history/
+.playwright-mcp/

@@ -16,6 +16,7 @@ import {
   Network,
   Settings,
   ShieldCheck,
+  Sparkles,
   UserCheck,
   Users,
 } from "lucide-react";
@@ -47,6 +48,7 @@ const NAV_ICONS = {
   "action-items": ClipboardCheck,
   approvals: ShieldCheck,
   community: Network,
+  copilot: Sparkles,
   report: FileText,
   reports: FileText,
   settings: Settings,

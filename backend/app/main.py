@@ -40,6 +40,7 @@ try:
         projects as portal_projects,
         reports as portal_reports,
     )
+    from .portal.ai import router as portal_ai
 
     for _portal_router in (
         portal_auth.router,
@@ -50,6 +51,7 @@ try:
         portal_admin.router,
         portal_compliance.router,
         portal_community.router,
+        portal_ai.router,
     ):
         app.include_router(_portal_router, prefix="/portal")
     _PORTAL_ENABLED = True

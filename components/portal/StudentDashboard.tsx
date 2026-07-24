@@ -6,6 +6,7 @@ import { Eye, Pencil } from "lucide-react";
 import DashboardLayout from "./DashboardLayout";
 import CreateReport from "./CreateReport";
 import CommunityTab from "./CommunityTab";
+import AiCopilot from "./AiCopilot";
 import { API_BASE_URL, apiFetch, authHeaders } from "@/lib/portal-api";
 import type { ActionItem, NavItem, Profile, Project } from "@/lib/portal-types";
 
@@ -16,6 +17,7 @@ const TAB_TITLES: Record<string, string> = {
   projects: "My Projects",
   actions: "My Action Items",
   community: "Community",
+  copilot: "Udyaan Copilot",
   report: "Submit Report",
 };
 
@@ -337,6 +339,8 @@ export default function StudentDashboard() {
         return <CreateReport role="student" />;
       case "community":
         return <CommunityTab />;
+      case "copilot":
+        return <AiCopilot role="STUDENT" />;
       case "profile":
       default:
         return (
@@ -411,6 +415,7 @@ export default function StudentDashboard() {
     { id: "projects", label: "My Projects" },
     { id: "actions", label: "My Action Items" },
     { id: "community", label: "Community" },
+    { id: "copilot", label: "Udyaan Copilot" },
     { id: "report", label: "Submit Report" },
   ];
 

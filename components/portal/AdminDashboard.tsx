@@ -6,6 +6,7 @@ import DashboardLayout from "./DashboardLayout";
 import CreateProject from "./CreateProject";
 import ProjectList from "./ProjectList";
 import InsightsTab from "./InsightsTab";
+import AiCopilot from "./AiCopilot";
 import { API_BASE_URL, apiFetch, authHeaders } from "@/lib/portal-api";
 import type { ActionItem, NavItem, Organization, PortalUser, Profile } from "@/lib/portal-types";
 
@@ -14,6 +15,7 @@ type EditFormData = { full_name: string; phone: string; organization_id: string 
 const TAB_TITLES: Record<string, string> = {
   profile: "My Profile",
   insights: "Insights",
+  copilot: "Udyaan Copilot",
   students: "Students",
   mentors: "Mentors",
   "create-project": "Create Project",
@@ -309,6 +311,8 @@ export default function AdminDashboard() {
         return <ProjectList />;
       case "insights":
         return <InsightsTab />;
+      case "copilot":
+        return <AiCopilot role="ADMIN" />;
       case "students": {
         const students = orgUsers.filter((u) => u.role_key === "STUDENT");
         return (
@@ -597,6 +601,7 @@ export default function AdminDashboard() {
   const navItems: NavItem[] = [
     { id: "profile", label: "My Profile" },
     { id: "insights", label: "Insights" },
+    { id: "copilot", label: "Udyaan Copilot" },
     { id: "students", label: "Students" },
     { id: "mentors", label: "Mentors" },
     { id: "create-project", label: "Create Project" },

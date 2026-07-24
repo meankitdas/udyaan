@@ -107,3 +107,51 @@ export type OrgInsights = {
   action_items_overdue: number;
   upcoming_deadlines: { id: string; title: string; deadline: string; status?: string }[];
 };
+
+// ---- AI copilot ----
+
+export type AiCitation = {
+  kind: string;
+  ref_id: string;
+  title: string;
+  score: number;
+};
+
+export type AiChatResponse = {
+  answer: string;
+  citations: AiCitation[];
+  trace: { tool: string; args?: Record<string, unknown>; chars?: number }[];
+  model: string;
+};
+
+export type AiMessage = {
+  role: "user" | "assistant";
+  content: string;
+  citations?: AiCitation[];
+  trace?: AiChatResponse["trace"];
+};
+
+export type AiStatus = {
+  generation: string;
+  model: string;
+  retrieval: string;
+  organization_id?: string | null;
+};
+
+export type ProjectBrief = {
+  title?: string;
+  category?: string;
+  description?: string;
+  project_type?: string;
+  required_skills?: string;
+  duration?: string;
+  deliverables?: string;
+  milestones?: { week?: string; goal?: string }[];
+};
+
+export type MeetingSummary = {
+  summary?: string;
+  decisions?: string[];
+  action_items?: { title?: string; owner?: string; due_hint?: string; urgency?: string }[];
+  risks?: string[];
+};

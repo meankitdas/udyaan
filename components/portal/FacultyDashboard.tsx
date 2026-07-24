@@ -6,6 +6,7 @@ import DashboardLayout from "./DashboardLayout";
 import ProjectList from "./ProjectList";
 import CreateReport from "./CreateReport";
 import CommunityTab from "./CommunityTab";
+import AiCopilot from "./AiCopilot";
 import { API_BASE_URL, apiFetch, authHeaders } from "@/lib/portal-api";
 import type { NavItem, Organization, Profile } from "@/lib/portal-types";
 
@@ -15,6 +16,7 @@ const TAB_TITLES: Record<string, string> = {
   profile: "My Profile",
   "view-projects": "Projects",
   community: "Community",
+  copilot: "Udyaan Copilot",
   report: "Submit Report",
 };
 
@@ -184,6 +186,8 @@ export default function FacultyDashboard() {
         return <CreateReport role="faculty" />;
       case "community":
         return <CommunityTab />;
+      case "copilot":
+        return <AiCopilot role="FACULTY" />;
       case "profile":
       default:
         return (
@@ -257,6 +261,7 @@ export default function FacultyDashboard() {
     { id: "profile", label: "My Profile" },
     { id: "view-projects", label: "View Projects" },
     { id: "community", label: "Community" },
+    { id: "copilot", label: "Udyaan Copilot" },
     { id: "report", label: "Submit Report" },
   ];
 
