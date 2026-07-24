@@ -1,0 +1,25 @@
+- generic [active] [ref=f1e1]:
+  - generic [ref=f1e2]:
+    - link "🍃 Udyaan" [ref=f1e3] [cursor=pointer]:
+      - /url: /
+      - generic [ref=f1e4]: 🍃
+      - text: Udyaan
+    - generic [ref=f1e5]:
+      - generic [ref=f1e6]:
+        - heading "Welcome Back" [level=2] [ref=f1e7]
+        - paragraph [ref=f1e8]: Sign in to continue to your dashboard
+      - generic [ref=f1e9]:
+        - generic [ref=f1e10]:
+          - generic [ref=f1e11]: Email Address
+          - textbox "name@example.com" [ref=f1e12]
+        - generic [ref=f1e13]:
+          - generic [ref=f1e14]: Password
+          - textbox "Enter your password" [ref=f1e15]
+        - link "Forgot Password?" [ref=f1e17] [cursor=pointer]:
+          - /url: /forgot-password
+        - button "Sign In" [ref=f1e18] [cursor=pointer]
+      - paragraph [ref=f1e20]:
+        - text: Don't have an account?
+        - link "Sign Up" [ref=f1e21] [cursor=pointer]:
+          - /url: /signup
+  - alert [ref=f1e22]

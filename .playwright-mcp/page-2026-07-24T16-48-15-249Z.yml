@@ -1,0 +1,26 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - link "🍃 Udyaan" [ref=e3] [cursor=pointer]:
+      - /url: /
+      - generic [ref=e4]: 🍃
+      - text: Udyaan
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - heading "Welcome Back" [level=2] [ref=e7]
+        - paragraph [ref=e8]: Sign in to continue to your dashboard
+      - generic [ref=e9]:
+        - generic [ref=e10]:
+          - generic [ref=e11]: Email Address
+          - textbox "name@example.com" [ref=e12]
+        - generic [ref=e13]:
+          - generic [ref=e14]: Password
+          - textbox "Enter your password" [ref=e15]
+        - link "Forgot Password?" [ref=e17] [cursor=pointer]:
+          - /url: /forgot-password
+        - button "Sign In" [ref=e18] [cursor=pointer]
+      - paragraph [ref=e20]:
+        - text: Don't have an account?
+        - link "Sign Up" [ref=e21] [cursor=pointer]:
+          - /url: /signup
+  - button "Open Next.js Dev Tools" [ref=e27] [cursor=pointer]
+  - alert [ref=e31]

@@ -1,0 +1,369 @@
+{
+  "id": "farm-logic-test",
+  "title": "Are You Smarter Than a 5th Grader? – Farm Logic Test 🌱",
+  "subtitle": "90% of engineers fail this simple farm logic test.",
+  "published": true,
+  "collectEmails": true,
+  "updatedAt": "2026-07-21T00:00:00.000Z",
+  "sections": [
+    {
+      "id": "start",
+      "title": "Start",
+      "heading": "Are You Smarter Than a 5th Grader? – Farm Logic Test 🌱",
+      "subheading": "Pass all 3 levels to prove your common sense.",
+      "icon": "sprout",
+      "questions": [
+        {
+          "id": "campus",
+          "type": "select",
+          "label": "Campus",
+          "placeholder": "Select campus",
+          "required": true,
+          "options": [
+            "School of Commerce",
+            "School of Engineering and Technology",
+            "School of Aerospace Engineering",
+            "School of Computer Science and Engineering",
+            "School of Sciences",
+            "School of Computer Science and IT",
+            "School of Allied Healthcare and Sciences",
+            "School of Design, Media and Creative Arts",
+            "School of Aviation and Aerospace Management",
+            "School of Sports Education and Research",
+            "School of Law",
+            "CMS Business School - Lalbagh",
+            "CMS Business School - Seshadri"
+          ]
+        },
+        {
+          "id": "ug_pg",
+          "type": "choice",
+          "label": "UG/PG",
+          "required": true,
+          "options": [
+            "UG",
+            "PG"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "details",
+      "title": "Details",
+      "heading": "Candidate Details",
+      "subheading": "This information is only used to share your result and feedback.",
+      "icon": "person",
+      "questions": [
+        {
+          "id": "full_name",
+          "type": "text",
+          "label": "Full Name",
+          "placeholder": "Your full name",
+          "required": true
+        },
+        {
+          "id": "email",
+          "type": "email",
+          "label": "Email ID",
+          "placeholder": "you@example.com",
+          "required": true
+        },
+        {
+          "id": "phone",
+          "type": "phone",
+          "label": "Phone Number",
+          "placeholder": "+91",
+          "required": true
+        },
+        {
+          "id": "location",
+          "type": "select",
+          "label": "Location",
+          "placeholder": "Select location",
+          "required": true,
+          "options": [
+            "Bangalore",
+            "Kochi"
+          ]
+        },
+        {
+          "id": "department",
+          "type": "select",
+          "label": "Department",
+          "placeholder": "Select department",
+          "required": true,
+          "options": [
+            "Department of Humanities & Social Sciences",
+            "Department of Economics",
+            "Department of Journalism and Mass Communication",
+            "Department of Languages",
+            "Department of Law",
+            "Department of Performing Arts and Cultural Studies",
+            "Department of Computer Science and IT",
+            "Department of Allied Healthcare and Sciences",
+            "Department of Biotechnology and Genetics",
+            "Department of Chemistry and Biochemistry",
+            "Department of Data Analytics and Mathematical Science",
+            "Department of Forensic Science",
+            "Department of Microbiology and Botany",
+            "Department of Physics and Electronics",
+            "Department of Psychology and Allied Sciences",
+            "Department of Animation and Virtual Reality",
+            "Department of Commerce",
+            "Department of Art and Design",
+            "Department of Design",
+            "Department of Aerospace Engineering",
+            "Department of Computer Science and Engineering",
+            "Department of Electrical and Electronics Engineering",
+            "Department of Electronics and Communication Engineering",
+            "Department of Food Technology",
+            "Department of Information Science and Engineering",
+            "Department of Civil Engineering",
+            "Department of Mechanical Engineering",
+            "Department of Management Studies - UG",
+            "Area - School of Sports Education and Research",
+            "CeRSSE",
+            "Department of Management Studies - PG",
+            "Department of Art and Design (Interior Design)"
+          ]
+        },
+        {
+          "id": "course",
+          "type": "text",
+          "label": "Course",
+          "placeholder": "e.g. B.Tech CSE",
+          "required": true
+        },
+        {
+          "id": "usn",
+          "type": "text",
+          "label": "USN",
+          "placeholder": "University Seat Number",
+          "required": true
+        },
+        {
+          "id": "cv",
+          "type": "file",
+          "label": "CV",
+          "required": false
+        }
+      ]
+    },
+    {
+      "id": "level1",
+      "title": "Level 1",
+      "heading": "Level 1 — Basic Farm Logic 🌾",
+      "subheading": "Common sense first. A 5th grader gets these right.",
+      "icon": "leaf",
+      "questions": [
+        {
+          "id": "l1_q1",
+          "type": "choice",
+          "label": "A plant is turning yellow. What should you do?",
+          "required": true,
+          "image": "/survey/1.jpg",
+          "options": [
+            "Pour more water.",
+            "Check if the soil is too wet."
+          ],
+          "correctOption": "Check if the soil is too wet.",
+          "points": 1
+        },
+        {
+          "id": "l1_q2",
+          "type": "choice",
+          "label": "Market Alert! Tomato prices dropped to ₹2/kg. What do you do?",
+          "required": true,
+          "image": "/survey/2.png",
+          "options": [
+            "Harvest and sell immediately.",
+            "Wait or make Tomato Puree."
+          ],
+          "correctOption": "Wait or make Tomato Puree.",
+          "points": 1
+        },
+        {
+          "id": "l1_q3",
+          "type": "choice",
+          "label": "It is noon and 35°C outside. When should you water crops?",
+          "required": true,
+          "image": "/survey/3.png",
+          "options": [
+            "Turn on the sprinklers now.",
+            "Wait until evening."
+          ],
+          "correctOption": "Wait until evening.",
+          "points": 1
+        }
+      ]
+    },
+    {
+      "id": "level2",
+      "title": "Level 2",
+      "heading": "Level 2 — Jugaad Workshop",
+      "subheading": "Fix the problem using everyday items.",
+      "icon": "tractor",
+      "questions": [
+        {
+          "id": "l2_q1",
+          "type": "choice",
+          "label": "The river water is muddy and pipes will get clogged. Which combination makes a basic filter?",
+          "required": true,
+          "options": [
+            "Bucket + Sand + Stones + Cloth",
+            "Bottle + Rope",
+            "Plastic sheet only"
+          ],
+          "correctOption": "Bucket + Sand + Stones + Cloth",
+          "points": 1
+        },
+        {
+          "id": "l2_q2",
+          "type": "choice",
+          "label": "An irrigation pipe is leaking and the shop is closed. What is the temporary fix?",
+          "required": true,
+          "options": [
+            "Rubber strip + Wire / Clamp",
+            "Sand only",
+            "Plastic bottle"
+          ],
+          "correctOption": "Rubber strip + Wire / Clamp",
+          "points": 1
+        },
+        {
+          "id": "l2_q3",
+          "type": "choice",
+          "label": "Bugs are destroying your leaves and no chemicals are available. Choose the best trap.",
+          "required": true,
+          "options": [
+            "Yellow plastic sheet + oil/grease",
+            "Water spray",
+            "Rope fence"
+          ],
+          "correctOption": "Yellow plastic sheet + oil/grease",
+          "points": 1
+        }
+      ]
+    },
+    {
+      "id": "level3",
+      "title": "Level 3",
+      "heading": "Level 3 — Udyaan Tycoon",
+      "subheading": "You start with ₹10,000. Make smart decisions.",
+      "icon": "chart",
+      "questions": [
+        {
+          "id": "l3_q1",
+          "type": "choice",
+          "label": "Which seeds will you buy?",
+          "required": true,
+          "options": [
+            "Cheap seeds (₹100)",
+            "Certified high-yield seeds (₹500)"
+          ],
+          "correctOption": "Certified high-yield seeds (₹500)",
+          "points": 1
+        },
+        {
+          "id": "l3_q2",
+          "type": "choice",
+          "label": "Heavy rains predicted! What do you do?",
+          "required": true,
+          "options": [
+            "Spend ₹2000 on drainage",
+            "Save money and sow seeds for the next hours"
+          ],
+          "correctOption": "Spend ₹2000 on drainage",
+          "points": 1
+        },
+        {
+          "id": "l3_q3",
+          "type": "choice",
+          "label": "How will you sell your produce?",
+          "required": true,
+          "options": [
+            "Sell to middleman (low price, instant income, no risk)",
+            "Sell directly to apartments (high effort, high profit)"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "title": "Reflect",
+      "heading": "Reflection & Intent Questions",
+      "subheading": "A few honest, open questions — there's no right answer here.",
+      "icon": "spiral",
+      "questions": [
+        {
+          "id": "reflect_interest",
+          "type": "multichoice",
+          "label": "What's pulling you toward agriculture specifically, and what are you actually willing to risk to build something in it on your own?",
+          "required": true,
+          "options": [
+            "Personal stake, willing to bet time",
+            "A gap I can see clearly, willing to bet skill",
+            "Genuine curiosity, willing to test conviction",
+            "A practical opportunity I want to commit to conditionally"
+          ]
+        },
+        {
+          "id": "reflect_decision",
+          "type": "multichoice",
+          "label": "Describe a time you had to make a call on your own, with no one to check it against. What happened?",
+          "required": true,
+          "options": [
+            "It worked out, and I'd do it again",
+            "It didn't fully work, and I learned from it",
+            "I sought out a proxy for judgment",
+            "I hesitated, and that was the real lesson"
+          ]
+        },
+        {
+          "id": "reflect_improve",
+          "type": "multichoice",
+          "label": "Tell us about a setback or rejection in something you were building or pursuing. How did you respond, and did you continue?",
+          "required": true,
+          "options": [
+            "I adjusted the approach and kept going",
+            "I paused, reconsidered, and came back differently",
+            "I let it end, and that was the right call",
+            "I'm still in it, unresolved"
+          ]
+        },
+        {
+          "id": "reflect_resource",
+          "type": "multichoice",
+          "label": "How would you find out if an agri idea is actually worth building, before you spend months on it?",
+          "required": true,
+          "options": [
+            "Talk to the people who'd use it first",
+            "Build the smallest possible version and test it",
+            "Look for existing evidence first",
+            "Use my own direct experience as the first signal"
+          ]
+        },
+        {
+          "id": "reflect_idea",
+          "type": "multichoice",
+          "label": "Picture yourself six months into building this agri idea alone. What have you actually built, and what would convince you it's worth continuing?",
+          "required": true,
+          "options": [
+            "A tested idea with early signal",
+            "A working prototype, even if rough",
+            "Clarity on the problem, even without a product yet",
+            "Evidence I was wrong, and a better direction because of it"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "review",
+      "title": "Review",
+      "heading": "Review & Submit 🎊",
+      "subheading": "Check your answers before you submit. You can go back to any section.",
+      "icon": "confetti",
+      "questions": []
+    }
+  ]
+}

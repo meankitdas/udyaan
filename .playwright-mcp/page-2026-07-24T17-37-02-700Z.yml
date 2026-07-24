@@ -1,0 +1,47 @@
+- generic [ref=f12e1]:
+  - generic [ref=f12e2]:
+    - generic [ref=f12e3]:
+      - generic [ref=f12e4] [cursor=pointer]:
+        - img "Udyaan Logo" [ref=f12e5]
+        - generic [ref=f12e6]: Admin Portal
+      - paragraph [ref=f12e7]: Workspace
+      - navigation [ref=f12e8]:
+        - button "My Profile" [ref=f12e9] [cursor=pointer]
+        - button "Insights" [ref=f12e16] [cursor=pointer]
+        - button "Students" [ref=f12e20] [cursor=pointer]
+        - button "Mentors" [ref=f12e25] [cursor=pointer]
+        - button "Create Project" [ref=f12e32] [cursor=pointer]
+        - button "View Projects" [ref=f12e37] [cursor=pointer]
+        - button "Action Items" [ref=f12e41] [cursor=pointer]
+        - button "Pending Approvals" [ref=f12e47] [cursor=pointer]
+      - button "Logout" [ref=f12e53] [cursor=pointer]
+    - main [ref=f12e57]:
+      - generic [ref=f12e58]:
+        - button "Close navigation" [active] [ref=f12e106] [cursor=pointer]
+        - heading "Admin Dashboard" [level=1] [ref=f12e61]
+      - generic [ref=f12e68]:
+        - generic [ref=f12e69]:
+          - generic [ref=f12e70]: "N"
+          - generic [ref=f12e71]:
+            - heading "Nikhileshwar KM" [level=2] [ref=f12e72]
+            - generic [ref=f12e73]: Organization Admin
+        - generic [ref=f12e74]:
+          - generic [ref=f12e75]:
+            - heading "Contact Information" [level=4] [ref=f12e76]
+            - generic [ref=f12e77]:
+              - generic [ref=f12e78]: Email Address
+              - generic [ref=f12e79]: nikhil365412@gmail.com
+            - generic [ref=f12e80]:
+              - generic [ref=f12e81]: Phone Number
+              - generic [ref=f12e82]: "9901926536"
+          - generic [ref=f12e83]:
+            - heading "Organization Details" [level=4] [ref=f12e84]
+            - generic [ref=f12e85]:
+              - generic [ref=f12e86]: Organization ID
+              - generic [ref=f12e87]: ORG020626001
+            - generic [ref=f12e88]:
+              - generic [ref=f12e89]: Account Status
+              - generic [ref=f12e90]: Active
+        - button "✏️ Edit Profile" [ref=f12e92] [cursor=pointer]
+  - button "Open Next.js Dev Tools" [ref=f12e98] [cursor=pointer]
+  - alert [ref=f12e102]
