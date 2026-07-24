@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Bot, Loader2, RefreshCw, Send, Sparkles, User2 } from "lucide-react";
+import Markdown from "./Markdown";
 import { API_BASE_URL, apiFetch, authHeaders, friendlyError } from "@/lib/portal-api";
 import type { AiChatResponse, AiMessage, AiStatus } from "@/lib/portal-types";
 
@@ -18,6 +19,14 @@ const SUGGESTIONS: Record<string, string[]> = {
     "Who are the top contributors right now?",
     "Which students have drone or data skills?",
   ],
+};
+
+/** Raw tool names are developer-speak; show what actually happened instead. */
+const TOOL_LABELS: Record<string, string> = {
+  search_workspace: "Searched your workspace",
+  get_my_action_items: "Checked your action items",
+  get_org_analytics: "Reviewed organization analytics",
+  find_people: "Looked for people with matching skills",
 };
 
 export default function AiCopilot({ role = "DEFAULT" }: { role?: string }) {
@@ -136,7 +145,11 @@ export default function AiCopilot({ role = "DEFAULT" }: { role?: string }) {
                 {m.role === "user" ? <User2 size={15} aria-hidden /> : <Bot size={15} aria-hidden />}
               </span>
               <div className="ai-bubble">
-                <div className="ai-text">{m.content}</div>
+                {m.role === "assistant" ? (
+                  <Markdown content={m.content} />
+                ) : (
+                  <div className="ai-text">{m.content}</div>
+                )}
 
                 {!!m.citations?.length && (
                   <div className="ai-cites">
@@ -153,12 +166,17 @@ export default function AiCopilot({ role = "DEFAULT" }: { role?: string }) {
                   <details className="ai-trace">
                     <summary>How I found this ({m.trace.length} step{m.trace.length > 1 ? "s" : ""})</summary>
                     <ol>
-                      {m.trace.map((t, j) => (
-                        <li key={j}>
-                          <code>{t.tool}</code>
-                          {t.args && Object.keys(t.args).length > 0 && ` — ${JSON.stringify(t.args)}`}
-                        </li>
-                      ))}
+                      {m.trace.map((t, j) => {
+                        const query = typeof t.args?.query === "string" ? t.args.query : null;
+                        const skill = typeof t.args?.skill === "string" ? t.args.skill : null;
+                        const detail = query ?? skill;
+                        return (
+                          <li key={j}>
+                            {TOOL_LABELS[t.tool] ?? t.tool}
+                            {detail && <em>&nbsp;— &ldquo;{detail}&rdquo;</em>}
+                          </li>
+                        );
+                      })}
                     </ol>
                   </details>
                 )}

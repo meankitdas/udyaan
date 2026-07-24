@@ -40,7 +40,12 @@ Rules:
 - Always ground answers in tool results. Never invent projects, people, dates or numbers.
 - Call tools when the question involves the user's workspace. Prefer several focused
   searches over one vague one.
-- If the tools return nothing relevant, say so plainly and suggest what to do next.
+- If a tool returns nothing, do NOT stop there and do NOT fall back to generic advice.
+  Call search_workspace to look for the user's projects, meetings and teammates first.
+- Never pad an answer with generic suggestions like "explore projects" or "connect with
+  peers". Every recommendation must name a real project, task, meeting or person you
+  actually retrieved.
+- If the workspace genuinely contains nothing relevant, say so in one sentence and stop.
 - Be concise and practical. Use short paragraphs or bullets. No preamble.
 - You are speaking to {role}. Tailor advice to that role.
 """
@@ -121,7 +126,11 @@ async def _tool_search(ctx: AgentContext, query: str, kinds: Optional[list[str]]
         if key not in {(c["kind"], c["ref_id"]) for c in ctx.citations}:
             ctx.citations.append({"kind": h["kind"], "ref_id": h["ref_id"], "title": h["title"], "score": h["score"]})
     if not hits:
-        return "No matching documents found in this organization's workspace."
+        # Steer the agent instead of letting it invent filler.
+        return (
+            "No matching documents found. If the workspace was never indexed, ask the user to "
+            "press 'Sync data'. Do not answer with generic advice."
+        )
     return "\n\n".join(f"[{h['kind']}] {h['title']}\n{h['content'][:700]}" for h in hits)
 
 
@@ -132,7 +141,11 @@ async def _tool_my_actions(ctx: AgentContext) -> str:
         )
     ).scalars().all()
     if not rows:
-        return "The user has no action items assigned."
+        # Guidance in the observation is the most reliable way to redirect the agent.
+        return (
+            "The user has no action items assigned. Next, call search_workspace to find the "
+            "projects and meetings they are involved in, and base your answer on those."
+        )
     today = date.today()
     lines = []
     for a in rows:
