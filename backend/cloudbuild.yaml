@@ -14,6 +14,7 @@ substitutions:
   _REPO: udyaan
   _FRONTEND_URL: https://udyaan.org
   _MAIL_FROM: info@udyaan.org
+  _CORS_ORIGINS: https://udyaan.org,https://www.udyaan.org,https://udyaan.vercel.app,http://localhost:3000
 
 steps:
   - name: gcr.io/cloud-builders/docker
@@ -38,7 +39,9 @@ steps:
       - --region=${_REGION}
       - --platform=managed
       - --allow-unauthenticated
-      - --set-env-vars=GCP_PROJECT=$PROJECT_ID,FRONTEND_URL=${_FRONTEND_URL},MAIL_FROM=${_MAIL_FROM}
+      # Custom delimiter (^|^) so commas inside CORS_ORIGINS don't get split as
+      # separate --set-env-vars entries (gcloud default-parses on ",").
+      - --set-env-vars=^|^GCP_PROJECT=$PROJECT_ID|FRONTEND_URL=${_FRONTEND_URL}|MAIL_FROM=${_MAIL_FROM}|CORS_ORIGINS=${_CORS_ORIGINS}
       - --update-secrets=AZURE_OPENAI_API_KEY=azure-openai-api-key:latest,JWT_SECRET=udyaan-jwt-secret:latest,ADMIN_PASSWORD=udyaan-admin-password:latest,DATABASE_URL=udyaan-database-url:latest,SECRET_KEY=udyaan-secret-key:latest,REDIS_URL=udyaan-redis-url:latest,MAIL_USERNAME=udyaan-mail-username:latest,MAIL_PASSWORD=udyaan-mail-password:latest
 
 images:

@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { RemoteArchive } from "@/components/game/RemoteArchive";
+import { SeedJourney } from "@/components/game/SeedJourney";
 
 export const metadata: Metadata = {
-  title: "Remote Desktop Connection",
-  description: "Interactive fiction: a fictional remote archive session.",
+  title: "Grow the secret",
+  description: "An interactive Udyaan experience.",
   robots: { index: false, follow: false },
 };
 
 export default function SecretPage() {
-  return <RemoteArchive />;
+  return <SeedJourney />;
 }

@@ -8,6 +8,7 @@ import type { AnswerValue, Question, QuestionTiming, SurveyForm, SurveyResponse 
 import { computeQuizScore, formatDuration, uid } from "@/lib/survey";
 import { fetchForm, submitResponse } from "@/lib/api";
 import { SurveySidebar } from "./Sidebar";
+import { SurveyIntro } from "./SurveyIntro";
 import { QuestionField, isAnswered } from "./fields";
 import { ArrowLeft, ArrowRight } from "./icons";
 
@@ -45,6 +46,7 @@ type SurveyDraft = {
 };
 
 const draftKey = (formId: string) => `udyaan_survey_draft_${formId}`;
+const introKey = "udyaan_survey_intro_watched";
 
 function loadDraft(formId: string): SurveyDraft | null {
   if (typeof window === "undefined") return null;
@@ -84,12 +86,35 @@ export function SurveyApp() {
   const [phase, setPhase] = useState<"loading" | "form" | "submitting" | "done">("loading");
   const [result, setResult] = useState<SurveyResponse | null>(null);
   const [resumed, setResumed] = useState(false);
+  const [intro, setIntro] = useState<"checking" | "playing" | "done">("checking");
 
   const timingsRef = useRef<TimingDraft>({});
   const screenEnteredAtRef = useRef<number>(Date.now());
   const startedAtRef = useRef<string>(new Date().toISOString());
   const doneRef = useRef<HTMLDivElement>(null);
   const restoreIndexRef = useRef<number | null>(null);
+
+  // The intro film plays once per browser session; a refresh mid-survey should
+  // not force the respondent to sit through it again.
+  useEffect(() => {
+    let watched = false;
+    try {
+      watched = window.sessionStorage.getItem(introKey) === "1";
+    } catch {
+      /* ignore privacy-mode errors */
+    }
+    setIntro(watched ? "done" : "playing");
+  }, []);
+
+  const finishIntro = useCallback(() => {
+    try {
+      window.sessionStorage.setItem(introKey, "1");
+    } catch {
+      /* ignore */
+    }
+    setIntro("done");
+    screenEnteredAtRef.current = Date.now();
+  }, []);
 
   useEffect(() => {
     fetchForm().then((f) => {
@@ -277,7 +302,11 @@ export function SurveyApp() {
     return () => ctx.revert();
   }, [phase, result]);
 
-  if (phase === "loading" || !form) {
+  if (intro === "playing") {
+    return <SurveyIntro onComplete={finishIntro} />;
+  }
+
+  if (intro === "checking" || phase === "loading" || !form) {
     return (
       <div className="sv-shell sv-shell-center">
         <motion.p
