@@ -64,6 +64,25 @@ export type Meeting = {
   mom_content?: string;
 };
 
+// ---- Project management tool integrations ----
+
+export type ProjectToolStatus = "Proposed" | "Approved" | "Declined";
+
+export type ProjectTool = {
+  id: string;
+  project_id: string;
+  tool_key: string;
+  name: string;
+  url?: string | null;
+  purpose?: string | null;
+  status: ProjectToolStatus;
+  review_note?: string | null;
+  proposed_by: string;
+  proposed_by_name?: string | null;
+  decided_by?: string | null;
+  created_at?: string | null;
+};
+
 // ---- Community & insights ----
 
 export type PeerMatch = {

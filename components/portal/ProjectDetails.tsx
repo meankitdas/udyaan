@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Pencil, Plus, Sparkles } from "lucide-react";
 import DashboardLayout from "./DashboardLayout";
+import ProjectTools from "./ProjectTools";
 import { API_BASE_URL, apiFetch, authHeaders, friendlyError, getToken, roleHome } from "@/lib/portal-api";
 import type { ActionItem, Meeting, NavItem, Profile, Project } from "@/lib/portal-types";
 
@@ -79,6 +80,7 @@ export default function ProjectDetails() {
     { id: "overview", label: "Project Overview" },
     { id: "meetings", label: "Minutes of Meeting" },
     { id: "actions", label: "Action Taken Report" },
+    { id: "tools", label: "Workspace Tools" },
   ];
 
   const handleTabChange = (tabId: string) => {
@@ -559,6 +561,9 @@ export default function ProjectDetails() {
       {activeTab === "overview" && renderOverview()}
       {activeTab === "meetings" && renderMeetings()}
       {activeTab === "actions" && renderActions()}
+      {activeTab === "tools" && id && (
+        <ProjectTools projectId={id} canReview={canManage} currentUserId={profile?.id} />
+      )}
     </DashboardLayout>
   );
 }

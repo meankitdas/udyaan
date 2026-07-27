@@ -146,16 +146,22 @@ function BrandMark() {
   );
 }
 
+const AD_CTA_HREF = "/survey";
+
 const AD_CREATIVES = [
   {
+    src: "/ad1.mp4",
+    poster: undefined,
     kicker: "Udyaan",
     headline: "Grow what matters.",
     body: "One practical observation. One solution with real-world impact.",
     ctaTitle: "Udyaan",
     ctaSubtitle: "Build a real agri venture",
-    ctaAction: "Learn more",
+    ctaAction: "Apply now",
   },
   {
+    src: "/udyaan-aerial.mp4",
+    poster: "/udyaan-aerial-poster.jpg",
     kicker: "Udyaan",
     headline: "Ideas take root here.",
     body: "Test your conviction, build independently, and turn problems into ventures.",
@@ -221,8 +227,8 @@ function AdBreak({
       <video
         ref={video}
         className={styles.adVideo}
-        src="/udyaan-aerial.mp4"
-        poster="/udyaan-aerial-poster.jpg"
+        src={copy.src}
+        poster={copy.poster}
         playsInline
         muted
         autoPlay
@@ -277,7 +283,7 @@ function AdBreak({
           <div className={styles.adEndActions}>
             <a
               className={styles.adEndCta}
-              href="/"
+              href={AD_CTA_HREF}
               target="_blank"
               rel="noreferrer"
             >
@@ -296,7 +302,7 @@ function AdBreak({
             <strong>{copy.ctaTitle}</strong>
             <small>{copy.ctaSubtitle}</small>
           </span>
-          <a className={styles.adCtaButton} href="/" target="_blank" rel="noreferrer">
+          <a className={styles.adCtaButton} href={AD_CTA_HREF} target="_blank" rel="noreferrer">
             {copy.ctaAction}
           </a>
         </div>

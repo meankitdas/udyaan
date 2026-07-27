@@ -1,10 +1,31 @@
 services:
+  # Local portal database. Isolated from any deployed instance on purpose:
+  # the API runs create_all on boot, so dev must never point at production.
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: udyaan
+      POSTGRES_PASSWORD: udyaan_local_dev
+      POSTGRES_DB: udyaan
+    ports:
+      - "5433:5432"
+    volumes:
+      - portal-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U udyaan -d udyaan"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   api:
     build: .
     ports:
       - "8080:8080"
     env_file:
       - .env
+    depends_on:
+      db:
+        condition: service_healthy
     volumes:
       - api-data:/srv/data
     healthcheck:
@@ -15,3 +36,4 @@ services:
 
 volumes:
   api-data:
+  portal-db:

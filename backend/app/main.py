@@ -37,6 +37,7 @@ try:
         organizations as portal_organizations,
         project_compliance as portal_compliance,
         project_heads as portal_project_heads,
+        project_tools as portal_project_tools,
         projects as portal_projects,
         reports as portal_reports,
     )
@@ -50,6 +51,7 @@ try:
         portal_reports.router,
         portal_admin.router,
         portal_compliance.router,
+        portal_project_tools.router,
         portal_community.router,
         portal_ai.router,
     ):

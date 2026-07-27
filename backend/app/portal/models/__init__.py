@@ -6,4 +6,5 @@ from .organization import Organization
 from .project import Project
 from .report import Report
 from .project_compliance import ProjectMeeting, ActionItem
+from .project_tool import ProjectTool
 from .ai import AiDocument
