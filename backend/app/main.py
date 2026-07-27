@@ -1,5 +1,10 @@
-from fastapi import FastAPI
+import math
+
+from fastapi import FastAPI, Request, status
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from .config import get_settings
 from .rag.embeddings import get_vector_store
@@ -21,6 +26,29 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.exception_handler(RequestValidationError)
+async def json_safe_validation_error(request: Request, exc: RequestValidationError) -> JSONResponse:
+    """Keep unserializable input out of the 422 body.
+
+    A body containing the non-standard JSON literals `NaN`/`Infinity` parses
+    fine, then fails validation -- but the default handler echoes the offending
+    value back in the error payload, where `json.dumps` cannot encode it. The
+    response render then fails and the client sees a 500 instead of the
+    validation error. Dropping just the echoed value preserves the 422.
+    """
+    errors = []
+    for error in exc.errors():
+        value = error.get("input")
+        if isinstance(value, float) and not math.isfinite(value):
+            error = {**error, "input": None}
+        errors.append(error)
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={"detail": jsonable_encoder(errors)},
+    )
+
+
 app.include_router(auth.router)
 app.include_router(forms.router)
 app.include_router(responses.router)
@@ -39,6 +67,7 @@ try:
         project_heads as portal_project_heads,
         project_impact as portal_project_impact,
         project_tools as portal_project_tools,
+        project_updates as portal_project_updates,
         projects as portal_projects,
         reports as portal_reports,
     )
@@ -54,6 +83,7 @@ try:
         portal_compliance.router,
         portal_project_tools.router,
         portal_project_impact.router,
+        portal_project_updates.router,
         portal_community.router,
         portal_ai.router,
     ):

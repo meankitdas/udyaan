@@ -100,6 +100,92 @@ export type ImpactOverview = {
   entries: ImpactEntry[];
 };
 
+// ---- Weekly records + dashboard ----
+
+export type UpdateStatus = "on_track" | "at_risk" | "blocked" | "completed";
+
+/** How the dashboard reads its numbers: frozen at week close, or as of now. */
+export type PulseMode = "weekly" | "live";
+
+export type WeeklyUpdate = {
+  id: string;
+  project_id: string;
+  period_start: string;
+  period_end: string;
+  iso_year: number;
+  iso_week: number;
+  label: string;
+  status: UpdateStatus;
+  headline: string;
+  progress_note?: string | null;
+  blockers?: string | null;
+  next_steps?: string | null;
+  completion_percent?: number | null;
+  submitted_by: string;
+  submitted_by_name?: string | null;
+  submitted_late: boolean;
+  created_at?: string | null;
+};
+
+export type CadenceStatus = {
+  period_start: string;
+  period_end: string;
+  label: string;
+  due_at: string;
+  reported: boolean;
+  current?: WeeklyUpdate | null;
+  streak_weeks: number;
+  weeks_tracked: number;
+  weeks_reported: number;
+  missed_weeks: string[];
+  on_time_rate: number;
+};
+
+export type LiveCounters = {
+  meetings_total: number;
+  meetings_this_week: number;
+  actions_open: number;
+  actions_overdue: number;
+  actions_completed: number;
+  action_completion_rate: number;
+  impact_entries: number;
+  tools_connected: number;
+};
+
+export type ProjectPulse = {
+  project_id: string;
+  project_title?: string | null;
+  mode: PulseMode;
+  generated_at: string;
+  as_of: string;
+  stale: boolean;
+  cadence: CadenceStatus;
+  counters: LiveCounters;
+  recent_updates: WeeklyUpdate[];
+};
+
+export type DigestRow = {
+  project_id: string;
+  title?: string | null;
+  reported: boolean;
+  status?: UpdateStatus | null;
+  headline?: string | null;
+  completion_percent?: number | null;
+  streak_weeks: number;
+};
+
+export type WeeklyDigest = {
+  period_start: string;
+  period_end: string;
+  label: string;
+  projects_total: number;
+  projects_reported: number;
+  reporting_rate: number;
+  at_risk: number;
+  blocked: number;
+  rows: DigestRow[];
+};
+
 // ---- Project management tool integrations ----
 
 export type ProjectToolStatus = "Proposed" | "Approved" | "Declined";

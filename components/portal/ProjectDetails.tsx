@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Pencil, Plus, Sparkles } from "lucide-react";
 import DashboardLayout from "./DashboardLayout";
 import ProjectImpact from "./ProjectImpact";
+import ProjectPulse from "./ProjectPulse";
 import ProjectTools from "./ProjectTools";
 import { API_BASE_URL, apiFetch, authHeaders, friendlyError, getToken, roleHome } from "@/lib/portal-api";
 import type { ActionItem, Meeting, NavItem, Profile, Project } from "@/lib/portal-types";
@@ -79,6 +80,7 @@ export default function ProjectDetails() {
   const getNavItems = (): NavItem[] => [
     { id: "dashboard", label: "Back to Dashboard" },
     { id: "overview", label: "Project Overview" },
+    { id: "pulse", label: "Weekly Dashboard" },
     { id: "meetings", label: "Minutes of Meeting" },
     { id: "actions", label: "Action Taken Report" },
     { id: "impact", label: "Impact Chain" },
@@ -561,6 +563,7 @@ export default function ProjectDetails() {
       userRole={getRoleLabel()}
     >
       {activeTab === "overview" && renderOverview()}
+      {activeTab === "pulse" && id && <ProjectPulse projectId={id} />}
       {activeTab === "meetings" && renderMeetings()}
       {activeTab === "actions" && renderActions()}
       {activeTab === "impact" && id && (

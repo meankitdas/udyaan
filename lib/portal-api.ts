@@ -28,6 +28,7 @@ export function getRole(): string | null {
 
 export function setSession(tokens: { access_token: string; refresh_token?: string; role_key?: string }) {
   if (typeof window === "undefined") return;
+  sessionEnded = false;
   window.sessionStorage.setItem("access_token", tokens.access_token);
   if (tokens.refresh_token) window.sessionStorage.setItem("refresh_token", tokens.refresh_token);
   if (tokens.role_key) window.sessionStorage.setItem("role_key", tokens.role_key);
@@ -46,8 +47,19 @@ export function authHeaders(): Record<string, string> {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
+/**
+ * Set once the session is beyond recovery. Every request in flight at that
+ * moment fails, and each caller would otherwise report it as its own feature
+ * breaking ("Could not load the project's results chain") while the redirect to
+ * login is still being processed. This lets `friendlyError` name the real cause.
+ */
+let sessionEnded = false;
+
 /** Normalize a fetch error message into something user-friendly. */
 export function friendlyError(err: unknown): string {
+  if (sessionEnded) {
+    return "Your session expired. Please sign in again to continue.";
+  }
   let message = err instanceof Error ? err.message : String(err);
   if (message === "Failed to fetch") {
     message = "Unable to connect to the server. Please check your internet connection or try again later.";
@@ -104,6 +116,7 @@ async function refreshSession(): Promise<boolean> {
 
 /** Send the user back to login once the session can't be recovered. */
 function endSession() {
+  sessionEnded = true;
   clearSession();
   if (typeof window === "undefined") return;
   const { pathname, search } = window.location;

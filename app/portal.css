@@ -926,6 +926,456 @@
   }
 }
 
+/* ---------- Weekly dashboard + live pulse ---------- */
+
+.portal-pulse,
+.portal-pulse > * {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.portal-pulse-head,
+.portal-pulse-stage-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.portal-pulse-eyebrow {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--primary-green);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.portal-pulse-head h4,
+.portal-pulse-stage-head h4 {
+  margin: 0;
+  color: var(--dark-green);
+  font-size: 1.2rem;
+}
+
+.portal-pulse-head p,
+.portal-pulse-stage-head p {
+  margin: 6px 0 0;
+  max-width: 62ch;
+  color: var(--text-light);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.portal-pulse-controls {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.portal-pulse-modes {
+  display: inline-flex;
+  padding: 3px;
+  background: #eef2ee;
+  border-radius: 999px;
+}
+
+.portal-pulse-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-light);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.portal-pulse-mode.is-active {
+  background: #fff;
+  color: var(--dark-green);
+  box-shadow: 0 1px 3px rgba(20, 45, 30, 0.16);
+}
+
+.portal-pulse-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.portal-pulse-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-light);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.portal-pulse-live i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #b6bfb8;
+}
+
+.portal-pulse-live.is-on {
+  color: #b4362f;
+}
+
+.portal-pulse-live.is-on i {
+  background: #d64541;
+  animation: portal-pulse-blink 1.6s ease-in-out infinite;
+}
+
+@keyframes portal-pulse-blink {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(214, 69, 65, 0.5);
+  }
+  50% {
+    opacity: 0.55;
+    box-shadow: 0 0 0 5px rgba(214, 69, 65, 0);
+  }
+}
+
+.portal-pulse-stamp {
+  color: var(--text-light);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.portal-pulse-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid #e0e6e1;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text-light);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.portal-pulse-icon:hover {
+  border-color: var(--primary-green);
+  color: var(--dark-green);
+}
+
+.portal-pulse-spin {
+  animation: portal-pulse-rotate 0.9s linear infinite;
+}
+
+@keyframes portal-pulse-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.portal-pulse-cadence {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 18px;
+  border: 1px solid #e3e8e4;
+  border-left: 4px solid var(--primary-green);
+  border-radius: 12px;
+  background: #f7faf7;
+}
+
+.portal-pulse-cadence.is-due {
+  border-left-color: #d99a2b;
+  background: #fdf8ef;
+}
+
+.portal-pulse-week {
+  display: inline-block;
+  margin-bottom: 3px;
+  color: var(--primary-green);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.portal-pulse-cadence-main strong {
+  display: block;
+  color: var(--dark-green);
+  font-size: 1.02rem;
+}
+
+.portal-pulse-cadence-main p {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 7px 0 0;
+  color: var(--text-light);
+  font-size: 0.85rem;
+}
+
+.portal-pulse-cadence-stats {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 22px;
+  text-align: center;
+}
+
+.portal-pulse-cadence-stats strong {
+  display: block;
+  color: var(--dark-green);
+  font-size: 1.3rem;
+  line-height: 1.1;
+}
+
+.portal-pulse-cadence-stats span {
+  color: var(--text-light);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.portal-pulse-missed {
+  margin: 12px 0 0;
+  color: #9a6b1c;
+  font-size: 0.8rem;
+}
+
+.portal-pulse-chip {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.portal-pulse-chip.tone-ok {
+  background: #e4f2e4;
+  color: #2f6b39;
+}
+
+.portal-pulse-chip.tone-warn {
+  background: #fbf0d8;
+  color: #8a6316;
+}
+
+.portal-pulse-chip.tone-bad {
+  background: #fae3e2;
+  color: #a5332d;
+}
+
+.portal-pulse-chip.tone-done {
+  background: #e2ecfa;
+  color: #2d5488;
+}
+
+.portal-pulse-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.portal-pulse-tile {
+  padding: 14px;
+  border: 1px solid #e3e8e4;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.portal-pulse-tile.is-alert {
+  border-color: #f0cfcd;
+  background: #fdf4f3;
+}
+
+.portal-pulse-tile strong {
+  display: block;
+  color: var(--dark-green);
+  font-size: 1.7rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.portal-pulse-tile span {
+  display: block;
+  margin-top: 4px;
+  color: var(--dark-green);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.portal-pulse-tile small {
+  display: block;
+  margin-top: 2px;
+  color: var(--text-light);
+  font-size: 0.73rem;
+}
+
+.portal-pulse-form {
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid #e3e8e4;
+  border-radius: 12px;
+  background: #fafcfa;
+}
+
+.portal-pulse-hint {
+  margin: 10px 0 0;
+  color: var(--text-light);
+  font-size: 0.76rem;
+}
+
+.portal-pulse-empty {
+  margin: 0;
+  color: var(--text-light);
+  font-size: 0.87rem;
+}
+
+.portal-pulse-log {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.portal-pulse-entry {
+  padding: 15px 16px;
+  border: 1px solid #e3e8e4;
+  border-left: 4px solid #cfd8d1;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.portal-pulse-entry.tone-ok {
+  border-left-color: #57a05f;
+}
+
+.portal-pulse-entry.tone-warn {
+  border-left-color: #d99a2b;
+}
+
+.portal-pulse-entry.tone-bad {
+  border-left-color: #d64541;
+}
+
+.portal-pulse-entry.tone-done {
+  border-left-color: #4173b8;
+}
+
+.portal-pulse-entry-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.portal-pulse-entry-head strong {
+  display: block;
+  color: var(--dark-green);
+  font-size: 0.97rem;
+}
+
+.portal-pulse-entry-head small {
+  display: block;
+  margin-top: 3px;
+  color: var(--text-light);
+  font-size: 0.75rem;
+}
+
+.portal-pulse-entry-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.portal-pulse-entry p {
+  margin: 9px 0 0;
+  color: var(--text-light);
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+.portal-pulse-entry .portal-pulse-blockers strong,
+.portal-pulse-entry .portal-pulse-next strong {
+  display: inline;
+  color: var(--dark-green);
+  font-size: 0.85rem;
+}
+
+.portal-pulse-bar {
+  position: relative;
+  height: 18px;
+  margin-top: 11px;
+  border-radius: 999px;
+  background: #edf1ee;
+  overflow: hidden;
+}
+
+.portal-pulse-bar span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #6aa86f, #3f7c48);
+}
+
+.portal-pulse-bar em {
+  position: absolute;
+  top: 0;
+  right: 9px;
+  color: #2f4a39;
+  font-size: 0.68rem;
+  font-style: normal;
+  font-weight: 800;
+  line-height: 18px;
+}
+
+@media (max-width: 900px) {
+  .portal-pulse-cadence {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .portal-pulse-cadence-stats {
+    gap: 18px;
+  }
+}
+
+@media (max-width: 720px) {
+  .portal-pulse-head,
+  .portal-pulse-stage-head {
+    flex-direction: column;
+  }
+
+  .portal-pulse-controls {
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .portal-pulse-entry-head {
+    flex-direction: column;
+  }
+}
+
 /* ---------- Embedded project workspaces ---------- */
 
 .portal-tools,
