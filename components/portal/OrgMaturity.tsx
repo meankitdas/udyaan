@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Camera, Gauge, RefreshCw } from "lucide-react";
+import PortalSkeleton from "./PortalSkeleton";
 import { API_BASE_URL, apiFetch, authHeaders, friendlyError } from "@/lib/portal-api";
 import type {
   MaturityBenchmark,
@@ -102,7 +103,7 @@ export default function OrgMaturity() {
     }
   };
 
-  if (loading) return <div>Calculating maturity index...</div>;
+  if (loading) return <PortalSkeleton variant="dashboard" />;
 
   const openDimension: MaturityDimension | undefined = result?.dimensions.find((d) => d.key === active);
   const meta = (key: string) => framework?.dimensions.find((d) => d.key === key);

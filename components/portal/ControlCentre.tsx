@@ -39,6 +39,7 @@ import {
   X,
 } from "lucide-react";
 import CommandPalette from "./CommandPalette";
+import PortalSkeleton from "./PortalSkeleton";
 import { API_BASE_URL, apiFetch, authHeaders, friendlyError } from "@/lib/portal-api";
 import type { ControlCentre as Payload, DirectoryRow } from "@/lib/portal-types";
 
@@ -225,7 +226,7 @@ export default function ControlCentre() {
     }
   };
 
-  if (loading && !data) return <div>Loading control centre...</div>;
+  if (loading && !data) return <PortalSkeleton variant="dashboard" />;
 
   const paletteActions = [
     { id: "refresh", label: "Refresh control centre", hint: "reload all panels", run: load },

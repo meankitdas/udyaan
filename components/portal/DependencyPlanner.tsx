@@ -13,6 +13,7 @@ import {
   type Node,
 } from "@xyflow/react";
 import { AlertTriangle, GitBranch, Link2, Trash2 } from "lucide-react";
+import PortalSkeleton from "./PortalSkeleton";
 import { API_BASE_URL, apiFetch, authHeaders, friendlyError } from "@/lib/portal-api";
 import type { DependencyGraph, DependencyNode } from "@/lib/portal-types";
 
@@ -146,7 +147,7 @@ export default function DependencyPlanner({ projectId, canManage }: Props) {
     await load();
   };
 
-  if (!graph) return <div>Loading dependency planner...</div>;
+  if (!graph) return <PortalSkeleton variant="workspace" />;
 
   return (
     <div className="portal-dep" style={{ display: "grid", gap: 24 }}>

@@ -13,6 +13,25 @@ import { Candidates } from "./Candidates";
 
 type Tab = "questions" | "candidates";
 
+function AdminLoadingSkeleton() {
+  return (
+    <div className="ad-skeleton" role="status" aria-label="Loading admin console" aria-busy="true">
+      <div className="ad-skeleton-head"><i /><i /><i /></div>
+      <div className="ad-skeleton-grid">
+        <div className="ad-skeleton-panel">
+          <span className="is-title" />
+          {Array.from({ length: 6 }, (_, index) => <span key={index} style={{ width: `${88 - (index % 3) * 11}%` }} />)}
+        </div>
+        <div className="ad-skeleton-panel is-wide">
+          <span className="is-title" />
+          <div className="ad-skeleton-cards">{Array.from({ length: 5 }, (_, index) => <i key={index} />)}</div>
+        </div>
+      </div>
+      <span className="sr-only">Loading admin console</span>
+    </div>
+  );
+}
+
 export function AdminApp() {
   const [authed, setAuthed] = useState(false);
   const [checked, setChecked] = useState(false);
@@ -31,7 +50,7 @@ export function AdminApp() {
     return () => window.removeEventListener("udyaan:unauthorized", onUnauthorized);
   }, []);
 
-  if (!checked) return null;
+  if (!checked) return <AdminLoadingSkeleton />;
   if (!authed) return <AdminLogin onSuccess={() => setAuthed(true)} />;
   return <AdminDashboard onLogout={() => { setToken(null); setAuthed(false); }} />;
 }
@@ -145,9 +164,9 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
           transition={{ duration: 0.28, ease: "easeOut" }}
         >
           {tab === "questions" ? (
-            form ? <QuestionBuilder form={form} onFormChange={setForm} /> : <p className="ad-loading">Loading form{"\u2026"}</p>
+            form ? <QuestionBuilder form={form} onFormChange={setForm} /> : <AdminLoadingSkeleton />
           ) : (
-            form ? <Candidates form={form} /> : <p className="ad-loading">Loading{"\u2026"}</p>
+            form ? <Candidates form={form} /> : <AdminLoadingSkeleton />
           )}
         </motion.main>
       </AnimatePresence>

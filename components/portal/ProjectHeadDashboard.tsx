@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import DashboardLayout from "./DashboardLayout";
+import PortalSkeleton from "./PortalSkeleton";
 import CreateProject from "./CreateProject";
 import ProjectList from "./ProjectList";
 import InsightsTab from "./InsightsTab";
@@ -114,7 +115,7 @@ export default function ProjectHeadDashboard() {
   };
 
   const renderContent = () => {
-    if (loading) return <div>Loading profile...</div>;
+    if (loading) return <PortalSkeleton variant="profile" />;
     if (error) return <div className="alert alert-danger">{error}</div>;
     if (!profile) return <div>No profile data found.</div>;
 

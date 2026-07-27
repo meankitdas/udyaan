@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, FileText, RefreshCw, Search } from "lucide-react";
+import PortalSkeleton from "./PortalSkeleton";
 import { API_BASE_URL, apiFetch, authHeaders, friendlyError } from "@/lib/portal-api";
 import type { ReportDetail } from "@/lib/portal-types";
 
@@ -63,7 +64,7 @@ export default function ReportsConsole() {
     });
   }, [reports, query, project]);
 
-  if (loading && !reports.length) return <div>Loading reports...</div>;
+  if (loading && !reports.length) return <PortalSkeleton variant="table" rows={6} />;
 
   return (
     <div className="portal-reports" style={{ display: "grid", gap: "24px" }}>

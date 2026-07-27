@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Activity, CalendarCheck, Pause, Play, Plus, RefreshCw, Sparkles } from "lucide-react";
+import PortalSkeleton from "./PortalSkeleton";
 import { API_BASE_URL, apiFetch, authHeaders, friendlyError } from "@/lib/portal-api";
 import type { ProjectPulse as Pulse, PulseMode, UpdateStatus, WeeklyDraft, WeeklyUpdate } from "@/lib/portal-types";
 
@@ -214,7 +215,7 @@ export default function ProjectPulse({ projectId }: Props) {
     }
   };
 
-  if (loading && !pulse) return <div>Loading dashboard...</div>;
+  if (loading && !pulse) return <PortalSkeleton variant="dashboard" />;
 
   const tiles = counters
     ? [

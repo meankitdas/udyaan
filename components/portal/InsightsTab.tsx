@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { CircleCheckBig, Clock, Trophy } from "lucide-react";
 import RankBadge from "./RankBadge";
+import PortalSkeleton from "./PortalSkeleton";
 import { API_BASE_URL, apiFetch, authHeaders } from "@/lib/portal-api";
 import type { LeaderboardEntry, OrgInsights } from "@/lib/portal-types";
 
@@ -41,7 +42,7 @@ export default function InsightsTab() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div>Loading insights...</div>;
+  if (loading) return <PortalSkeleton variant="dashboard" />;
   if (!insights) return <div className="alert alert-danger">Failed to load insights.</div>;
 
   const completionPct = insights.action_items_total

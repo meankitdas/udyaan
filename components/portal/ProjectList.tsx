@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Eye, Trash2 } from "lucide-react";
+import PortalSkeleton from "./PortalSkeleton";
 import { API_BASE_URL, apiFetch, authHeaders, friendlyError } from "@/lib/portal-api";
 import type { Project } from "@/lib/portal-types";
 
@@ -53,7 +54,7 @@ export default function ProjectList() {
     }
   };
 
-  if (loading && projects.length === 0) return <div>Loading projects...</div>;
+  if (loading && projects.length === 0) return <PortalSkeleton variant="table" rows={6} />;
   if (error) return <div className="alert alert-danger">{error}</div>;
 
   return (

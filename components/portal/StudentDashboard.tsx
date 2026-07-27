@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Eye, Pencil } from "lucide-react";
 import DashboardLayout from "./DashboardLayout";
+import PortalSkeleton from "./PortalSkeleton";
 import CreateReport from "./CreateReport";
 import CommunityTab from "./CommunityTab";
 import AiCopilot from "./AiCopilot";
@@ -130,7 +131,7 @@ export default function StudentDashboard() {
   };
 
   const renderContent = () => {
-    if (loading) return <div>Loading profile...</div>;
+    if (loading) return <PortalSkeleton variant="profile" />;
     if (error) return <div className="alert alert-danger">{error}</div>;
     if (!profile) return <div>No profile data found.</div>;
 

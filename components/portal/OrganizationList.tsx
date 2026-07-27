@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Pencil, Plus, Trash2, UserCog } from "lucide-react";
+import PortalSkeleton from "./PortalSkeleton";
 import { API_BASE_URL, apiFetch, authHeaders } from "@/lib/portal-api";
 import type { Organization } from "@/lib/portal-types";
 
@@ -46,7 +47,7 @@ export default function OrganizationList({ onCreateNew, onCreateAdmin }: Props) 
     }
   };
 
-  if (loading) return <div>Loading organizations...</div>;
+  if (loading) return <PortalSkeleton variant="table" rows={5} />;
   if (error) return <div className="error-message">Error: {error}</div>;
 
   return (

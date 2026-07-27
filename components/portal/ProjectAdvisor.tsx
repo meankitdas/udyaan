@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Lightbulb, RefreshCw, Settings2, Sparkles, Users } from "lucide-react";
+import PortalSkeleton from "./PortalSkeleton";
 import { API_BASE_URL, apiFetch, authHeaders, friendlyError } from "@/lib/portal-api";
 import type { AdvisorReport, AiPillar, PillarKey } from "@/lib/portal-types";
 
@@ -109,10 +110,7 @@ export default function ProjectAdvisor({ projectId }: Props) {
         </div>
 
         {loading && !report && (
-          <div className="portal-advisor-loading">
-            <span className="portal-advisor-shimmer" />
-            Reading the project record and drafting a review...
-          </div>
+          <PortalSkeleton variant="workspace" compact />
         )}
 
         {report && (

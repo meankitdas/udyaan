@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
+import PortalSkeleton from "./PortalSkeleton";
 import { API_BASE_URL, apiFetch, authHeaders, friendlyError } from "@/lib/portal-api";
 import type { ImpactEntry, ImpactOverview, ImpactStage } from "@/lib/portal-types";
 
@@ -169,7 +170,7 @@ export default function ProjectImpact({ projectId, currentUserId, canReview }: P
     }
   };
 
-  if (loading) return <div>Loading results chain...</div>;
+  if (loading) return <PortalSkeleton variant="workspace" />;
 
   const active = STAGES.find((stage) => stage.key === activeStage)!;
   const activeEntries = byStage.get(activeStage) ?? [];

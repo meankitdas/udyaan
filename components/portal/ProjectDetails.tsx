@@ -6,6 +6,7 @@ import { Pencil, Plus, Sparkles } from "lucide-react";
 import DashboardLayout from "./DashboardLayout";
 import DependencyPlanner from "./DependencyPlanner";
 import MeetingMinutesEditor from "./MeetingMinutesEditor";
+import PortalSkeleton from "./PortalSkeleton";
 import ProjectAdvisor from "./ProjectAdvisor";
 import ProjectImpact from "./ProjectImpact";
 import ProjectPulse from "./ProjectPulse";
@@ -502,7 +503,7 @@ export default function ProjectDetails() {
     </div>
   );
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <PortalSkeleton variant="detail" />;
   if (error) return <div className="alert alert-danger">{error}</div>;
 
   return (

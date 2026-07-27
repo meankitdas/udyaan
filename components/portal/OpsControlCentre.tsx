@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowUpDown, ChevronLeft, ChevronRight, RefreshCw, Search } from "lucide-react";
+import PortalSkeleton from "./PortalSkeleton";
 import { API_BASE_URL, apiFetch, authHeaders, friendlyError } from "@/lib/portal-api";
 import type { DigestRow, ImpactStageSummary, UpdateStatus, WeeklyDigest } from "@/lib/portal-types";
 
@@ -117,7 +118,7 @@ export default function OpsControlCentre() {
   const needsChasing = (digest?.rows ?? []).filter((r) => !r.reported);
   const chainTotal = chain.reduce((n, s) => n + s.entries, 0);
 
-  if (loading && !digest) return <div>Loading control centre...</div>;
+  if (loading && !digest) return <PortalSkeleton variant="dashboard" />;
 
   return (
     <div className="portal-ops" style={{ display: "grid", gap: "24px" }}>

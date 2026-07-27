@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Pencil, Plus, Trash2 } from "lucide-react";
+import PortalSkeleton from "./PortalSkeleton";
 import { API_BASE_URL, apiFetch, authHeaders } from "@/lib/portal-api";
 import type { PortalUser } from "@/lib/portal-types";
 
@@ -41,7 +42,7 @@ export default function ProjectHeadList({ onCreateNew }: { onCreateNew: () => vo
     }
   };
 
-  if (loading) return <div>Loading project heads...</div>;
+  if (loading) return <PortalSkeleton variant="table" rows={5} />;
   if (error) return <div className="error-message">Error: {error}</div>;
 
   return (

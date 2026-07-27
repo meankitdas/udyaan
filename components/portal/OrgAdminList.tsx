@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
+import PortalSkeleton from "./PortalSkeleton";
 import { API_BASE_URL, apiFetch, authHeaders } from "@/lib/portal-api";
 import type { Organization, PortalUser } from "@/lib/portal-types";
 
@@ -64,7 +65,7 @@ export default function OrgAdminList({ org, onBack, onCreateCallback }: Props) {
       </div>
 
       {loading ? (
-        <div>Loading admins...</div>
+        <PortalSkeleton variant="table" rows={4} compact />
       ) : (
         <>
           {error && (

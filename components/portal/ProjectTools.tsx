@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Check, Maximize2, PanelTop, Trash2, X } from "lucide-react";
 import ToolLogo from "./ToolLogo";
+import PortalSkeleton from "./PortalSkeleton";
 import { API_BASE_URL, apiFetch, authHeaders, friendlyError } from "@/lib/portal-api";
 import type { ProjectTool, ProjectToolStatus } from "@/lib/portal-types";
 
@@ -301,7 +302,7 @@ export default function ProjectTools({ projectId, canReview, currentUserId }: Pr
     </div>
   );
 
-  if (loading) return <div>Loading tools...</div>;
+  if (loading) return <PortalSkeleton variant="workspace" />;
 
   return (
     <div className="portal-tools" style={{ display: "grid", gap: "24px" }}>
@@ -340,14 +341,7 @@ export default function ProjectTools({ projectId, canReview, currentUserId }: Pr
 
           <div className="portal-tool-frame">
             {!embedLoaded && (
-              <div className="portal-tool-loading">
-                <strong>Loading {activeWorkspace.tool_key === "miro" ? "Miro board" : "Notion page"}...</strong>
-                <span>
-                  {activeWorkspace.tool_key === "miro"
-                    ? "The board must allow viewing for everyone with the link."
-                    : "The page must be published using Notion's Share to web option."}
-                </span>
-              </div>
+              <PortalSkeleton variant="workspace" compact />
             )}
             <iframe
               key={activeWorkspace.id}

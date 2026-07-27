@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Handshake, Tags, Target, Trophy } from "lucide-react";
 import RankBadge from "./RankBadge";
+import PortalSkeleton from "./PortalSkeleton";
 import { API_BASE_URL, apiFetch, authHeaders } from "@/lib/portal-api";
 import type { LeaderboardEntry, MatchesResponse } from "@/lib/portal-types";
 
@@ -61,7 +62,7 @@ export default function CommunityTab() {
     }
   };
 
-  if (loading) return <div>Loading community...</div>;
+  if (loading) return <PortalSkeleton variant="dashboard" />;
 
   return (
     <div style={{ display: "grid", gap: "24px" }}>
