@@ -13,6 +13,7 @@ import {
   type BufferGeometry,
 } from "three";
 import {
+  CROP_SAFE_RADIUS,
   PALETTE,
   MATERIALS,
   SURFACES,
@@ -24,6 +25,93 @@ import {
 } from "./levels";
 
 const DRAFT_COLOR = "#80e27e";
+const BOUNDARY_GAP = 0.015;
+
+type BoundarySide = "top" | "right" | "bottom" | "left";
+
+/** Keep the centreline outside protected geometry and return any corners needed. */
+function constrainPlantPath(level: Level, point: Vec2, previous: Vec2): Vec2[] | null {
+  for (const zone of level.noPlant ?? []) {
+    const left = zone.x - zone.w / 2 - VINE_RADIUS;
+    const right = zone.x + zone.w / 2 + VINE_RADIUS;
+    const bottom = zone.y - zone.h / 2 - VINE_RADIUS;
+    const top = zone.y + zone.h / 2 + VINE_RADIUS;
+    if (point[0] < left || point[0] > right || point[1] < bottom || point[1] > top) continue;
+
+    const clampX = (value: number) => Math.min(right, Math.max(left, value));
+    const clampY = (value: number) => Math.min(top, Math.max(bottom, value));
+    const distances = (value: Vec2): Record<BoundarySide, number> => ({
+      top: Math.abs(value[1] - top),
+      right: Math.abs(value[0] - right),
+      bottom: Math.abs(value[1] - bottom),
+      left: Math.abs(value[0] - left),
+    });
+    const nearest = (value: Vec2): BoundarySide => {
+      const entries = Object.entries(distances(value)) as [BoundarySide, number][];
+      entries.sort((a, b) => a[1] - b[1]);
+      return entries[0][0];
+    };
+    const project = (side: BoundarySide): Vec2 => {
+      if (side === "top") return [clampX(point[0]), top + BOUNDARY_GAP];
+      if (side === "right") return [right + BOUNDARY_GAP, clampY(point[1])];
+      if (side === "bottom") return [clampX(point[0]), bottom - BOUNDARY_GAP];
+      return [left - BOUNDARY_GAP, clampY(point[1])];
+    };
+    const corner = (first: BoundarySide, second: BoundarySide): Vec2 => {
+      const x = first === "left" || second === "left" ? left - BOUNDARY_GAP : right + BOUNDARY_GAP;
+      const y = first === "bottom" || second === "bottom" ? bottom - BOUNDARY_GAP : top + BOUNDARY_GAP;
+      return [x, y];
+    };
+
+    const previousSide = nearest(previous);
+    const pointDistances = distances(point);
+    let targetSide = nearest(point);
+    // Small hysteresis prevents noisy touch samples from alternating sides at
+    // a diagonal and repeatedly walking around the same corner.
+    if (pointDistances[previousSide] <= pointDistances[targetSide] + VINE_SAMPLE * 0.55) {
+      targetSide = previousSide;
+    }
+
+    const projected = project(targetSide);
+    if (targetSide === previousSide) return [projected];
+
+    const opposite =
+      (previousSide === "left" && targetSide === "right") ||
+      (previousSide === "right" && targetSide === "left") ||
+      (previousSide === "top" && targetSide === "bottom") ||
+      (previousSide === "bottom" && targetSide === "top");
+    if (!opposite) return [corner(previousSide, targetSide), projected];
+
+    const via: BoundarySide =
+      previousSide === "left" || previousSide === "right"
+        ? point[1] >= zone.y
+          ? "top"
+          : "bottom"
+        : point[0] >= zone.x
+          ? "right"
+          : "left";
+    return [corner(previousSide, via), corner(via, targetSide), projected];
+  }
+
+  const cropDx = point[0] - level.crop[0];
+  const cropDy = point[1] - level.crop[1];
+  if (Math.hypot(cropDx, cropDy) < CROP_SAFE_RADIUS) {
+    let directionX = cropDx;
+    let directionY = cropDy;
+    if (Math.hypot(directionX, directionY) < 1e-5) {
+      directionX = previous[0] - level.crop[0];
+      directionY = previous[1] - level.crop[1];
+    }
+    const length = Math.max(1e-5, Math.hypot(directionX, directionY));
+    const radius = CROP_SAFE_RADIUS + BOUNDARY_GAP;
+    return [[
+      level.crop[0] + (directionX / length) * radius,
+      level.crop[1] + (directionY / length) * radius,
+    ]];
+  }
+
+  return canPlantAt(level, point[0], point[1]) ? [point] : null;
+}
 
 function centreline(points: Vec2[]): CatmullRomCurve3 {
   return new CatmullRomCurve3(
@@ -325,57 +413,87 @@ export function PlantLayer({
         /* Pointer capture is best-effort on embedded browsers. */
       }
       drawingRef.current = true;
-      draftRef.current = [point];
-      lengthRef.current = 0;
-      setDraft([point]);
-      state.onStart();
+      if (draftRef.current.length) {
+        // A browser may cancel a touch stream during a brief interruption.
+        // Resume the same continuous stroke instead of starting the game.
+        draftRef.current.push(point);
+        setDraft(draftRef.current.slice());
+      } else {
+        draftRef.current = [point];
+        lengthRef.current = 0;
+        setDraft([point]);
+        state.onStart();
+      }
       event.preventDefault();
     };
 
-    const pointerMove = (event: PointerEvent) => {
+    const appendPoint = (point: Vec2) => {
       if (!drawingRef.current) return;
       const state = live.current;
-      const point = toWorld(event);
-      if (!point) return;
       const points = draftRef.current;
       const last = points[points.length - 1];
       const distance = Math.hypot(point[0] - last[0], point[1] - last[1]);
       if (distance < VINE_SAMPLE) return;
 
       const steps = Math.min(80, Math.ceil(distance / VINE_SAMPLE));
-      const step = distance / steps;
       for (let index = 1; index <= steps; index += 1) {
         const progress = index / steps;
-        const sample: Vec2 = [
+        const rawSample: Vec2 = [
           last[0] + (point[0] - last[0]) * progress,
           last[1] + (point[1] - last[1]) * progress,
         ];
-        if (
-          !canPlantAt(state.level, sample[0], sample[1]) ||
-          lengthRef.current + step > state.budgetLeft
-        ) {
-          finish();
-          return;
+        const constrained = constrainPlantPath(state.level, rawSample, points[points.length - 1]);
+        if (!constrained) continue;
+        for (const sample of constrained) {
+          const previous = points[points.length - 1];
+          const sampleDistance = Math.hypot(sample[0] - previous[0], sample[1] - previous[1]);
+          if (sampleDistance < VINE_SAMPLE * 0.18) continue;
+          if (lengthRef.current + sampleDistance > state.budgetLeft) {
+            finish();
+            return;
+          }
+          lengthRef.current += sampleDistance;
+          points.push(sample);
         }
-        lengthRef.current += step;
-        points.push(sample);
       }
       setDraft(points.slice());
       state.onLiveVine(lengthRef.current);
     };
 
+    const pointerMove = (event: PointerEvent) => {
+      if (!drawingRef.current) return;
+      const events = event.getCoalescedEvents?.() ?? [event];
+      for (const sampleEvent of events) {
+        const point = toWorld(sampleEvent);
+        if (point) appendPoint(point);
+      }
+      event.preventDefault();
+    };
+
+    const pointerUp = (event: PointerEvent) => {
+      const point = toWorld(event);
+      if (point) appendPoint(point);
+      finish();
+    };
+
+    const pointerCancel = () => {
+      // Do not commit or launch on browser-generated touch cancellation. A new
+      // pointerdown resumes the existing draft.
+      drawingRef.current = false;
+    };
+
     const preventMenu = (event: MouseEvent) => event.preventDefault();
     element.addEventListener("pointerdown", pointerDown);
     element.addEventListener("pointermove", pointerMove);
-    element.addEventListener("pointerup", finish);
-    element.addEventListener("pointercancel", finish);
+    element.addEventListener("pointerup", pointerUp);
+    element.addEventListener("pointercancel", pointerCancel);
     element.addEventListener("contextmenu", preventMenu);
     window.addEventListener("blur", finish);
     return () => {
       element.removeEventListener("pointerdown", pointerDown);
       element.removeEventListener("pointermove", pointerMove);
-      element.removeEventListener("pointerup", finish);
-      element.removeEventListener("pointercancel", finish);
+      element.removeEventListener("pointerup", pointerUp);
+      element.removeEventListener("pointercancel", pointerCancel);
       element.removeEventListener("contextmenu", preventMenu);
       window.removeEventListener("blur", finish);
     };
