@@ -64,6 +64,42 @@ export type Meeting = {
   mom_content?: string;
 };
 
+// ---- Results chain (inputs -> process -> outputs -> outcomes -> impact) ----
+
+export type ImpactStage = "inputs" | "process" | "outputs" | "outcomes" | "impact";
+
+export type ImpactEntry = {
+  id: string;
+  project_id: string;
+  stage: ImpactStage;
+  title: string;
+  description?: string | null;
+  metric_name?: string | null;
+  metric_unit?: string | null;
+  baseline_value?: number | null;
+  metric_value?: number | null;
+  target_value?: number | null;
+  recorded_by: string;
+  recorded_by_name?: string | null;
+  progress?: number | null;
+  created_at?: string | null;
+};
+
+export type ImpactStageSummary = {
+  stage: ImpactStage;
+  entries: number;
+  measured: number;
+  average_progress?: number | null;
+};
+
+export type ImpactOverview = {
+  project_id: string;
+  stages: ImpactStageSummary[];
+  total_entries: number;
+  chain_completeness: number;
+  entries: ImpactEntry[];
+};
+
 // ---- Project management tool integrations ----
 
 export type ProjectToolStatus = "Proposed" | "Approved" | "Declined";

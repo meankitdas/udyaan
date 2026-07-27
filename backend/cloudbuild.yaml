@@ -15,6 +15,11 @@ substitutions:
   _FRONTEND_URL: https://udyaan.org
   _MAIL_FROM: info@udyaan.org
   _CORS_ORIGINS: https://udyaan.org,https://www.udyaan.org,https://udyaan.vercel.app,http://localhost:3000
+  _FIRESTORE_DATABASE: udyaan
+  _ADMIN_EMAIL: admin@udyaan.edu
+  _AZURE_OPENAI_ENDPOINT: https://nexa-openai.openai.azure.com/
+  _AZURE_OPENAI_CHAT_DEPLOYMENT: gpt-4o-mini
+  _AZURE_OPENAI_EMBEDDING_DEPLOYMENT: text-embedding-3-small
   # Manual `gcloud builds submit` has no SHORT_SHA. CI triggers can override
   # this with `$SHORT_SHA`; one-shot deploys pass a timestamp.
   _IMAGE_TAG: manual
@@ -44,7 +49,12 @@ steps:
       - --allow-unauthenticated
       # Custom delimiter (^|^) so commas inside CORS_ORIGINS don't get split as
       # separate --set-env-vars entries (gcloud default-parses on ",").
-      - --set-env-vars=^|^GCP_PROJECT=$PROJECT_ID|FRONTEND_URL=${_FRONTEND_URL}|MAIL_FROM=${_MAIL_FROM}|CORS_ORIGINS=${_CORS_ORIGINS}
+      #
+      # NOTE: --set-env-vars REPLACES the service's entire plain-env list, so
+      # every non-secret variable the app needs must be listed here. Omitting
+      # one silently unconfigures that feature on the next deploy (this is how
+      # Azure OpenAI and the Firestore database name were once dropped).
+      - --set-env-vars=^|^GCP_PROJECT=$PROJECT_ID|FIRESTORE_DATABASE=${_FIRESTORE_DATABASE}|ADMIN_EMAIL=${_ADMIN_EMAIL}|FRONTEND_URL=${_FRONTEND_URL}|MAIL_FROM=${_MAIL_FROM}|CORS_ORIGINS=${_CORS_ORIGINS}|AZURE_OPENAI_ENDPOINT=${_AZURE_OPENAI_ENDPOINT}|AZURE_OPENAI_CHAT_DEPLOYMENT=${_AZURE_OPENAI_CHAT_DEPLOYMENT}|AZURE_OPENAI_EMBEDDING_DEPLOYMENT=${_AZURE_OPENAI_EMBEDDING_DEPLOYMENT}
       - --update-secrets=AZURE_OPENAI_API_KEY=azure-openai-api-key:latest,JWT_SECRET=udyaan-jwt-secret:latest,ADMIN_PASSWORD=udyaan-admin-password:latest,DATABASE_URL=udyaan-database-url:latest,SECRET_KEY=udyaan-secret-key:latest,REDIS_URL=udyaan-redis-url:latest,MAIL_USERNAME=udyaan-mail-username:latest,MAIL_PASSWORD=udyaan-mail-password:latest
 
 images:
