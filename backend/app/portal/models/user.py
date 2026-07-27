@@ -14,6 +14,15 @@ class User(Base):
     is_approved = Column(Boolean, server_default=text("FALSE"))
     is_active = Column(Boolean, server_default=text("TRUE"))
     skills = Column(TEXT, nullable=True)  # Comma-separated skills for community matching
+
+    # ---- Community network profile (see models/community.py) ----
+    avatar_url = Column(TEXT, nullable=True)
+    headline = Column(String(160), nullable=True)
+    bio = Column(TEXT, nullable=True)
+    university = Column(String(150), nullable=True)
+    cohort = Column(String(50), nullable=True)  # e.g. "2026" — used for cohort matching
+    is_discoverable = Column(Boolean, server_default=text("TRUE"))
+
     created_at = Column(TIMESTAMP, server_default=text("NOW()"))
     updated_at = Column(TIMESTAMP, server_default=text("NOW()"), onupdate=text("NOW()"))
     

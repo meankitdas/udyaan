@@ -105,6 +105,18 @@ async def init_models():
         await conn.run_sync(Base.metadata.create_all)
         # Lightweight migrations for columns added after initial deployments.
         await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS skills TEXT"))
+        # Community network profile fields (see models/community.py).
+        for column_ddl in (
+            "avatar_url TEXT",
+            "headline VARCHAR(160)",
+            "bio TEXT",
+            "university VARCHAR(150)",
+            "cohort VARCHAR(50)",
+            "is_discoverable BOOLEAN DEFAULT TRUE",
+        ):
+            await conn.execute(
+                text(f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {column_ddl}")
+            )
         roles = [
             ("SUPERADMIN", "Super Admin"),
             ("ADMIN", "Admin"),
@@ -119,4 +131,43 @@ async def init_models():
                     "ON CONFLICT (role_key) DO NOTHING"
                 ),
                 {"key": role_key, "name": role_name},
+            )
+
+        # Seed the interest taxonomy so an empty deployment still offers useful
+        # autocomplete. Users can add their own tags on top of these.
+        seed_tags = [
+            ("agri-tech", "Agri-Tech", "domain"),
+            ("drones", "Drones", "domain"),
+            ("precision-farming", "Precision Farming", "domain"),
+            ("soil-science", "Soil Science", "domain"),
+            ("irrigation", "Irrigation", "domain"),
+            ("agronomy", "Agronomy", "domain"),
+            ("horticulture", "Horticulture", "domain"),
+            ("livestock", "Livestock", "domain"),
+            ("food-processing", "Food Processing", "domain"),
+            ("supply-chain", "Supply Chain", "domain"),
+            ("sustainability", "Sustainability", "domain"),
+            ("climate-resilience", "Climate Resilience", "domain"),
+            ("rural-development", "Rural Development", "domain"),
+            ("farmer-outreach", "Farmer Outreach", "domain"),
+            ("policy", "Policy", "domain"),
+            ("marketing", "Marketing", "skill"),
+            ("entrepreneurship", "Entrepreneurship", "skill"),
+            ("data-science", "Data Science", "skill"),
+            ("machine-learning", "Machine Learning", "skill"),
+            ("iot", "IoT", "skill"),
+            ("remote-sensing", "Remote Sensing", "skill"),
+            ("gis", "GIS", "skill"),
+            ("robotics", "Robotics", "skill"),
+            ("product-design", "Product Design", "skill"),
+            ("finance", "Finance", "skill"),
+            ("research", "Research", "skill"),
+        ]
+        for slug, label, category in seed_tags:
+            await conn.execute(
+                text(
+                    "INSERT INTO community_tags (slug, label, category) "
+                    "VALUES (:slug, :label, :category) ON CONFLICT (slug) DO NOTHING"
+                ),
+                {"slug": slug, "label": label, "category": category},
             )

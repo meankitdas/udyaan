@@ -12,3 +12,14 @@ from .project_impact import ProjectImpactEntry
 from .project_update import ProjectWeeklyUpdate
 from .maturity import MaturityAssessment
 from .ai import AiDocument
+from .community import (
+    CommunityTag,
+    Connection,
+    ConnectionStatus,
+    Follow,
+    ModerationReport,
+    ReportStatus,
+    ReportTargetType,
+    UserAchievement,
+    UserTag,
+)
