@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Pencil, Plus, Sparkles } from "lucide-react";
 import DashboardLayout from "./DashboardLayout";
+import MeetingMinutesEditor from "./MeetingMinutesEditor";
 import ProjectAdvisor from "./ProjectAdvisor";
 import ProjectImpact from "./ProjectImpact";
 import ProjectPulse from "./ProjectPulse";
@@ -26,7 +27,7 @@ export default function ProjectDetails() {
   const [actions, setActions] = useState<ActionItem[]>([]);
   const [showMeetingModal, setShowMeetingModal] = useState(false);
   const [showActionModal, setShowActionModal] = useState(false);
-  const [summarizing, setSummarizing] = useState<string | null>(null);
+  const [editingMinutes, setEditingMinutes] = useState<string | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -121,68 +122,6 @@ export default function ProjectDetails() {
       } else {
         const d = await res.json();
         alert(d.detail || "Failed to schedule meeting");
-      }
-    } catch {
-      alert("Network error");
-    }
-  };
-
-  const handleSummarizeMoM = async (meetingId: string) => {
-    const notes = prompt("Paste raw meeting notes — AI will turn them into structured minutes:");
-    if (!notes) return;
-
-    setSummarizing(meetingId);
-    try {
-      const res = await apiFetch(`${API_BASE_URL}/ai/meeting-summary`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", ...authHeaders() },
-        body: JSON.stringify({ notes, meeting_id: meetingId }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || "Could not summarize these notes.");
-
-      const lines = [data.summary ?? ""];
-      if (data.decisions?.length) lines.push("", "Decisions:", ...data.decisions.map((d: string) => `• ${d}`));
-      if (data.action_items?.length) {
-        lines.push("", "Action items:");
-        for (const a of data.action_items) {
-          lines.push(`• ${a.title}${a.owner ? ` — ${a.owner}` : ""}${a.due_hint ? ` (${a.due_hint})` : ""}${a.urgency ? ` [${a.urgency}]` : ""}`);
-        }
-      }
-      if (data.risks?.length) lines.push("", "Risks:", ...data.risks.map((r: string) => `• ${r}`));
-      const draft = lines.join("\n").trim();
-
-      if (!window.confirm(`AI drafted these minutes:\n\n${draft}\n\nSave them to this meeting?`)) return;
-
-      const save = await apiFetch(`${API_BASE_URL}/meetings/${meetingId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json", ...authHeaders() },
-        body: JSON.stringify({ mom_content: draft }),
-      });
-      if (save.ok) fetchData();
-      else alert("Failed to save the minutes.");
-    } catch (err) {
-      alert(friendlyError(err));
-    } finally {
-      setSummarizing(null);
-    }
-  };
-
-  const handleAddMoM = async (meetingId: string) => {
-    const momContent = prompt("Enter Minutes of Meeting:");
-    if (!momContent) return;
-
-    try {
-      const res = await apiFetch(`${API_BASE_URL}/meetings/${meetingId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json", ...authHeaders() },
-        body: JSON.stringify({ mom_content: momContent }),
-      });
-      if (res.ok) {
-        alert("MoM updated!");
-        fetchData();
-      } else {
-        alert("Failed to update MoM");
       }
     } catch {
       alert("Network error");
@@ -418,25 +357,34 @@ export default function ProjectDetails() {
                 </div>
               </div>
 
-              {canManage && (
+              {canManage && editingMinutes !== m.id && (
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
                   <button
                     className="btn-link"
                     style={{ marginTop: "12px", fontSize: "0.9rem", display: "flex", alignItems: "center", gap: "6px" }}
-                    onClick={() => handleAddMoM(m.id)}
+                    onClick={() => setEditingMinutes(m.id)}
                   >
                     <Pencil size={15} strokeWidth={1.8} aria-hidden /> {m.mom_content ? "Edit MoM" : "Add MoM"}
                   </button>
                   <button
                     className="btn-link"
                     style={{ marginTop: "12px", fontSize: "0.9rem", display: "flex", alignItems: "center", gap: "6px" }}
-                    onClick={() => handleSummarizeMoM(m.id)}
-                    disabled={summarizing === m.id}
+                    onClick={() => setEditingMinutes(m.id)}
                   >
-                    <Sparkles size={15} strokeWidth={1.8} aria-hidden />{" "}
-                    {summarizing === m.id ? "Summarizing…" : "Summarize with AI"}
+                    <Sparkles size={15} strokeWidth={1.8} aria-hidden /> Draft with AI
                   </button>
                 </div>
+              )}
+
+              {canManage && editingMinutes === m.id && (
+                <MeetingMinutesEditor
+                  meeting={m}
+                  onSaved={() => {
+                    setEditingMinutes(null);
+                    fetchData();
+                  }}
+                  onClose={() => setEditingMinutes(null)}
+                />
               )}
             </div>
           ))}

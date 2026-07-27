@@ -2903,3 +2903,744 @@
     width: 100%;
   }
 }
+
+/* ==========================================================================
+   Cohere layer: project workspace content
+   The shell was already converted; these are the in-page modules (weekly
+   dashboard, AI advisor, results chain, workspace tools). They shipped on the
+   older green palette, which read as a different product sitting inside the
+   Cohere frame. Everything below re-expresses them in the DESIGN.md system:
+   stone and canvas surfaces, hairline rules, ink type, one accent per state.
+   ========================================================================== */
+
+.dashboard-layout .portal-pulse,
+.dashboard-layout .portal-advisor,
+.dashboard-layout .portal-chain,
+.dashboard-layout .portal-tools {
+  color: var(--cohere-ink);
+}
+
+/* ~~~~~ Section headers: editorial, not decorative ~~~~~ */
+
+.dashboard-layout .portal-pulse-eyebrow,
+.dashboard-layout .portal-advisor-eyebrow,
+.dashboard-layout .portal-chain-eyebrow,
+.dashboard-layout .portal-tool-eyebrow {
+  color: var(--cohere-muted);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.28px;
+  text-transform: uppercase;
+}
+
+.dashboard-layout .portal-pulse-head h4,
+.dashboard-layout .portal-pulse-stage-head h4,
+.dashboard-layout .portal-advisor-head h4,
+.dashboard-layout .portal-advisor-stage-head h4,
+.dashboard-layout .portal-chain-head h4,
+.dashboard-layout .portal-chain-stage-head h4 {
+  color: var(--cohere-primary);
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 1.3;
+  letter-spacing: 0;
+}
+
+.dashboard-layout .portal-pulse-head p,
+.dashboard-layout .portal-pulse-stage-head p,
+.dashboard-layout .portal-advisor-head p,
+.dashboard-layout .portal-advisor-stage-head p,
+.dashboard-layout .portal-chain-head p,
+.dashboard-layout .portal-chain-stage-head p {
+  color: var(--cohere-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ~~~~~ Weekly dashboard ~~~~~ */
+
+.dashboard-layout .portal-pulse-modes {
+  padding: 3px;
+  border: 1px solid var(--cohere-border);
+  border-radius: 32px;
+  background: var(--cohere-canvas);
+}
+
+.dashboard-layout .portal-pulse-mode {
+  border-radius: 32px;
+  color: var(--cohere-muted);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.dashboard-layout .portal-pulse-mode.is-active {
+  background: var(--cohere-primary);
+  color: #fff;
+  box-shadow: none;
+}
+
+.dashboard-layout .portal-pulse-live.is-on {
+  color: var(--cohere-coral);
+}
+
+.dashboard-layout .portal-pulse-live.is-on i {
+  background: var(--cohere-coral);
+  animation: none;
+}
+
+.dashboard-layout .portal-pulse-live,
+.dashboard-layout .portal-pulse-stamp {
+  color: var(--cohere-muted);
+  font-size: 12px;
+  letter-spacing: 0.28px;
+}
+
+.dashboard-layout .portal-pulse-icon,
+.dashboard-layout .portal-advisor-pillar,
+.dashboard-layout .portal-pulse-tile,
+.dashboard-layout .portal-pulse-entry,
+.dashboard-layout .portal-advisor-rec,
+.dashboard-layout .portal-advisor-evidence div {
+  border-color: var(--cohere-border);
+  border-radius: 8px;
+  background: var(--cohere-canvas);
+}
+
+.dashboard-layout .portal-pulse-icon:hover {
+  border-color: var(--cohere-primary);
+  color: var(--cohere-primary);
+}
+
+.dashboard-layout .portal-pulse-cadence {
+  border: 1px solid var(--cohere-border);
+  border-left: 2px solid var(--cohere-green);
+  border-radius: 8px;
+  background: var(--cohere-stone);
+}
+
+.dashboard-layout .portal-pulse-cadence.is-due {
+  border-left-color: var(--cohere-coral);
+  background: var(--cohere-stone);
+}
+
+.dashboard-layout .portal-pulse-week {
+  color: var(--cohere-muted);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.28px;
+}
+
+.dashboard-layout .portal-pulse-cadence-main strong,
+.dashboard-layout .portal-pulse-cadence-stats strong,
+.dashboard-layout .portal-pulse-tile strong,
+.dashboard-layout .portal-pulse-entry-head strong,
+.dashboard-layout .portal-advisor-evidence strong {
+  color: var(--cohere-primary);
+  font-weight: 400;
+}
+
+.dashboard-layout .portal-pulse-cadence-stats span,
+.dashboard-layout .portal-pulse-tile small,
+.dashboard-layout .portal-advisor-evidence span {
+  color: var(--cohere-muted);
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.dashboard-layout .portal-pulse-tile span {
+  color: var(--cohere-ink);
+  font-weight: 400;
+}
+
+.dashboard-layout .portal-pulse-tile.is-alert {
+  border-color: var(--cohere-coral);
+  background: var(--cohere-canvas);
+}
+
+.dashboard-layout .portal-pulse-missed {
+  color: var(--cohere-muted);
+}
+
+/* Status chips: flat, one accent each, no candy gradients. */
+.dashboard-layout .portal-pulse-chip {
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.28px;
+  text-transform: none;
+}
+
+.dashboard-layout .portal-pulse-chip.tone-ok {
+  background: var(--cohere-pale-green);
+  color: var(--cohere-green);
+}
+
+.dashboard-layout .portal-pulse-chip.tone-warn {
+  background: var(--cohere-stone);
+  color: var(--cohere-ink);
+}
+
+.dashboard-layout .portal-pulse-chip.tone-bad {
+  background: #fdece8;
+  color: #a33418;
+}
+
+.dashboard-layout .portal-pulse-chip.tone-done {
+  background: var(--cohere-pale-blue);
+  color: var(--cohere-action);
+}
+
+/* No coloured spine on entries. Status is already stated by the chip in the
+   header, so the stripe only added a second, louder signal for the same fact. */
+.dashboard-layout .portal-pulse-entry,
+.dashboard-layout .portal-pulse-entry.tone-ok,
+.dashboard-layout .portal-pulse-entry.tone-warn,
+.dashboard-layout .portal-pulse-entry.tone-bad,
+.dashboard-layout .portal-pulse-entry.tone-done {
+  padding: 18px 20px;
+  border: 1px solid var(--cohere-border);
+}
+
+/* Entry header: week label, then headline, then a quiet meta line. */
+.dashboard-layout .portal-pulse-entry .portal-pulse-week {
+  margin-bottom: 6px;
+}
+
+.dashboard-layout .portal-pulse-entry-head strong {
+  display: block;
+  font-size: 18px;
+  line-height: 1.35;
+}
+
+.dashboard-layout .portal-pulse-entry-head small {
+  margin-top: 5px;
+  color: var(--cohere-muted);
+  font-size: 12px;
+  letter-spacing: 0.28px;
+}
+
+/* The remove control is a last resort, so it recedes until hovered. */
+.dashboard-layout .portal-pulse-entry-actions .portal-pulse-icon {
+  width: 24px;
+  height: 24px;
+  border-color: transparent;
+  background: transparent;
+  color: var(--cohere-muted);
+  font-size: 15px;
+}
+
+.dashboard-layout .portal-pulse-entry-actions .portal-pulse-icon:hover {
+  border-color: var(--cohere-border);
+  color: var(--cohere-ink);
+}
+
+/* Completion: a hairline rule with the figure spelled out beside it, rather
+   than a thick filled slab that reads as a redaction bar and states no number. */
+.dashboard-layout .portal-pulse-bar {
+  height: 2px;
+  margin: 34px 0 16px;
+  border-radius: 0;
+  background: var(--cohere-border);
+  overflow: visible;
+}
+
+.dashboard-layout .portal-pulse-bar span {
+  height: 2px;
+  border-radius: 0;
+  background: var(--cohere-primary);
+}
+
+.dashboard-layout .portal-pulse-bar em {
+  display: block;
+  top: -18px;
+  right: 0;
+  color: var(--cohere-muted);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.28px;
+  line-height: 1;
+}
+
+/* Label the rule so the number has a subject. */
+.dashboard-layout .portal-pulse-bar::before {
+  position: absolute;
+  top: -18px;
+  left: 0;
+  color: var(--cohere-muted);
+  font-size: 12px;
+  letter-spacing: 0.28px;
+  line-height: 1;
+  content: "Completion";
+}
+
+.dashboard-layout .portal-pulse-entry p {
+  color: var(--cohere-ink);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.dashboard-layout .portal-pulse-entry .portal-pulse-blockers,
+.dashboard-layout .portal-pulse-entry .portal-pulse-next {
+  color: var(--cohere-muted);
+}
+
+.dashboard-layout .portal-pulse-entry .portal-pulse-blockers strong,
+.dashboard-layout .portal-pulse-entry .portal-pulse-next strong {
+  color: var(--cohere-ink);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.dashboard-layout .portal-pulse-form,
+.dashboard-layout .portal-chain-form {
+  border: 1px solid var(--cohere-border);
+  border-radius: 8px;
+  background: var(--cohere-canvas);
+}
+
+.dashboard-layout .portal-pulse-ai {
+  border: 1px dashed var(--cohere-hairline);
+  border-radius: 8px;
+  background: var(--cohere-pale-green);
+}
+
+.dashboard-layout .portal-pulse-ai strong {
+  color: var(--cohere-green);
+  font-weight: 500;
+}
+
+.dashboard-layout .portal-pulse-ai span,
+.dashboard-layout .portal-pulse-hint,
+.dashboard-layout .portal-pulse-empty {
+  color: var(--cohere-muted);
+  font-size: 13px;
+}
+
+/* ~~~~~ AI advisor ~~~~~ */
+
+.dashboard-layout .portal-advisor-health {
+  border: 1px solid var(--cohere-border);
+  border-radius: 8px;
+  background: var(--cohere-stone);
+}
+
+.dashboard-layout .portal-advisor-health p {
+  color: var(--cohere-ink);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* The score reads as a number, not a traffic light. */
+.dashboard-layout .portal-advisor-score {
+  width: 84px;
+  height: 84px;
+  border: 1px solid var(--cohere-border);
+  border-radius: 4px;
+  background: var(--cohere-canvas);
+}
+
+.dashboard-layout .portal-advisor-score.tone-warn,
+.dashboard-layout .portal-advisor-score.tone-bad {
+  border-color: var(--cohere-border);
+}
+
+.dashboard-layout .portal-advisor-score strong {
+  color: var(--cohere-primary);
+  font-size: 32px;
+  font-weight: 400;
+  letter-spacing: -0.32px;
+}
+
+.dashboard-layout .portal-advisor-score span {
+  color: var(--cohere-muted);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.28px;
+}
+
+.dashboard-layout .portal-advisor-pillar.is-active {
+  border-color: var(--cohere-primary);
+  box-shadow: none;
+}
+
+.dashboard-layout .portal-advisor-pillar-top {
+  color: var(--cohere-muted);
+}
+
+.dashboard-layout .portal-advisor-pillar-top strong {
+  color: var(--cohere-primary);
+  font-size: 32px;
+  font-weight: 400;
+  letter-spacing: -0.32px;
+}
+
+.dashboard-layout .portal-advisor-pillar-label {
+  color: var(--cohere-ink);
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.dashboard-layout .portal-advisor-pillar small {
+  color: var(--cohere-muted);
+  font-size: 14px;
+}
+
+.dashboard-layout .portal-advisor-meter {
+  height: 3px;
+  background: var(--cohere-border);
+}
+
+.dashboard-layout .portal-advisor-meter i,
+.dashboard-layout .portal-advisor-pillar.tone-warn .portal-advisor-meter i,
+.dashboard-layout .portal-advisor-pillar.tone-bad .portal-advisor-meter i {
+  background: var(--cohere-primary);
+}
+
+.dashboard-layout .portal-advisor-chip {
+  border-radius: 4px;
+  background: var(--cohere-stone);
+  color: var(--cohere-ink);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.28px;
+}
+
+.dashboard-layout .portal-advisor-findings {
+  color: var(--cohere-ink);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.dashboard-layout .portal-advisor-findings li::marker {
+  color: var(--cohere-muted);
+}
+
+.dashboard-layout .portal-advisor-rec {
+  border-left: 2px solid var(--cohere-primary);
+}
+
+.dashboard-layout .portal-advisor-rec header strong {
+  color: var(--cohere-primary);
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.dashboard-layout .portal-advisor-rec p {
+  color: var(--cohere-muted);
+  font-size: 14px;
+}
+
+.dashboard-layout .portal-advisor-step strong {
+  color: var(--cohere-ink);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.dashboard-layout .portal-advisor-tags em {
+  border-radius: 4px;
+  background: var(--cohere-canvas);
+  border: 1px solid var(--cohere-border);
+  color: var(--cohere-muted);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.28px;
+  text-transform: none;
+}
+
+.dashboard-layout .portal-advisor-tags .impact-high {
+  border-color: var(--cohere-green);
+  background: var(--cohere-pale-green);
+  color: var(--cohere-green);
+}
+
+.dashboard-layout .portal-advisor-tags .effort-high {
+  border-color: var(--cohere-coral);
+  background: var(--cohere-canvas);
+  color: #a33418;
+}
+
+.dashboard-layout .portal-advisor-evidence strong {
+  font-size: 24px;
+}
+
+.dashboard-layout .portal-advisor-evidence span {
+  font-size: 12px;
+}
+
+.dashboard-layout .portal-advisor-loading {
+  border: 1px dashed var(--cohere-hairline);
+  border-radius: 8px;
+  color: var(--cohere-muted);
+}
+
+.dashboard-layout .portal-advisor-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(23, 23, 28, 0.06), transparent);
+}
+
+.dashboard-layout .portal-advisor-foot {
+  color: var(--cohere-muted);
+  font-size: 12px;
+}
+
+/* ~~~~~ Results chain + workspace tools ~~~~~ */
+
+.dashboard-layout .portal-chain-score {
+  border-radius: 8px;
+  background: var(--cohere-stone);
+}
+
+.dashboard-layout .portal-chain-score strong {
+  color: var(--cohere-primary);
+  font-size: 32px;
+  font-weight: 400;
+  letter-spacing: -0.32px;
+}
+
+.dashboard-layout .portal-chain-score span {
+  color: var(--cohere-muted);
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.dashboard-layout .portal-chain-node {
+  border-color: var(--cohere-border);
+  border-radius: 8px;
+  background: var(--cohere-canvas);
+}
+
+.dashboard-layout .portal-chain-node.is-active {
+  border-color: var(--cohere-primary);
+  box-shadow: none;
+}
+
+.dashboard-layout .portal-chain-node strong {
+  color: var(--cohere-ink);
+  font-weight: 400;
+}
+
+.dashboard-layout .portal-chain-node small,
+.dashboard-layout .portal-chain-count {
+  color: var(--cohere-muted);
+}
+
+@media (max-width: 720px) {
+  .dashboard-layout .portal-advisor-score {
+    width: 72px;
+    height: 72px;
+  }
+}
+
+/* ~~~~~ Minutes of meeting editor ~~~~~ */
+
+.dashboard-layout .portal-mom {
+  margin-top: 16px;
+  padding: 20px;
+  border: 1px solid var(--cohere-border);
+  border-radius: 8px;
+  background: var(--cohere-canvas);
+}
+
+.dashboard-layout .portal-mom-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.dashboard-layout .portal-mom-head strong {
+  display: block;
+  color: var(--cohere-primary);
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.dashboard-layout .portal-mom-head span {
+  display: block;
+  margin-top: 3px;
+  color: var(--cohere-muted);
+  font-size: 12px;
+  letter-spacing: 0.28px;
+}
+
+.dashboard-layout .portal-mom-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--cohere-muted);
+  cursor: pointer;
+}
+
+.dashboard-layout .portal-mom-close:hover {
+  border-color: var(--cohere-border);
+  color: var(--cohere-ink);
+}
+
+.dashboard-layout .portal-mom-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--cohere-muted);
+  font-size: 12px;
+  letter-spacing: 0.28px;
+  text-transform: uppercase;
+}
+
+.dashboard-layout textarea.portal-mom-text {
+  min-height: 180px;
+  font-family: inherit;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+/* AI is an assistant here, not the author: visually secondary to the textarea. */
+.dashboard-layout .portal-mom-ai {
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px dashed var(--cohere-hairline);
+  border-radius: 8px;
+  background: var(--cohere-pale-green);
+}
+
+.dashboard-layout .portal-mom-ai-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-bottom: 12px;
+  color: var(--cohere-green);
+}
+
+.dashboard-layout .portal-mom-ai-head strong {
+  display: block;
+  color: var(--cohere-green);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.dashboard-layout .portal-mom-ai-head span {
+  display: block;
+  margin-top: 3px;
+  max-width: 68ch;
+  color: var(--cohere-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.dashboard-layout .portal-mom-ai textarea {
+  margin-bottom: 12px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.dashboard-layout .portal-mom-draft {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid var(--cohere-border);
+  border-radius: 8px;
+  background: var(--cohere-canvas);
+}
+
+.dashboard-layout .portal-mom-draft-tag {
+  display: inline-block;
+  margin-bottom: 12px;
+  padding: 3px 9px;
+  border-radius: 4px;
+  background: var(--cohere-stone);
+  color: var(--cohere-ink);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.28px;
+}
+
+.dashboard-layout .portal-mom-block {
+  margin-bottom: 14px;
+}
+
+.dashboard-layout .portal-mom-block h6 {
+  margin: 0 0 5px;
+  color: var(--cohere-muted);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.28px;
+  text-transform: uppercase;
+}
+
+.dashboard-layout .portal-mom-block p {
+  margin: 0;
+  color: var(--cohere-ink);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.dashboard-layout .portal-mom-block ul {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--cohere-ink);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.dashboard-layout .portal-mom-block li::marker {
+  color: var(--cohere-muted);
+}
+
+.dashboard-layout .portal-mom-block em {
+  color: var(--cohere-muted);
+  font-style: normal;
+}
+
+.dashboard-layout .portal-mom-urgency {
+  margin-left: 7px;
+  padding: 1px 7px;
+  border: 1px solid var(--cohere-border);
+  border-radius: 4px;
+  color: var(--cohere-muted);
+  font-size: 11px;
+  letter-spacing: 0.28px;
+}
+
+.dashboard-layout .portal-mom-draft-actions,
+.dashboard-layout .portal-mom-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.dashboard-layout .portal-mom-draft-actions {
+  margin-top: 4px;
+}
+
+.dashboard-layout .portal-mom-actions {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--cohere-border);
+}
+
+.dashboard-layout .portal-mom-discard {
+  border: none;
+  background: none;
+  color: var(--cohere-muted);
+  cursor: pointer;
+  font-size: 13px;
+  text-decoration: underline;
+}
+
+.dashboard-layout .portal-mom-discard:hover {
+  color: var(--cohere-ink);
+}
+
+@media (max-width: 720px) {
+  .dashboard-layout .portal-mom-draft-actions button,
+  .dashboard-layout .portal-mom-actions button {
+    width: 100%;
+  }
+}
