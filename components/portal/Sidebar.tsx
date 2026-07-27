@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   BarChart3,
   Building2,
+  CalendarCheck,
   Circle,
   ClipboardCheck,
   FilePlus2,
@@ -14,11 +15,14 @@ import {
   LayoutDashboard,
   ListChecks,
   Network,
+  NotebookPen,
   Settings,
   ShieldCheck,
   Sparkles,
+  TrendingUp,
   UserCheck,
   Users,
+  Wrench,
 } from "lucide-react";
 import LogoutButton from "./LogoutButton";
 import type { NavItem } from "@/lib/portal-types";
@@ -52,6 +56,14 @@ const NAV_ICONS = {
   report: FileText,
   reports: FileText,
   settings: Settings,
+
+  // Project workspace tabs.
+  overview: FileText,
+  pulse: CalendarCheck,
+  advisor: Sparkles,
+  meetings: NotebookPen,
+  impact: TrendingUp,
+  tools: Wrench,
 } as const;
 
 export default function Sidebar({
