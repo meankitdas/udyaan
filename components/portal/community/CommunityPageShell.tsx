@@ -21,7 +21,8 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 const VIEW_TITLES: Record<CommunityView, string> = {
-  directory: "Community",
+  feed: "Community",
+  directory: "Directory",
   profile: "Profile",
   me: "My Profile",
   requests: "My Network",

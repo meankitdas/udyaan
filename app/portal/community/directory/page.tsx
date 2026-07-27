@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import ProtectedRoute from "@/components/portal/ProtectedRoute";
 import CommunityPageShell from "@/components/portal/community/CommunityPageShell";
 
-export const metadata: Metadata = { title: "Community" };
+export const metadata: Metadata = { title: "Community Directory" };
 
-export default function CommunityFeedPage() {
+export default function CommunityDirectoryPage() {
   return (
     <ProtectedRoute>
-      <CommunityPageShell view="feed" />
+      <CommunityPageShell view="directory" />
     </ProtectedRoute>
   );
 }

@@ -20,6 +20,18 @@ import type {
   ReportTargetType,
   Tag,
 } from "@/lib/community-types";
+import type {
+  Attachment,
+  Comment,
+  CommentPage,
+  FeedPage,
+  FeedScope,
+  LikeResult,
+  Post,
+  PostInput,
+  PostVisibility,
+  UploadTicket,
+} from "@/lib/community-types";
 
 const BASE = `${API_BASE_URL}/community`;
 
@@ -198,4 +210,126 @@ export async function resolveReport(
       jsonInit("POST", { action, note: note || null }),
     ),
   );
+}
+
+// ---------------------------------------------------------------- feed
+
+export async function getFeed(options: {
+  scope?: FeedScope;
+  limit?: number;
+  cursor?: string | null;
+  tags?: string[];
+}): Promise<FeedPage> {
+  const params = new URLSearchParams();
+  params.set("scope", options.scope ?? "for-you");
+  params.set("limit", String(options.limit ?? 20));
+  if (options.cursor) params.set("cursor", options.cursor);
+  (options.tags ?? []).forEach((t) => params.append("tag", t));
+  return unwrap(await apiFetch(`${BASE}/feed?${params}`));
+}
+
+export async function getUserPosts(
+  userId: string,
+  cursor?: string | null,
+): Promise<FeedPage> {
+  const params = new URLSearchParams({ limit: "20" });
+  if (cursor) params.set("cursor", cursor);
+  return unwrap(await apiFetch(`${BASE}/profiles/${userId}/posts?${params}`));
+}
+
+export async function getPost(postId: string): Promise<Post> {
+  return unwrap(await apiFetch(`${BASE}/posts/${postId}`));
+}
+
+export async function createPost(payload: PostInput): Promise<Post> {
+  return unwrap(await apiFetch(`${BASE}/posts`, jsonInit("POST", payload)));
+}
+
+export async function updatePost(
+  postId: string,
+  payload: Partial<Pick<PostInput, "body" | "link_url" | "visibility" | "tags">>,
+): Promise<Post> {
+  return unwrap(await apiFetch(`${BASE}/posts/${postId}`, jsonInit("PATCH", payload)));
+}
+
+export async function deletePost(postId: string): Promise<void> {
+  return unwrap(await apiFetch(`${BASE}/posts/${postId}`, { method: "DELETE" }));
+}
+
+export async function likePost(postId: string): Promise<LikeResult> {
+  return unwrap(await apiFetch(`${BASE}/posts/${postId}/like`, { method: "POST" }));
+}
+
+export async function unlikePost(postId: string): Promise<LikeResult> {
+  return unwrap(await apiFetch(`${BASE}/posts/${postId}/like`, { method: "DELETE" }));
+}
+
+export async function sharePost(
+  postId: string,
+  payload: { body?: string | null; visibility?: PostVisibility },
+): Promise<Post> {
+  return unwrap(await apiFetch(`${BASE}/posts/${postId}/share`, jsonInit("POST", payload)));
+}
+
+// ------------------------------------------------------------ comments
+
+export async function listComments(postId: string): Promise<CommentPage> {
+  return unwrap(await apiFetch(`${BASE}/posts/${postId}/comments`));
+}
+
+export async function createComment(
+  postId: string,
+  payload: { body: string; parent_id?: string | null },
+): Promise<Comment> {
+  return unwrap(
+    await apiFetch(`${BASE}/posts/${postId}/comments`, jsonInit("POST", payload)),
+  );
+}
+
+export async function updateComment(commentId: string, body: string): Promise<Comment> {
+  return unwrap(await apiFetch(`${BASE}/comments/${commentId}`, jsonInit("PATCH", { body })));
+}
+
+export async function deleteComment(commentId: string): Promise<void> {
+  return unwrap(await apiFetch(`${BASE}/comments/${commentId}`, { method: "DELETE" }));
+}
+
+// ------------------------------------------------------------- uploads
+
+/**
+ * Upload a file straight to cloud storage via a short-lived signed URL.
+ *
+ * The bytes never pass through the portal API. `headers` comes back from the
+ * signing endpoint and is part of the signature, so it must be replayed
+ * verbatim or storage rejects the request.
+ */
+export async function uploadAttachment(file: File): Promise<Attachment> {
+  const ticket: UploadTicket = await unwrap(
+    await apiFetch(
+      `${BASE}/uploads/sign`,
+      jsonInit("POST", {
+        filename: file.name,
+        content_type: file.type || "application/octet-stream",
+        size: file.size,
+      }),
+    ),
+  );
+
+  // Deliberately plain fetch, not apiFetch: this request goes to storage, and
+  // attaching the portal's auth header would break the signature.
+  const put = await fetch(ticket.upload_url, {
+    method: ticket.method || "PUT",
+    headers: ticket.headers,
+    body: file,
+  });
+  if (!put.ok) {
+    throw new Error(`Upload failed (${put.status}). Please try again.`);
+  }
+
+  return {
+    url: ticket.file_url,
+    name: file.name,
+    content_type: file.type || null,
+    size: file.size,
+  };
 }

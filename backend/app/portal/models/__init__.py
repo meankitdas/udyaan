@@ -23,3 +23,11 @@ from .community import (
     UserAchievement,
     UserTag,
 )
+from .community_post import (
+    CommunityPost,
+    PostComment,
+    PostLike,
+    PostTag,
+    PostType,
+    PostVisibility,
+)

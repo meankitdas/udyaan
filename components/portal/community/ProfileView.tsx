@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import Avatar from "./Avatar";
 import ConnectionButton from "./ConnectionButton";
+import ProfilePosts from "./ProfilePosts";
 import ReportDialog from "./ReportDialog";
 import TagChip from "./TagChip";
 import PortalSkeleton from "../PortalSkeleton";
@@ -28,6 +29,7 @@ type ProfileViewProps = {
   userId: string;
   onBack?: () => void;
   onEdit?: () => void;
+  onOpenProfile?: (userId: string) => void;
 };
 
 function formatDate(value?: string | null): string | null {
@@ -37,7 +39,12 @@ function formatDate(value?: string | null): string | null {
   return parsed.toLocaleDateString(undefined, { year: "numeric", month: "short" });
 }
 
-export default function ProfileView({ userId, onBack, onEdit }: ProfileViewProps) {
+export default function ProfileView({
+  userId,
+  onBack,
+  onEdit,
+  onOpenProfile,
+}: ProfileViewProps) {
   const [profile, setProfile] = useState<ProfileDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -238,6 +245,12 @@ export default function ProfileView({ userId, onBack, onEdit }: ProfileViewProps
             )}
             {joined && <p className="community-joined">Member since {joined}</p>}
           </section>
+
+          <ProfilePosts
+            userId={profile.id}
+            isSelf={profile.is_self}
+            onOpenProfile={onOpenProfile}
+          />
 
           <section className="table-card">
             <h4 className="community-section-title">

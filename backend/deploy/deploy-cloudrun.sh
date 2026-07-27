@@ -44,6 +44,34 @@ gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
 gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --member="serviceAccount:${RUN_SA}" --role="roles/secretmanager.secretAccessor" --condition=None >/dev/null
 
+# Community post attachments. Signing an upload URL from Cloud Run has no local
+# private key, so it goes through the IAM signBlob API -- which requires the
+# service account to be able to impersonate itself.
+if [[ -n "${GCS_BUCKET:-}" ]]; then
+  echo "==> Ensuring bucket '${GCS_BUCKET}' exists and is writable by ${RUN_SA}"
+  gcloud storage buckets describe "gs://${GCS_BUCKET}" --project "${PROJECT_ID}" >/dev/null 2>&1 ||
+    gcloud storage buckets create "gs://${GCS_BUCKET}" --project "${PROJECT_ID}" --location "${REGION}"
+  gcloud storage buckets add-iam-policy-binding "gs://${GCS_BUCKET}" \
+    --member="serviceAccount:${RUN_SA}" --role="roles/storage.objectAdmin" >/dev/null
+  # Attachments are rendered directly in the feed, so objects are world-readable.
+  gcloud storage buckets add-iam-policy-binding "gs://${GCS_BUCKET}" \
+    --member="allUsers" --role="roles/storage.objectViewer" >/dev/null
+  gcloud iam service-accounts add-iam-policy-binding "${RUN_SA}" \
+    --member="serviceAccount:${RUN_SA}" \
+    --role="roles/iam.serviceAccountTokenCreator" \
+    --project "${PROJECT_ID}" >/dev/null
+  # The browser PUTs straight to GCS, so the bucket needs its own CORS rules.
+  CORS_TMP="$(mktemp)"
+  cat > "${CORS_TMP}" <<CORS
+[{"origin": [$(printf '"%s"' "${CORS_ORIGINS//,/\",\"}")],
+  "method": ["PUT", "GET", "HEAD"],
+  "responseHeader": ["Content-Type", "x-goog-content-length-range"],
+  "maxAgeSeconds": 3600}]
+CORS
+  gcloud storage buckets update "gs://${GCS_BUCKET}" --cors-file="${CORS_TMP}" >/dev/null
+  rm -f "${CORS_TMP}"
+fi
+
 echo "==> Storing secrets in Secret Manager"
 ensure_secret() {
   local name="$1" value="$2"
@@ -100,7 +128,7 @@ gcloud run deploy "${SERVICE}" \
   --memory 512Mi \
   --project "${PROJECT_ID}" \
   --service-account "${RUN_SA}" \
-  --set-env-vars "^|^GCP_PROJECT=${PROJECT_ID}|FIRESTORE_DATABASE=${FIRESTORE_DATABASE}|CORS_ORIGINS=${CORS_ORIGINS}|AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT:?Set AZURE_OPENAI_ENDPOINT}|AZURE_OPENAI_CHAT_DEPLOYMENT=${AZURE_OPENAI_CHAT_DEPLOYMENT:-gpt-4o}|AZURE_OPENAI_EMBEDDING_DEPLOYMENT=${AZURE_OPENAI_EMBEDDING_DEPLOYMENT:-text-embedding-3-small}|ADMIN_EMAIL=${ADMIN_EMAIL:-admin@udyaan.edu}${PORTAL_ENV}" \
+  --set-env-vars "^|^GCP_PROJECT=${PROJECT_ID}|FIRESTORE_DATABASE=${FIRESTORE_DATABASE}|CORS_ORIGINS=${CORS_ORIGINS}|AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT:?Set AZURE_OPENAI_ENDPOINT}|AZURE_OPENAI_CHAT_DEPLOYMENT=${AZURE_OPENAI_CHAT_DEPLOYMENT:-gpt-4o}|AZURE_OPENAI_EMBEDDING_DEPLOYMENT=${AZURE_OPENAI_EMBEDDING_DEPLOYMENT:-text-embedding-3-small}|ADMIN_EMAIL=${ADMIN_EMAIL:-admin@udyaan.edu}|GCS_BUCKET=${GCS_BUCKET:-}${PORTAL_ENV}" \
   --update-secrets "AZURE_OPENAI_API_KEY=azure-openai-api-key:latest,JWT_SECRET=udyaan-jwt-secret:latest,ADMIN_PASSWORD=udyaan-admin-password:latest${PORTAL_SECRETS}"
 
 URL=$(gcloud run services describe "${SERVICE}" --region "${REGION}" --project "${PROJECT_ID}" --format 'value(status.url)')

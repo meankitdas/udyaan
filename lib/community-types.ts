@@ -160,3 +160,101 @@ export type ModerationSummary = {
   actioned: number;
   dismissed: number;
 };
+
+// ---------------------------------------------------------------- feed
+
+export type PostType = "update" | "research" | "achievement";
+export type PostVisibility = "public" | "connections";
+export type FeedScope = "for-you" | "following" | "latest";
+
+export interface Attachment {
+  url: string;
+  name?: string | null;
+  content_type?: string | null;
+  size?: number | null;
+}
+
+export interface PostAchievement {
+  id: string;
+  title: string;
+  issuer?: string | null;
+  description?: string | null;
+  url?: string | null;
+}
+
+export interface Post {
+  id: string;
+  post_type: PostType;
+  body?: string | null;
+  link_url?: string | null;
+  attachment?: Attachment | null;
+  achievement?: PostAchievement | null;
+  visibility: PostVisibility;
+  tags: Tag[];
+  author?: ProfileSummary | null;
+  like_count: number;
+  comment_count: number;
+  share_count: number;
+  viewer_has_liked: boolean;
+  can_edit: boolean;
+  can_moderate: boolean;
+  shared_from?: Post | null;
+  shared_source_missing: boolean;
+  is_removed: boolean;
+  created_at?: string | null;
+  edited_at?: string | null;
+  /** Only present on the "for-you" feed; used for the relevance hint. */
+  score?: number | null;
+  matched_tags: string[];
+}
+
+export interface FeedPage {
+  items: Post[];
+  next_cursor?: string | null;
+  has_more: boolean;
+}
+
+export interface PostInput {
+  post_type: PostType;
+  body?: string | null;
+  link_url?: string | null;
+  attachment?: Attachment | null;
+  achievement_id?: string | null;
+  visibility: PostVisibility;
+  tags: string[];
+}
+
+export interface Comment {
+  id: string;
+  post_id: string;
+  parent_id?: string | null;
+  body: string;
+  author?: ProfileSummary | null;
+  can_edit: boolean;
+  can_moderate: boolean;
+  is_removed: boolean;
+  created_at?: string | null;
+  edited_at?: string | null;
+  replies: Comment[];
+}
+
+export interface CommentPage {
+  items: Comment[];
+  total: number;
+}
+
+export interface LikeResult {
+  post_id: string;
+  viewer_has_liked: boolean;
+  like_count: number;
+}
+
+export interface UploadTicket {
+  upload_url: string;
+  file_url: string;
+  object_key: string;
+  method: string;
+  headers: Record<string, string>;
+  max_bytes: number;
+  expires_at: string;
+}

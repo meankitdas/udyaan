@@ -11,8 +11,10 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import aliased
 
 from app.portal.core.deps import get_current_user
+from app.portal.crud import community_post as post_crud
 from app.portal.database import get_db
 from app.portal.models.community import ModerationReport, ReportStatus
+from app.portal.models.community_post import CommunityPost, PostComment
 from app.portal.models.role import Role, UserRole
 from app.portal.models.user import User
 from app.portal.schemas.community import ReportCreate, ReportOut, ReportResolve
@@ -20,6 +22,9 @@ from app.portal.schemas.community import ReportCreate, ReportOut, ReportResolve
 router = APIRouter(prefix="/community", tags=["community-moderation"])
 
 ADMIN_ROLE_KEYS = ("ADMIN", "SUPERADMIN")
+
+# How much of a post or comment to show in the admin queue.
+SNIPPET_LENGTH = 140
 
 
 async def require_moderator(
@@ -39,6 +44,128 @@ async def require_moderator(
     return current_user
 
 
+def _snippet(text_value: Optional[str], fallback: str) -> str:
+    cleaned = " ".join((text_value or "").split())
+    if not cleaned:
+        return fallback
+    if len(cleaned) <= SNIPPET_LENGTH:
+        return cleaned
+    return cleaned[:SNIPPET_LENGTH].rstrip() + "…"
+
+
+async def _get_post(db: AsyncSession, target_id: str) -> Optional[CommunityPost]:
+    """Load a post by its stringified UUID.
+
+    ``target_id`` is a free-text column shared with user reports, so a value that
+    is not a UUID is a missing target rather than a server error.
+    """
+
+    try:
+        post_uuid = UUID(target_id)
+    except (ValueError, AttributeError):
+        return None
+    return (
+        await db.execute(select(CommunityPost).where(CommunityPost.id == post_uuid))
+    ).scalars().first()
+
+
+async def _get_comment(db: AsyncSession, target_id: str) -> Optional[PostComment]:
+    try:
+        comment_uuid = UUID(target_id)
+    except (ValueError, AttributeError):
+        return None
+    return (
+        await db.execute(select(PostComment).where(PostComment.id == comment_uuid))
+    ).scalars().first()
+
+
+async def _load_reportable_content(
+    db: AsyncSession, target_type: str, target_id: str, reporter: User
+):
+    """Confirm reported content exists, is visible to the reporter, and is not theirs."""
+
+    if target_type == "post":
+        post = await _get_post(db, target_id)
+        if not post or post.is_removed:
+            raise HTTPException(status_code=404, detail="Post not found")
+        if not await post_crud.can_view_post(db, post, reporter.id):
+            raise HTTPException(status_code=404, detail="Post not found")
+        if post.author_id == reporter.id:
+            raise HTTPException(
+                status_code=400, detail="You cannot report your own post."
+            )
+        return post
+
+    comment = await _get_comment(db, target_id)
+    if not comment or comment.is_removed:
+        raise HTTPException(status_code=404, detail="Comment not found")
+    if comment.author_id == reporter.id:
+        raise HTTPException(
+            status_code=400, detail="You cannot report your own comment."
+        )
+    parent = await _get_post(db, str(comment.post_id))
+    if not parent or not await post_crud.can_view_post(db, parent, reporter.id):
+        raise HTTPException(status_code=404, detail="Comment not found")
+    return comment
+
+
+async def _remove_post(db: AsyncSession, post: CommunityPost, moderator_id: str) -> None:
+    """Soft-delete a post and keep the original's share count honest."""
+
+    post.is_removed = True
+    post.removed_at = datetime.utcnow()
+    post.removed_by = moderator_id
+    await db.flush()
+    if post.shared_from_id:
+        original = (
+            await db.execute(
+                select(CommunityPost).where(CommunityPost.id == post.shared_from_id)
+            )
+        ).scalars().first()
+        if original:
+            await post_crud.recount_post(db, original)
+
+
+async def _content_labels(db: AsyncSession, reports) -> dict:
+    """Batch a display snippet for every post/comment target in the queue."""
+
+    post_ids = [r.target_id for r in reports if r.target_type == "post"]
+    comment_ids = [r.target_id for r in reports if r.target_type == "comment"]
+    labels: dict = {}
+
+    def _as_uuids(values):
+        out = []
+        for value in values:
+            try:
+                out.append(UUID(value))
+            except (ValueError, AttributeError):
+                continue
+        return out
+
+    if post_ids:
+        rows = (
+            await db.execute(
+                select(CommunityPost.id, CommunityPost.body, CommunityPost.post_type)
+                .where(CommunityPost.id.in_(_as_uuids(post_ids)))
+            )
+        ).all()
+        for post_id, body, post_type in rows:
+            labels[str(post_id)] = _snippet(body, f"({post_type} post)")
+
+    if comment_ids:
+        rows = (
+            await db.execute(
+                select(PostComment.id, PostComment.body).where(
+                    PostComment.id.in_(_as_uuids(comment_ids))
+                )
+            )
+        ).all()
+        for comment_id, body in rows:
+            labels[str(comment_id)] = _snippet(body, "(comment)")
+
+    return labels
+
+
 @router.post("/reports", response_model=ReportOut, status_code=201)
 async def create_report(
     payload: ReportCreate,
@@ -53,6 +180,10 @@ async def create_report(
         ).scalars().first()
         if not target:
             raise HTTPException(status_code=404, detail="User not found")
+    else:
+        # Validate the content exists and the reporter can actually see it, so
+        # the queue cannot be filled with reports against invented ids.
+        await _load_reportable_content(db, payload.target_type, payload.target_id, current_user)
 
     # One open report per person per target: re-reporting the same thing should
     # not let a single user inflate the queue.
@@ -115,6 +246,9 @@ async def list_reports(
             await db.execute(select(User.id, User.full_name).where(User.id.in_(user_targets)))
         ).all()
         labels = dict(found)
+
+    # Post and comment snippets, also batched.
+    labels.update(await _content_labels(db, [r[0] for r in rows]))
 
     return [
         _to_out(report, reporter_name, resolver_name, labels.get(report.target_id))
@@ -184,7 +318,26 @@ async def resolve_report(
             ).scalars().first()
             if target:
                 target.is_discoverable = False
-        # Post/comment removal lands with the feed in the next phase.
+        elif report.target_type == "post":
+            post = await _get_post(db, report.target_id)
+            if not post:
+                raise HTTPException(
+                    status_code=404, detail="Reported post no longer exists"
+                )
+            await _remove_post(db, post, moderator.id)
+        elif report.target_type == "comment":
+            comment = await _get_comment(db, report.target_id)
+            if not comment:
+                raise HTTPException(
+                    status_code=404, detail="Reported comment no longer exists"
+                )
+            comment.is_removed = True
+            comment.removed_at = datetime.utcnow()
+            comment.removed_by = moderator.id
+            await db.flush()
+            parent_post = await _get_post(db, str(comment.post_id))
+            if parent_post:
+                await post_crud.recount_post(db, parent_post)
 
     report.status = (
         ReportStatus.DISMISSED.value
@@ -232,9 +385,15 @@ async def _render_one(db: AsyncSession, report: ModerationReport) -> ReportOut:
         )
     ).all()
     lookup = dict(names)
+
+    if report.target_type == "user":
+        target_label = lookup.get(report.target_id)
+    else:
+        target_label = (await _content_labels(db, [report])).get(report.target_id)
+
     return _to_out(
         report,
         lookup.get(report.reporter_id),
         lookup.get(report.resolved_by) if report.resolved_by else None,
-        lookup.get(report.target_id) if report.target_type == "user" else None,
+        target_label,
     )

@@ -65,6 +65,7 @@ try:
         community as portal_community,
         community_connections as portal_community_connections,
         community_moderation as portal_community_moderation,
+        community_posts as portal_community_posts,
         community_profiles as portal_community_profiles,
         control as portal_control,
         maturity as portal_maturity,
@@ -97,6 +98,7 @@ try:
         portal_community_profiles.router,
         portal_community_connections.router,
         portal_community_moderation.router,
+        portal_community_posts.router,
         portal_ai.router,
     ):
         app.include_router(_portal_router, prefix="/portal")

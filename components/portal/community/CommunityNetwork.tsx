@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Inbox, Network, ShieldCheck, UserRound } from "lucide-react";
+import { Inbox, Network, Newspaper, ShieldCheck, UserRound } from "lucide-react";
 import Directory from "./Directory";
+import Feed from "./Feed";
 import ModerationPanel from "./ModerationPanel";
 import ProfileEditor from "./ProfileEditor";
 import ProfileView from "./ProfileView";
@@ -10,7 +11,13 @@ import RequestsInbox from "./RequestsInbox";
 import { listRequests } from "@/lib/community-api";
 import { getRole } from "@/lib/portal-api";
 
-export type CommunityView = "directory" | "profile" | "me" | "requests" | "moderation";
+export type CommunityView =
+  | "feed"
+  | "directory"
+  | "profile"
+  | "me"
+  | "requests"
+  | "moderation";
 
 type CommunityNetworkProps = {
   initialView?: CommunityView;
@@ -30,11 +37,12 @@ function pathFor(view: CommunityView, userId?: string | null): string {
   if (view === "me") return "/portal/community/me";
   if (view === "requests") return "/portal/community/requests";
   if (view === "moderation") return "/portal/community/moderation";
+  if (view === "directory") return "/portal/community/directory";
   return "/portal/community";
 }
 
 export default function CommunityNetwork({
-  initialView = "directory",
+  initialView = "feed",
   initialUserId,
   syncUrl = false,
 }: CommunityNetworkProps) {
@@ -81,6 +89,7 @@ export default function CommunityNetwork({
   };
 
   const navItems: { id: CommunityView; label: string; icon: typeof Network; badge?: number }[] = [
+    { id: "feed", label: "Feed", icon: Newspaper },
     { id: "directory", label: "Directory", icon: Network },
     { id: "me", label: "My profile", icon: UserRound },
     { id: "requests", label: "Network", icon: Inbox, badge: pendingCount },
@@ -111,6 +120,8 @@ export default function CommunityNetwork({
         })}
       </nav>
 
+      {view === "feed" && <Feed onOpenProfile={openProfile} />}
+
       {view === "directory" && <Directory onOpenProfile={openProfile} />}
 
       {view === "profile" && profileId && (
@@ -118,6 +129,7 @@ export default function CommunityNetwork({
           userId={profileId}
           onBack={() => go("directory")}
           onEdit={() => go("me")}
+          onOpenProfile={openProfile}
         />
       )}
 

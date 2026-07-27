@@ -30,6 +30,14 @@ class Settings(BaseSettings):
     REDIS_URL: str = ""
     FRONTEND_URL: str = "http://localhost:3000"
 
+    # Google Cloud Storage — community post attachments (research PDFs etc).
+    # Empty bucket disables uploads and the API degrades to link-only, keeping
+    # the stack runnable on a laptop with no cloud credentials.
+    GCS_BUCKET: str = ""
+    GCS_UPLOAD_PREFIX: str = "community"
+    GCS_SIGNED_URL_TTL_SECONDS: int = 600
+    MAX_UPLOAD_BYTES: int = 25 * 1024 * 1024
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 
