@@ -6,7 +6,7 @@ export const DEFAULT_FORM: SurveyForm = {
   subtitle: "90% of engineers fail this simple farm logic test.",
   published: true,
   collectEmails: true,
-  updatedAt: "2026-07-21T00:00:00.000Z",
+  updatedAt: "2026-07-27T00:00:00.000Z",
   sections: [
     {
       id: "start",
@@ -231,66 +231,41 @@ export const DEFAULT_FORM: SurveyForm = {
       questions: [
         {
           id: "reflect_interest",
-          type: "multichoice",
+          type: "longtext",
           label:
             "What's pulling you toward agriculture specifically, and what are you actually willing to risk to build something in it on your own?",
+          placeholder: "Share the specific connection, opportunity, or curiosity pulling you in, and the commitment you are prepared to make.",
           required: true,
-          options: [
-            "Personal stake, willing to bet time",
-            "A gap I can see clearly, willing to bet skill",
-            "Genuine curiosity, willing to test conviction",
-            "A practical opportunity I want to commit to conditionally",
-          ],
         },
         {
           id: "reflect_decision",
-          type: "multichoice",
+          type: "longtext",
           label: "Describe a time you had to make a call on your own, with no one to check it against. What happened?",
+          placeholder: "Describe the situation, the decision you made, what happened, and what you learned.",
           required: true,
-          options: [
-            "It worked out, and I'd do it again",
-            "It didn't fully work, and I learned from it",
-            "I sought out a proxy for judgment",
-            "I hesitated, and that was the real lesson",
-          ],
         },
         {
           id: "reflect_improve",
-          type: "multichoice",
+          type: "longtext",
           label:
             "Tell us about a setback or rejection in something you were building or pursuing. How did you respond, and did you continue?",
+          placeholder: "Tell us what changed after the setback and why you continued, paused, or stopped.",
           required: true,
-          options: [
-            "I adjusted the approach and kept going",
-            "I paused, reconsidered, and came back differently",
-            "I let it end, and that was the right call",
-            "I'm still in it, unresolved",
-          ],
         },
         {
           id: "reflect_resource",
-          type: "multichoice",
+          type: "longtext",
           label: "How would you find out if an agri idea is actually worth building, before you spend months on it?",
+          placeholder: "Explain the first steps you would take to test the problem and the evidence you would look for.",
           required: true,
-          options: [
-            "Talk to the people who'd use it first",
-            "Build the smallest possible version and test it",
-            "Look for existing evidence first",
-            "Use my own direct experience as the first signal",
-          ],
         },
         {
           id: "reflect_idea",
-          type: "multichoice",
+          type: "longtext",
           label:
-            "Picture yourself six months into building this agri idea alone. What have you actually built, and what would convince you it's worth continuing?",
+            "Picture yourself six months into building this alone. What have you actually built, and what would convince you it's worth continuing?",
+          placeholder: "Describe the concrete result you want after six months and the signal that would make you continue.",
           required: true,
-          options: [
-            "A tested idea with early signal",
-            "A working prototype, even if rough",
-            "Clarity on the problem, even without a product yet",
-            "Evidence I was wrong, and a better direction because of it",
-          ],
         },
       ],
     },
@@ -304,3 +279,23 @@ export const DEFAULT_FORM: SurveyForm = {
     },
   ],
 };
+
+/** Keep the onboarding reflection prompts canonical without overwriting other admin form edits. */
+export function withCanonicalReflect(form: SurveyForm): SurveyForm {
+  const canonical = DEFAULT_FORM.sections.find((section) => section.id === "reflect");
+  if (!canonical) return form;
+
+  return {
+    ...form,
+    sections: form.sections.map((section) =>
+      section.id === "reflect"
+        ? {
+            ...section,
+            heading: canonical.heading,
+            subheading: canonical.subheading,
+            questions: canonical.questions,
+          }
+        : section,
+    ),
+  };
+}

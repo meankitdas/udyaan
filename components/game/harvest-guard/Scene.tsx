@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, memo, useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import {
   BallCollider,
@@ -11,12 +11,11 @@ import {
   useRapier,
   type RapierRigidBody,
 } from "@react-three/rapier";
-import type { PerspectiveCamera } from "three";
+import type { Fog, PerspectiveCamera } from "three";
 import type { CropMood } from "./Crop";
 import SunflowerModel from "./SunflowerModel";
 import { PlantLayer, VineStroke } from "./Vine";
 import {
-  CropSafeRing,
   FarmHazard,
   FarmScenery,
   FieldBlocks,
@@ -25,7 +24,6 @@ import {
   StormBurst,
 } from "./FarmWorld";
 import {
-  CROP_SAFE_RADIUS,
   GRAVITY,
   KILL_Y,
   MATERIALS,
@@ -36,6 +34,7 @@ import {
   VIEW,
   VIEW_FLOOR,
   WIND,
+  levelView,
   type BodyProfile,
   type Level,
   type Vec2,
@@ -47,9 +46,11 @@ export type Outcome =
   | { result: "lose"; reason: "impact" | "storm" | "fell" };
 export type Phase = "plan" | "running" | "paused" | "over";
 
-function FitCamera() {
+function FitCamera({ level }: { level: Level }) {
   const camera = useThree((state) => state.camera);
+  const scene = useThree((state) => state.scene);
   const size = useThree((state) => state.size);
+  const view = useMemo(() => levelView(level), [level]);
 
   useEffect(() => {
     const cam = camera as PerspectiveCamera;
@@ -58,18 +59,33 @@ function FitCamera() {
     const verticalFov = (cam.fov * Math.PI) / 180;
     const distanceForHeight = VIEW.h / 2 / Math.tan(verticalFov / 2);
     const horizontalFov = 2 * Math.atan(Math.tan(verticalFov / 2) * aspect);
-    const distanceForWidth = VIEW.w / 2 / Math.tan(horizontalFov / 2);
-    const distance =
-      Math.min(Math.max(distanceForHeight, distanceForWidth), distanceForHeight * 1.85) * 1.02;
+    const distanceForWidth = view.w / 2 / Math.tan(horizontalFov / 2);
+    // The field width must always fit: a phone in portrait needs a much longer
+    // pull-back than its height alone implies, and capping it there is what used
+    // to push the outermost hazards and off-centre crops outside the viewport.
+    const distance = Math.max(distanceForHeight, distanceForWidth) * 1.02;
     const halfSeen = Math.tan(verticalFov / 2) * distance;
-    const centerY = Math.max(VIEW.cy, VIEW_FLOOR + halfSeen);
+    // Once the camera sees more height than the field actually uses, centre the
+    // field instead of pinning it to the floor, which would strand it under the
+    // HUD at the bottom edge of a tall screen.
+    const centerY =
+      halfSeen >= Math.abs(VIEW_FLOOR) ? VIEW.cy : Math.max(VIEW.cy, VIEW_FLOOR + halfSeen);
 
-    cam.position.set(VIEW.cx, centerY + distance * 0.055, distance);
-    cam.lookAt(VIEW.cx, centerY, 0);
+    cam.position.set(view.cx, centerY + distance * 0.055, distance);
+    cam.lookAt(view.cx, centerY, 0);
     cam.near = Math.max(1, distance * 0.2);
     cam.far = distance * 4;
     cam.updateProjectionMatrix();
-  }, [camera, size]);
+
+    // Fog is authored against the desktop framing, so keep it proportional to
+    // the camera distance; a fixed range would wash the whole field out once
+    // the camera pulls back for a narrow screen.
+    const fog = scene.fog as Fog | null;
+    if (fog && "near" in fog) {
+      fog.near = distance * 2.26;
+      fog.far = distance * 5.12;
+    }
+  }, [camera, scene, size, view]);
 
   return null;
 }
@@ -478,17 +494,13 @@ export default function Scene({
     >
       <color attach="background" args={[sky]} />
       <fog attach="fog" args={[sky, 30, 68]} />
-      <FitCamera />
+      <FitCamera level={level} />
       <WeatherLighting weather={level.weather} />
       <FarmScenery weather={level.weather} />
 
       {level.noPlant?.map((zone, index) => (
         <NoPlantZone key={index} zone={zone} />
       ))}
-      {phase === "plan" ? (
-        <CropSafeRing x={level.crop[0]} y={level.crop[1]} radius={CROP_SAFE_RADIUS} />
-      ) : null}
-
       <Suspense fallback={null}>
         <Physics
           key={runId}

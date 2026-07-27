@@ -2,7 +2,7 @@
 
 import type { Evaluation, SurveyForm, SurveyResponse } from "./survey";
 import { computeQuizScore } from "./survey";
-import { DEFAULT_FORM } from "./default-form";
+import { DEFAULT_FORM, withCanonicalReflect } from "./default-form";
 
 const API_BASE = (process.env.NEXT_PUBLIC_UDYAAN_API ?? "").replace(/\/$/, "");
 const FORM_KEY = "udyaan_form_v1";
@@ -87,12 +87,12 @@ export async function adminLogin(email: string, password: string): Promise<strin
 export async function fetchForm(): Promise<SurveyForm> {
   if (hasBackend) {
     try {
-      return await request<SurveyForm>("/forms/active");
+      return withCanonicalReflect(await request<SurveyForm>("/forms/active"));
     } catch {
-      return readLocal(FORM_KEY, DEFAULT_FORM);
+      return withCanonicalReflect(readLocal(FORM_KEY, DEFAULT_FORM));
     }
   }
-  return readLocal(FORM_KEY, DEFAULT_FORM);
+  return withCanonicalReflect(readLocal(FORM_KEY, DEFAULT_FORM));
 }
 
 export async function saveForm(form: SurveyForm): Promise<SurveyForm> {

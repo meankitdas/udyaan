@@ -24,8 +24,9 @@ export const SEED_REACH = 1.5;
 export const VINE_RADIUS = 0.2;
 /** World units between sampled points of a drawn vine. */
 export const VINE_SAMPLE = 0.26;
-/** Design area the camera always tries to fit. */
-export const VIEW = { cx: 0, cy: 0, w: 15, h: 10 };
+/** Design area the camera always tries to fit. Wide enough for the outermost
+ *  hazard spawns (|x| up to ~7.6 plus its radius) so nothing is cropped. */
+export const VIEW = { cx: 0, cy: 0, w: 17, h: 10 };
 /** Lowest useful world y, used to frame portrait screens without dead space. */
 export const VIEW_FLOOR = -7;
 /** Top surface of the main field, used as the reflecting plane for blasts. */
@@ -392,6 +393,47 @@ export function hazardSize(hazard: Hazard): number {
   if (hazard.kind === "crate") return 0.6;
   if (hazard.kind === "stormPod") return 0.6;
   return 0.6;
+}
+
+/** Narrowest and widest the camera is allowed to frame a field. */
+const VIEW_MIN_W = 12;
+const VIEW_MAX_W = 18;
+
+/**
+ * Horizontal framing for a single field.
+ *
+ * Fitting every level to one fixed width forces a phone in portrait to pull the
+ * camera back far enough for the widest level in the game, which leaves simple
+ * fields tiny and unreadable. Measuring the parts a player actually has to see
+ * lets narrow fields stay close. Wide screens are limited by height rather than
+ * width, so this only changes framing where width is the binding constraint.
+ */
+export function levelView(level: Level): { cx: number; w: number } {
+  let min = level.crop[0] - 1.2;
+  let max = level.crop[0] + 1.2;
+  const grow = (low: number, high: number) => {
+    min = Math.min(min, low);
+    max = Math.max(max, high);
+  };
+
+  level.hazards.forEach((hazard) => {
+    const reach = hazardSize(hazard) + 0.6;
+    grow(hazard.x - reach, hazard.x + reach);
+  });
+  level.seeds?.forEach((seed) => grow(seed.x - 0.8, seed.x + 0.8));
+  level.noPlant?.forEach((zone) => grow(zone.x - zone.w / 2, zone.x + zone.w / 2));
+  level.blocks.forEach((block) => {
+    // The ground slab spans far beyond the playable area; framing to it would
+    // undo the measurement.
+    if (block.w >= 24) return;
+    grow(block.x - block.w / 2, block.x + block.w / 2);
+  });
+
+  const width = Math.min(VIEW_MAX_W, Math.max(VIEW_MIN_W, max - min + 1.2));
+  // Keep the camera near the middle so the terraced ground and hills still fill
+  // the frame behind the action.
+  const cx = Math.max(-3, Math.min(3, (min + max) / 2));
+  return { cx, w: width };
 }
 
 /* ---------- physical bodies ---------- */
