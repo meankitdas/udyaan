@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Check, Maximize2, PanelTop, Trash2, X } from "lucide-react";
+import ToolLogo from "./ToolLogo";
 import { API_BASE_URL, apiFetch, authHeaders, friendlyError } from "@/lib/portal-api";
 import type { ProjectTool, ProjectToolStatus } from "@/lib/portal-types";
 
@@ -231,6 +232,9 @@ export default function ProjectTools({ projectId, canReview, currentUserId }: Pr
                   backgroundColor: "#fbfbf9",
                 }}
               >
+                <span className="portal-tool-mark">
+                  <ToolLogo toolKey={tool.tool_key} size={20} />
+                </span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
                     <strong style={{ color: "var(--dark-green)" }}>{tool.name}</strong>
@@ -327,6 +331,7 @@ export default function ProjectTools({ projectId, canReview, currentUserId }: Pr
                     setActiveWorkspaceId(tool.id);
                   }}
                 >
+                  <ToolLogo toolKey={tool.tool_key} size={15} />
                   {TOOL_CATALOG.find((entry) => entry.key === tool.tool_key)?.name ?? tool.name}
                 </button>
               ))}
@@ -381,21 +386,17 @@ export default function ProjectTools({ projectId, canReview, currentUserId }: Pr
                 key={tool.key}
                 type="button"
                 onClick={() => setForm((prev) => ({ ...prev, tool_key: tool.key, name: prev.name || `${tool.name} workspace` }))}
-                style={{
-                  textAlign: "left",
-                  padding: "14px",
-                  borderRadius: "10px",
-                  cursor: "pointer",
-                  border: form.tool_key === tool.key ? "2px solid var(--primary-green)" : "1px solid #e5e7eb",
-                  backgroundColor: form.tool_key === tool.key ? "#f2f8f2" : "#fff",
-                }}
+                className={`portal-tool-pick${form.tool_key === tool.key ? " is-selected" : ""}`}
               >
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
-                  <strong style={{ color: "var(--dark-green)" }}>{tool.name}</strong>
+                <div className="portal-tool-pick-head">
+                  <span className="portal-tool-mark">
+                    <ToolLogo toolKey={tool.key} size={20} />
+                  </span>
+                  <strong>{tool.name}</strong>
                   {connected && <span className="badge badge-success">Connected</span>}
                 </div>
-                <div style={{ color: "#4b5563", fontSize: "0.85rem" }}>{tool.tagline}</div>
-                <div style={{ color: "var(--text-light)", fontSize: "0.78rem", marginTop: "6px" }}>Best for: {tool.best}</div>
+                <div className="portal-tool-pick-tagline">{tool.tagline}</div>
+                <div className="portal-tool-pick-best">Best for: {tool.best}</div>
               </button>
             );
           })}

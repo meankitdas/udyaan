@@ -3644,3 +3644,72 @@
     width: 100%;
   }
 }
+
+/* ~~~~~ Tool catalogue: brand marks ~~~~~ */
+
+.dashboard-layout .portal-tool-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  border: 1px solid var(--cohere-border);
+  border-radius: 8px;
+  background: var(--cohere-canvas);
+}
+
+.dashboard-layout .portal-tool-logo {
+  display: block;
+}
+
+.dashboard-layout .portal-tool-pick {
+  padding: 14px;
+  border: 1px solid var(--cohere-border);
+  border-radius: 8px;
+  background: var(--cohere-canvas);
+  cursor: pointer;
+  text-align: left;
+}
+
+.dashboard-layout .portal-tool-pick:hover {
+  border-color: var(--cohere-muted);
+}
+
+/* Selection is a ring, not a fill, so the brand mark keeps its own colour. */
+.dashboard-layout .portal-tool-pick.is-selected {
+  border-color: var(--cohere-primary);
+  box-shadow: inset 0 0 0 1px var(--cohere-primary);
+}
+
+.dashboard-layout .portal-tool-pick-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.dashboard-layout .portal-tool-pick-head strong {
+  color: var(--cohere-primary);
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.dashboard-layout .portal-tool-pick-tagline {
+  color: var(--cohere-ink);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.dashboard-layout .portal-tool-pick-best {
+  margin-top: 6px;
+  color: var(--cohere-muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.dashboard-layout .portal-tool-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
