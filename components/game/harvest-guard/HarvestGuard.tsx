@@ -24,6 +24,7 @@ import {
   Undo2,
   Volume2,
   VolumeX,
+  X,
 } from "lucide-react";
 import type { CropMood } from "./Crop";
 import type { Outcome, Phase } from "./Scene";
@@ -34,9 +35,14 @@ import styles from "./HarvestGuard.module.css";
 const Scene = dynamic(() => import("./Scene"), { ssr: false });
 
 const SAVE_KEY = "udyaan.harvest-guard.v1";
+const AD_BREAK_KEY = "udyaan.harvest-guard.ad-break.v1";
+/** Ads only start once field 2 is cleared, then appear at random. */
+const AD_FIRST_FIELD = 2;
+const AD_CHANCE = 0.5;
 
-type Stage = "title" | "levels" | "plan" | "running" | "paused" | "over";
+type Stage = "title" | "levels" | "plan" | "running" | "paused" | "over" | "ad";
 type Save = { v: 1; stars: Record<string, number> };
+type AdBreakState = { nextLevel: number; creative: 0 | 1; watched: boolean };
 
 function emptySave(): Save {
   return { v: 1, stars: {} };
@@ -55,6 +61,35 @@ function loadSave(): Save {
   } catch (error) {
     console.warn("Harvest Guard progress could not be loaded.", error);
     return emptySave();
+  }
+}
+
+function loadAdBreak(): AdBreakState | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(AD_BREAK_KEY) ?? "null") as AdBreakState | null;
+    if (
+      parsed &&
+      Number.isInteger(parsed.nextLevel) &&
+      parsed.nextLevel > 0 &&
+      parsed.nextLevel < LEVELS.length &&
+      (parsed.creative === 0 || parsed.creative === 1) &&
+      typeof parsed.watched === "boolean"
+    ) {
+      return parsed;
+    }
+  } catch {
+    /* Ignore malformed or unavailable local storage. */
+  }
+  return null;
+}
+
+function persistAdBreak(value: AdBreakState | null) {
+  try {
+    if (value) window.localStorage.setItem(AD_BREAK_KEY, JSON.stringify(value));
+    else window.localStorage.removeItem(AD_BREAK_KEY);
+  } catch {
+    /* The current in-memory gate still prevents skipping when storage is unavailable. */
   }
 }
 
@@ -111,6 +146,169 @@ function BrandMark() {
   );
 }
 
+const AD_CREATIVES = [
+  {
+    kicker: "Udyaan",
+    headline: "Grow what matters.",
+    body: "One practical observation. One solution with real-world impact.",
+    ctaTitle: "Udyaan",
+    ctaSubtitle: "Build a real agri venture",
+    ctaAction: "Learn more",
+  },
+  {
+    kicker: "Udyaan",
+    headline: "Ideas take root here.",
+    body: "Test your conviction, build independently, and turn problems into ventures.",
+    ctaTitle: "Udyaan",
+    ctaSubtitle: "Applications now open",
+    ctaAction: "Apply now",
+  },
+] as const;
+
+function AdBreak({
+  creative,
+  nextLevel,
+  watched,
+  onWatched,
+  onContinue,
+}: AdBreakState & { onWatched: () => void; onContinue: () => void }) {
+  const video = useRef<HTMLVideoElement>(null);
+  const [complete, setComplete] = useState(watched);
+  const [muted, setMutedState] = useState(true);
+  const [progress, setProgress] = useState(watched ? 1 : 0);
+  const [remaining, setRemaining] = useState<number | null>(null);
+  const [needsPlay, setNeedsPlay] = useState(false);
+  const copy = AD_CREATIVES[creative];
+
+  useEffect(() => {
+    const element = video.current;
+    if (!element) return;
+    element.muted = true;
+    element.defaultMuted = true;
+    const attempt = element.play();
+    if (attempt) attempt.catch(() => setNeedsPlay(true));
+  }, []);
+
+  const finish = () => {
+    setProgress(1);
+    setRemaining(0);
+    setComplete(true);
+    onWatched();
+  };
+
+  const play = () => {
+    const element = video.current;
+    if (!element) return;
+    element.play().then(() => setNeedsPlay(false)).catch(() => setNeedsPlay(true));
+  };
+
+  const toggleSound = () => {
+    const element = video.current;
+    if (!element) return;
+    element.muted = !element.muted;
+    setMutedState(element.muted);
+  };
+
+  return (
+    <motion.div
+      className={styles.adBreak}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      role="dialog"
+      aria-label="Advertisement"
+    >
+      <video
+        ref={video}
+        className={styles.adVideo}
+        src="/udyaan-aerial.mp4"
+        poster="/udyaan-aerial-poster.jpg"
+        playsInline
+        muted
+        autoPlay
+        preload="auto"
+        onTimeUpdate={(event) => {
+          const element = event.currentTarget;
+          if (!element.duration) return;
+          setProgress(Math.min(1, element.currentTime / element.duration));
+          setRemaining(Math.max(0, Math.ceil(element.duration - element.currentTime)));
+        }}
+        onEnded={finish}
+        onError={finish}
+      />
+      <div className={styles.adShade} aria-hidden />
+
+      <div className={styles.adBar}>
+        <span className={styles.adBadge}>Ad</span>
+        <div className={styles.adBarTools}>
+          <button
+            type="button"
+            className={styles.adIcon}
+            onClick={toggleSound}
+            aria-label={muted ? "Unmute ad" : "Mute ad"}
+          >
+            {muted ? <VolumeX /> : <Volume2 />}
+          </button>
+          <button
+            type="button"
+            className={styles.adClose}
+            onClick={onContinue}
+            disabled={!complete}
+            aria-label={complete ? "Close ad" : "Ad in progress"}
+          >
+            {complete ? <X /> : (remaining ?? "")}
+          </button>
+        </div>
+      </div>
+
+      {needsPlay && !complete ? (
+        <button type="button" className={styles.adTapPlay} onClick={play}>
+          <Play />
+          Tap to play ad
+        </button>
+      ) : null}
+
+      {complete ? (
+        <div className={styles.adEndCard}>
+          <img className={styles.adEndLogo} src="/udyaan-logo.png" alt="" />
+          <p>{copy.kicker}</p>
+          <h2>{copy.headline}</h2>
+          <span>{copy.body}</span>
+          <div className={styles.adEndActions}>
+            <a
+              className={styles.adEndCta}
+              href="/"
+              target="_blank"
+              rel="noreferrer"
+            >
+              {copy.ctaAction}
+            </a>
+            <button type="button" className={styles.adEndContinue} onClick={onContinue}>
+              Continue to field {nextLevel + 1}
+              <Play />
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className={styles.adCta}>
+          <img className={styles.adCtaIcon} src="/udyaan-logo.png" alt="" />
+          <span className={styles.adCtaText}>
+            <strong>{copy.ctaTitle}</strong>
+            <small>{copy.ctaSubtitle}</small>
+          </span>
+          <a className={styles.adCtaButton} href="/" target="_blank" rel="noreferrer">
+            {copy.ctaAction}
+          </a>
+        </div>
+      )}
+
+      <div className={styles.adProgress} aria-hidden>
+        <span style={{ width: `${progress * 100}%` }} />
+      </div>
+    </motion.div>
+  );
+}
+
 export default function HarvestGuard() {
   const gameRoot = useRef<HTMLDivElement>(null);
   const [stage, setStage] = useState<Stage>("title");
@@ -128,6 +326,9 @@ export default function HarvestGuard() {
   const [fullscreen, setFullscreen] = useState(false);
   const [fullscreenAvailable, setFullscreenAvailable] = useState(false);
   const [levelMenuReturn, setLevelMenuReturn] = useState<"title" | "plan">("title");
+  const [adBreak, setAdBreak] = useState<AdBreakState | null>(null);
+  const adsShown = useRef(0);
+  const lastAdField = useRef(0);
 
   const level = LEVELS[levelIndex];
   const committedVine = useMemo(() => totalVine(strokes), [strokes]);
@@ -153,6 +354,11 @@ export default function HarvestGuard() {
 
   useEffect(() => {
     setSave(loadSave());
+    const pendingAd = loadAdBreak();
+    if (pendingAd) {
+      setAdBreak(pendingAd);
+      setStage("ad");
+    }
     setFullscreenAvailable(typeof document.documentElement.requestFullscreen === "function");
 
     const bodyOverflow = document.body.style.overflow;
@@ -264,6 +470,29 @@ export default function HarvestGuard() {
     setRunId((value) => value + 1);
     setStage("plan");
   }, []);
+
+  const requestNextLevel = useCallback(() => {
+    const nextLevel = levelIndex + 1;
+    if (nextLevel >= LEVELS.length) return;
+    const completedField = levelIndex + 1;
+    // Never two breaks in a row, so a random run cannot turn into an ad chain.
+    const eligible =
+      completedField >= AD_FIRST_FIELD && lastAdField.current !== completedField - 1;
+    if (eligible && Math.random() < AD_CHANCE) {
+      lastAdField.current = completedField;
+      const nextAd: AdBreakState = {
+        nextLevel,
+        creative: (adsShown.current % 2) as 0 | 1,
+        watched: false,
+      };
+      adsShown.current += 1;
+      setAdBreak(nextAd);
+      persistAdBreak(nextAd);
+      setStage("ad");
+      return;
+    }
+    openLevel(nextLevel);
+  }, [levelIndex, openLevel]);
 
   const retry = useCallback((keepVines: boolean) => {
     setOutcome(null);
@@ -397,7 +626,7 @@ export default function HarvestGuard() {
       if (stage === "over" && (key === " " || key === "enter")) {
         event.preventDefault();
         if (outcome?.result === "win" && levelIndex + 1 < LEVELS.length) {
-          openLevel(levelIndex + 1);
+          requestNextLevel();
         } else {
           retry(false);
         }
@@ -412,6 +641,7 @@ export default function HarvestGuard() {
     openLevel,
     outcome,
     pause,
+    requestNextLevel,
     resume,
     retry,
     stage,
@@ -436,7 +666,7 @@ export default function HarvestGuard() {
           : "plan";
   const seeds = level.seeds ?? [];
   const allSeeds = seeds.every((seed) => collected.includes(seed.id));
-  const showGameHud = !["title", "levels"].includes(stage);
+  const showGameHud = !["title", "levels", "ad"].includes(stage);
 
   return (
     <div
@@ -820,7 +1050,7 @@ export default function HarvestGuard() {
                           className={styles.primary}
                           onClick={() => {
                             sfx.click();
-                            openLevel(levelIndex + 1);
+                            requestNextLevel();
                           }}
                         >
                           Next field
@@ -950,6 +1180,27 @@ export default function HarvestGuard() {
                 </div>
               </motion.div>
             </motion.div>
+          ) : null}
+
+          {stage === "ad" && adBreak ? (
+            <AdBreak
+              key={`ad-${adBreak.nextLevel}`}
+              {...adBreak}
+              onWatched={() => {
+                setAdBreak((current) => {
+                  if (!current || current.watched) return current;
+                  const watched = { ...current, watched: true };
+                  persistAdBreak(watched);
+                  return watched;
+                });
+              }}
+              onContinue={() => {
+                const nextLevel = adBreak.nextLevel;
+                persistAdBreak(null);
+                setAdBreak(null);
+                openLevel(nextLevel);
+              }}
+            />
           ) : null}
         </AnimatePresence>
       </div>
