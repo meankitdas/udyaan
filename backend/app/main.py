@@ -62,6 +62,7 @@ try:
         admin as portal_admin,
         auth as portal_auth,
         community as portal_community,
+        maturity as portal_maturity,
         organizations as portal_organizations,
         project_compliance as portal_compliance,
         project_heads as portal_project_heads,
@@ -84,6 +85,7 @@ try:
         portal_project_tools.router,
         portal_project_impact.router,
         portal_project_updates.router,
+        portal_maturity.router,
         portal_community.router,
         portal_ai.router,
     ):

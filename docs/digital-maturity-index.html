@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Udyaan Digital Maturity Index — Design Rationale</title>
+<style>
+  /* Cohere tokens, lifted from DESIGN.md so the document matches the product. */
+  :root {
+    --primary: #17171c;
+    --ink: #212121;
+    --deep-green: #003c33;
+    --canvas: #ffffff;
+    --stone: #eeece7;
+    --pale-green: #edfce9;
+    --hairline: #d9d9dd;
+    --border: #e5e7eb;
+    --muted: #75758a;
+    --action: #1863dc;
+    --coral: #ff7759;
+  }
+
+  @page { size: A4; margin: 18mm 16mm; }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--canvas);
+    color: var(--ink);
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.5;
+  }
+
+  h1 {
+    margin: 0 0 6px;
+    color: var(--primary);
+    font-size: 27pt;
+    font-weight: 400;
+    letter-spacing: -0.5pt;
+    line-height: 1.05;
+  }
+  h2 {
+    margin: 26px 0 10px;
+    padding-top: 12px;
+    border-top: 1px solid var(--hairline);
+    color: var(--primary);
+    font-size: 15pt;
+    font-weight: 400;
+    letter-spacing: -0.2pt;
+    page-break-after: avoid;
+  }
+  h3 {
+    margin: 18px 0 6px;
+    color: var(--primary);
+    font-size: 11.5pt;
+    font-weight: 600;
+    page-break-after: avoid;
+  }
+  p { margin: 0 0 10px; }
+  strong { font-weight: 600; }
+
+  .eyebrow {
+    color: var(--muted);
+    font-size: 8pt;
+    font-weight: 600;
+    letter-spacing: 1.4pt;
+    text-transform: uppercase;
+  }
+  .lede {
+    margin: 10px 0 4px;
+    color: var(--muted);
+    font-size: 12pt;
+    line-height: 1.45;
+  }
+  .meta {
+    margin-top: 14px;
+    padding-top: 10px;
+    border-top: 2px solid var(--primary);
+    color: var(--muted);
+    font-size: 8.5pt;
+  }
+  .meta span { margin-right: 18px; }
+
+  .callout {
+    margin: 14px 0;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--deep-green);
+    background: var(--stone);
+    page-break-inside: avoid;
+  }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout .label {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--deep-green);
+    font-size: 8pt;
+    font-weight: 700;
+    letter-spacing: 1pt;
+    text-transform: uppercase;
+  }
+
+  table {
+    width: 100%;
+    margin: 10px 0 14px;
+    border-collapse: collapse;
+    font-size: 9.5pt;
+    page-break-inside: avoid;
+  }
+  th {
+    padding: 7px 8px;
+    border-bottom: 1px solid var(--primary);
+    color: var(--muted);
+    font-size: 8pt;
+    font-weight: 600;
+    letter-spacing: 0.6pt;
+    text-align: left;
+    text-transform: uppercase;
+  }
+  td {
+    padding: 7px 8px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  tr.total td {
+    border-top: 1px solid var(--primary);
+    border-bottom: none;
+    font-weight: 600;
+  }
+
+  code, .mono {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 9pt;
+  }
+  code {
+    padding: 1px 4px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: #fafafa;
+  }
+  pre {
+    margin: 8px 0 14px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    background: #fafafa;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 8.8pt;
+    line-height: 1.5;
+    overflow-x: auto;
+    page-break-inside: avoid;
+    white-space: pre-wrap;
+  }
+
+  ul, ol { margin: 0 0 10px; padding-left: 18px; }
+  li { margin-bottom: 5px; }
+
+  .levels { display: flex; gap: 6px; margin: 10px 0 14px; page-break-inside: avoid; }
+  .levels div {
+    flex: 1;
+    padding: 9px 8px;
+    border: 1px solid var(--border);
+    text-align: center;
+  }
+  .levels div.here { border-color: var(--primary); background: var(--primary); color: #fff; }
+  .levels strong { display: block; font-size: 9.5pt; font-weight: 500; }
+  .levels span { color: var(--muted); font-size: 8pt; }
+  .levels div.here span { color: #cfcfd6; }
+
+  .pill {
+    display: inline-block;
+    padding: 1px 7px;
+    border-radius: 3px;
+    background: var(--pale-green);
+    color: var(--deep-green);
+    font-size: 8pt;
+    font-weight: 600;
+  }
+  .pill.warn { background: #fdece8; color: #a33418; }
+
+  .footnote {
+    margin-top: 22px;
+    padding-top: 10px;
+    border-top: 1px solid var(--hairline);
+    color: var(--muted);
+    font-size: 8.5pt;
+  }
+  .page-break { page-break-before: always; }
+</style>
+</head>
+<body>
+
+<span class="eyebrow">Udyaan · Design rationale</span>
+<h1>Digital Maturity Index</h1>
+<p class="lede">Why the index is scored from evidence rather than a questionnaire, and how that choice lets one model extend across many organisations.</p>
+<p class="meta">
+  <span><strong>Framework</strong> dmi-1.0</span>
+  <span><strong>Status</strong> Implemented</span>
+  <span><strong>Date</strong> 27 July 2026</span>
+</p>
+
+<h2>The core design decision</h2>
+
+<p>Most digital maturity models are questionnaires. Someone sits down once a year and rates their organisation against a rubric. Three things reliably go wrong:</p>
+
+<ul>
+  <li><strong>Scores drift upward.</strong> Self-rating rewards optimism, and nobody wants to record that their unit is Level 1.</li>
+  <li><strong>Nothing is comparable.</strong> Two organisations answering the same question apply different standards, so cross-organisation figures are noise.</li>
+  <li><strong>The score can be improved without the organisation improving.</strong> Re-rating is free; changing practice is not.</li>
+</ul>
+
+<div class="callout">
+  <span class="label">The decision</span>
+  <p>Score the organisation from <strong>what it has actually done in the platform</strong>, never from what it says about itself. Every dimension is computed from records that already exist — projects, weekly updates, meetings, action items, results-chain entries, connected workspaces.</p>
+</div>
+
+<p>The consequence is the point: <strong>the number cannot be talked up.</strong> It only moves when behaviour changes. If Process Discipline is 61, the way to make it 75 is to file the missing weekly reports and close the overdue action items. There is no form to re-submit.</p>
+
+<p>A second consequence is that the score is <strong>explainable</strong>. Every dimension exposes the raw counts it was derived from, so "why 42?" always has an answer an admin can check. This matters more than precision: a maturity score people do not trust is a score people ignore.</p>
+
+<h2>How a score is built</h2>
+
+<p>Six dimensions, each scored 0–100 from named signals, then combined as a weighted mean. Weights encode what the programme actually cares about — governance, discipline and measurement carry the most, because they are what turn activity into managed work.</p>
+
+<table>
+  <thead>
+    <tr><th style="width:26%">Dimension</th><th class="num" style="width:9%">Weight</th><th>Scored from</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Strategy &amp; Governance</td><td class="num">20%</td><td>Projects with a full brief, a deadline, and an assigned team</td></tr>
+    <tr><td>Process Discipline</td><td class="num">20%</td><td>Weekly reporting rate over the last 8 closed weeks, action-item closure rate, overdue backlog</td></tr>
+    <tr><td>Collaboration &amp; Tooling</td><td class="num">15%</td><td>Projects with a shared workspace, projects holding meetings, meetings with minutes recorded</td></tr>
+    <tr><td>Data &amp; Measurement</td><td class="num">20%</td><td>Impact entries carrying a measured value and a target; projects measuring anything at all</td></tr>
+    <tr><td>Outcome Orientation</td><td class="num">15%</td><td>Results-chain completeness; projects reaching outcomes or impact rather than stopping at outputs</td></tr>
+    <tr><td>People &amp; Capability</td><td class="num">10%</td><td>Coverage of leadership / mentorship / delivery roles; share of people who left any trace</td></tr>
+    <tr class="total"><td>Composite</td><td class="num">100%</td><td>Weighted mean, re-normalised over scored dimensions only</td></tr>
+  </tbody>
+</table>
+
+<p>The composite maps onto five named levels. Five is deliberate — it is the CMMI convention operators already recognise, so the vocabulary needs no explaining.</p>
+
+<div class="levels">
+  <div><strong>Initial</strong><span>0–19</span></div>
+  <div><strong>Emerging</strong><span>20–39</span></div>
+  <div class="here"><strong>Established</strong><span>40–59</span></div>
+  <div><strong>Advanced</strong><span>60–79</span></div>
+  <div><strong>Optimising</strong><span>80–100</span></div>
+</div>
+
+<h2>Extending across organisations</h2>
+
+<p>The index is only worth building if it works for the tenth organisation as well as the first. Four choices make that true.</p>
+
+<h3>1. One versioned ruler</h3>
+<p>The framework lives in code as <code>dmi-1.0</code> — dimensions, weights and level bands are fixed for a version. Every organisation is scored identically, which is the only thing that makes a cross-organisation benchmark mean anything.</p>
+
+<div class="callout">
+  <span class="label">Deliberate constraint</span>
+  <p>Per-organisation tailoring happens by marking a dimension <em>not applicable</em> — never by re-weighting. Allowing custom weights would let an organisation score well simply by discounting whatever it is worst at, which destroys both comparability and honesty.</p>
+</div>
+
+<h3>2. A young organisation is measured on what it has started</h3>
+<p>A dimension with no evidence is flagged <code>applicable = false</code> and excluded, and the remaining weights are re-normalised. An organisation that has not begun measuring impact is not scored zero on Data &amp; Measurement and shamed for it — that dimension simply does not count yet. Each result carries a <strong>coverage</strong> figure so a reader knows how much of the framework the score actually rests on.</p>
+
+<h3>3. Benchmarking is part of the model, not a report bolted on</h3>
+<p>A score is only useful once you know whether it is good. The benchmark endpoint scores every organisation on the same version and returns the cohort average, the caller's percentile, per-dimension cohort averages, and a leaderboard. In the interface, each dimension bar carries a tick showing where the cohort sits, so you read your score and its context together.</p>
+<p>Organisations with no projects <em>and</em> no people are skipped, so an empty shell tenant cannot drag the cohort average toward zero.</p>
+
+<h3>4. Snapshots survive a framework change</h3>
+<p>Dimension results are stored as JSON against the framework version that produced them, rather than as a fixed child table. A future <code>dmi-2.0</code> can add, remove or redefine dimensions without a migration, and history captured under 1.0 stays readable and correctly labelled.</p>
+
+<h2>Worked example</h2>
+
+<p>Two organisations on the same framework, from the live implementation:</p>
+
+<table>
+  <thead>
+    <tr><th>Dimension</th><th class="num">Weight</th><th class="num">Udyaan Local Org</th><th class="num">Northern Agri Institute</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Strategy &amp; Governance</td><td class="num">20%</td><td class="num">0.0</td><td class="num">66.7</td></tr>
+    <tr><td>Process Discipline</td><td class="num">20%</td><td class="num">61.1</td><td class="num">0.0</td></tr>
+    <tr><td>Collaboration &amp; Tooling</td><td class="num">15%</td><td class="num">75.0</td><td class="num">0.0</td></tr>
+    <tr><td>Data &amp; Measurement</td><td class="num">20%</td><td class="num">100.0</td><td class="num">n/a</td></tr>
+    <tr><td>Outcome Orientation</td><td class="num">15%</td><td class="num">10.0</td><td class="num">n/a</td></tr>
+    <tr><td>People &amp; Capability</td><td class="num">10%</td><td class="num">58.3</td><td class="num">16.7</td></tr>
+    <tr class="total"><td>Composite</td><td class="num"></td><td class="num">50.8 · <span class="pill">L3 Established</span></td><td class="num">23.1 · <span class="pill warn">L2 Emerging</span></td></tr>
+    <tr><td>Coverage</td><td class="num"></td><td class="num">100%</td><td class="num">65%</td></tr>
+  </tbody>
+</table>
+
+<pre>Udyaan Local Org
+  0(.20) + 61.1(.20) + 75(.15) + 100(.20) + 10(.15) + 58.3(.10) = 50.8
+
+Northern Agri Institute — only 65% of framework weight has evidence,
+so the mean is re-normalised over the four scored dimensions:
+  66.7(.20) + 0(.20) + 0(.15) + 16.7(.10)  /  0.65           = 23.1
+
+Cohort average (50.8 + 23.1) / 2                              = 37.0</pre>
+
+<p>The contrast is instructive. Northern Agri Institute writes better project briefs than the older organisation (66.7 vs 0.0) but has not yet started running a delivery rhythm. The index says so, specifically, instead of collapsing both into a single vague judgement.</p>
+
+<h2>Interface</h2>
+
+<table>
+  <thead><tr><th style="width:42%">Endpoint</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">GET /portal/maturity/framework</td><td>The model itself — dimensions, weights, level bands. Lets a client render the framework without hardcoding it.</td></tr>
+    <tr><td class="mono">GET /portal/maturity/assessment</td><td>Live score for the caller's organisation, with per-dimension signals and evidence counts.</td></tr>
+    <tr><td class="mono">POST /portal/maturity/snapshots</td><td>Freeze today's score as a baseline. Admin only.</td></tr>
+    <tr><td class="mono">GET /portal/maturity/snapshots</td><td>Snapshot history, so improvement can be shown rather than asserted.</td></tr>
+    <tr><td class="mono">GET /portal/maturity/benchmark</td><td>Cohort average, percentile, per-dimension averages, leaderboard.</td></tr>
+  </tbody>
+</table>
+
+<p>Access follows the existing portal rules: you read your own organisation, superadmins may target any, and only administrators can capture a snapshot.</p>
+
+<h3>Where the code lives</h3>
+<table>
+  <tbody>
+    <tr><td class="mono" style="width:42%">backend/app/portal/maturity.py</td><td>Framework definition, level bands, and the six scorers. Pure functions of the facts handed in.</td></tr>
+    <tr><td class="mono">backend/app/portal/api/maturity.py</td><td>Fact gathering, endpoints, access control, benchmarking.</td></tr>
+    <tr><td class="mono">backend/app/portal/models/maturity.py</td><td>Snapshot table with JSON dimension results.</td></tr>
+    <tr><td class="mono">components/portal/OrgMaturity.tsx</td><td>Admin dashboard interface.</td></tr>
+  </tbody>
+</table>
+
+<h2>Trade-offs worth remembering</h2>
+
+<ul>
+  <li><strong>It measures platform behaviour, not the organisation entire.</strong> Work done well but recorded elsewhere is invisible to the index. This is an accepted cost of refusing self-assessment; it also creates a healthy incentive to keep records in one place.</li>
+  <li><strong>Weights are a judgement, not a discovery.</strong> The 20/20/15/20/15/10 split encodes a view about what matters. It should be revisited with evidence once enough organisations are scored — and revisiting it means publishing <code>dmi-2.0</code>, not quietly editing 1.0.</li>
+  <li><strong>Small organisations move sharply.</strong> With one project, a single missing deadline swings Governance by a third. Coverage is reported alongside the score partly to signal this.</li>
+  <li><strong>No AI in the scoring path.</strong> Scoring is deterministic arithmetic so the same records always produce the same number and any figure can be reproduced by hand. The AI Advisor interprets; the index counts.</li>
+</ul>
+
+<p class="footnote">Generated from the implemented system on 27 July 2026. Figures in the worked example are real output from framework version dmi-1.0, verified against hand calculation.</p>
+
+</body>
+</html>

@@ -228,6 +228,76 @@ export type WeeklyDraft = {
   grounded_in: Record<string, number>;
 };
 
+// ---- Digital Maturity Index ----
+
+export type MaturityLevel = {
+  level: number;
+  label: string;
+  from: number;
+  to: number;
+  description: string;
+};
+
+export type MaturityFramework = {
+  version: string;
+  name: string;
+  summary: string;
+  levels: MaturityLevel[];
+  dimensions: { key: string; label: string; weight: number; question: string; why: string }[];
+};
+
+export type MaturityDimension = {
+  key: string;
+  label: string;
+  weight: number;
+  applicable: boolean;
+  score?: number | null;
+  level?: number | null;
+  level_label?: string | null;
+  signals: Record<string, number>;
+};
+
+export type MaturityResult = {
+  organization_id: string;
+  organization_name?: string | null;
+  framework_version: string;
+  composite_score: number;
+  level: number;
+  level_label: string;
+  level_description: string;
+  coverage: number;
+  dimensions: MaturityDimension[];
+  evidence: Record<string, number>;
+  generated_at: string;
+};
+
+export type MaturitySnapshot = {
+  id: string;
+  organization_id: string;
+  framework_version: string;
+  composite_score: number;
+  level: number;
+  dimensions: MaturityDimension[];
+  captured_by?: string | null;
+  created_at?: string | null;
+};
+
+export type MaturityBenchmark = {
+  framework_version: string;
+  organizations: number;
+  cohort_average?: number | null;
+  your_score?: number | null;
+  your_percentile?: number | null;
+  dimensions: { key: string; label: string; cohort_average?: number | null; organizations_scored: number }[];
+  leaderboard: {
+    organization_id: string;
+    organization_name?: string | null;
+    composite_score: number;
+    level: number;
+    coverage: number;
+  }[];
+};
+
 // ---- Project management tool integrations ----
 
 export type ProjectToolStatus = "Proposed" | "Approved" | "Declined";

@@ -3713,3 +3713,407 @@
   align-items: center;
   gap: 7px;
 }
+
+/* ~~~~~ Digital Maturity Index ~~~~~ */
+
+.dashboard-layout .portal-dmi,
+.dashboard-layout .portal-dmi > * {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.dashboard-layout .portal-dmi-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.dashboard-layout .portal-dmi-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 4px;
+  color: var(--cohere-muted);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.28px;
+  text-transform: uppercase;
+}
+
+.dashboard-layout .portal-dmi-head h4 {
+  margin: 0;
+  color: var(--cohere-primary);
+  font-size: 24px;
+  font-weight: 400;
+}
+
+.dashboard-layout .portal-dmi-head p {
+  margin: 6px 0 0;
+  max-width: 70ch;
+  color: var(--cohere-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.dashboard-layout .portal-dmi-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 10px;
+}
+
+.dashboard-layout .portal-dmi-score {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding: 20px;
+  border: 1px solid var(--cohere-border);
+  border-radius: 8px;
+  background: var(--cohere-stone);
+}
+
+.dashboard-layout .portal-dmi-dial {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 104px;
+  height: 104px;
+  border: 1px solid var(--cohere-border);
+  border-radius: 4px;
+  background: var(--cohere-canvas);
+}
+
+.dashboard-layout .portal-dmi-dial strong {
+  color: var(--cohere-primary);
+  font-size: 40px;
+  font-weight: 400;
+  letter-spacing: -0.8px;
+  line-height: 1;
+}
+
+.dashboard-layout .portal-dmi-dial span {
+  margin-top: 2px;
+  color: var(--cohere-muted);
+  font-size: 12px;
+  letter-spacing: 0.28px;
+}
+
+.dashboard-layout .portal-dmi-level {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.dashboard-layout .portal-dmi-level-num {
+  color: var(--cohere-muted);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.28px;
+  text-transform: uppercase;
+}
+
+.dashboard-layout .portal-dmi-level strong {
+  color: var(--cohere-primary);
+  font-size: 20px;
+  font-weight: 400;
+}
+
+.dashboard-layout .portal-dmi-delta {
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--cohere-canvas);
+  font-size: 12px;
+}
+
+.dashboard-layout .portal-dmi-delta.is-up {
+  color: var(--cohere-green);
+}
+
+.dashboard-layout .portal-dmi-delta.is-down {
+  color: #a33418;
+}
+
+.dashboard-layout .portal-dmi-score-body p {
+  margin: 8px 0 0;
+  color: var(--cohere-ink);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.dashboard-layout .portal-dmi-stat-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  margin-top: 12px;
+  color: var(--cohere-muted);
+  font-size: 13px;
+}
+
+.dashboard-layout .portal-dmi-stat-row strong {
+  color: var(--cohere-primary);
+  font-weight: 500;
+}
+
+/* Level ladder */
+.dashboard-layout .portal-dmi-ladder {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dashboard-layout .portal-dmi-ladder li {
+  padding: 10px 12px;
+  border: 1px solid var(--cohere-border);
+  border-radius: 8px;
+  background: var(--cohere-canvas);
+}
+
+.dashboard-layout .portal-dmi-ladder li.is-current {
+  border-color: var(--cohere-primary);
+  background: var(--cohere-primary);
+}
+
+.dashboard-layout .portal-dmi-ladder li.is-current strong,
+.dashboard-layout .portal-dmi-ladder li.is-current span {
+  color: #fff;
+}
+
+.dashboard-layout .portal-dmi-ladder strong {
+  display: block;
+  color: var(--cohere-ink);
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.dashboard-layout .portal-dmi-ladder span {
+  color: var(--cohere-muted);
+  font-size: 12px;
+}
+
+/* Dimensions */
+.dashboard-layout .portal-dmi-dims {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.dashboard-layout .portal-dmi-dim {
+  padding: 14px;
+  border: 1px solid var(--cohere-border);
+  border-radius: 8px;
+  background: var(--cohere-canvas);
+  cursor: pointer;
+  text-align: left;
+}
+
+.dashboard-layout .portal-dmi-dim.is-open {
+  border-color: var(--cohere-primary);
+}
+
+.dashboard-layout .portal-dmi-dim-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dashboard-layout .portal-dmi-dim-top strong {
+  color: var(--cohere-ink);
+  font-size: 15px;
+  font-weight: 400;
+}
+
+.dashboard-layout .portal-dmi-dim-top em {
+  color: var(--cohere-primary);
+  font-size: 22px;
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+}
+
+.dashboard-layout .portal-dmi-dim.tone-none .portal-dmi-dim-top em {
+  color: var(--cohere-muted);
+  font-size: 15px;
+}
+
+/* Bar carries two facts: your score, and where the cohort sits. */
+.dashboard-layout .portal-dmi-meter {
+  position: relative;
+  display: block;
+  height: 3px;
+  margin: 12px 0 8px;
+  background: var(--cohere-border);
+}
+
+.dashboard-layout .portal-dmi-meter i {
+  display: block;
+  height: 100%;
+  background: var(--cohere-primary);
+}
+
+.dashboard-layout .portal-dmi-dim.tone-warn .portal-dmi-meter i {
+  background: var(--cohere-muted);
+}
+
+.dashboard-layout .portal-dmi-dim.tone-bad .portal-dmi-meter i {
+  background: var(--cohere-coral);
+}
+
+.dashboard-layout .portal-dmi-cohort {
+  position: absolute;
+  top: -3px;
+  width: 1px;
+  height: 9px;
+  background: var(--cohere-ink);
+}
+
+.dashboard-layout .portal-dmi-dim-foot {
+  display: block;
+  color: var(--cohere-muted);
+  font-size: 12px;
+}
+
+.dashboard-layout .portal-dmi-detail {
+  margin-top: 16px;
+  padding: 18px;
+  border: 1px solid var(--cohere-border);
+  border-radius: 8px;
+  background: var(--cohere-stone);
+}
+
+.dashboard-layout .portal-dmi-detail h5 {
+  margin: 0 0 6px;
+  color: var(--cohere-primary);
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.dashboard-layout .portal-dmi-question {
+  margin: 0 0 6px;
+  color: var(--cohere-ink);
+  font-size: 15px;
+}
+
+.dashboard-layout .portal-dmi-why,
+.dashboard-layout .portal-dmi-empty {
+  margin: 0 0 14px;
+  max-width: 74ch;
+  color: var(--cohere-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.dashboard-layout .portal-dmi-signals {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.dashboard-layout .portal-dmi-signals div {
+  padding: 11px;
+  border: 1px solid var(--cohere-border);
+  border-radius: 8px;
+  background: var(--cohere-canvas);
+}
+
+.dashboard-layout .portal-dmi-signals strong {
+  display: block;
+  color: var(--cohere-primary);
+  font-size: 20px;
+  font-variant-numeric: tabular-nums;
+}
+
+.dashboard-layout .portal-dmi-signals span {
+  color: var(--cohere-muted);
+  font-size: 12px;
+}
+
+/* Cohort table + history */
+.dashboard-layout .portal-dmi-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.dashboard-layout .portal-dmi-table th {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--cohere-border);
+  color: var(--cohere-muted);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.28px;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.dashboard-layout .portal-dmi-table td {
+  padding: 11px 10px;
+  border-bottom: 1px solid var(--cohere-border);
+  color: var(--cohere-ink);
+}
+
+.dashboard-layout .portal-dmi-table tr.is-you td {
+  background: var(--cohere-pale-green);
+}
+
+.dashboard-layout .portal-dmi-table em {
+  color: var(--cohere-muted);
+  font-style: normal;
+}
+
+.dashboard-layout .portal-dmi-history {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dashboard-layout .portal-dmi-history li {
+  padding: 12px;
+  border: 1px solid var(--cohere-border);
+  border-radius: 8px;
+}
+
+.dashboard-layout .portal-dmi-history strong {
+  color: var(--cohere-primary);
+  font-size: 22px;
+  font-weight: 400;
+}
+
+.dashboard-layout .portal-dmi-history span {
+  display: block;
+  color: var(--cohere-ink);
+  font-size: 13px;
+}
+
+.dashboard-layout .portal-dmi-history small {
+  display: block;
+  margin-top: 3px;
+  color: var(--cohere-muted);
+  font-size: 12px;
+}
+
+@media (max-width: 900px) {
+  .dashboard-layout .portal-dmi-ladder {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .dashboard-layout .portal-dmi-head,
+  .dashboard-layout .portal-dmi-score {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .dashboard-layout .portal-dmi-ladder {
+    grid-template-columns: 1fr;
+  }
+}
