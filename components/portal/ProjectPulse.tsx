@@ -1,9 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Activity, CalendarCheck, Pause, Play, Plus, RefreshCw } from "lucide-react";
+import { Activity, CalendarCheck, Pause, Play, Plus, RefreshCw, Sparkles } from "lucide-react";
 import { API_BASE_URL, apiFetch, authHeaders, friendlyError } from "@/lib/portal-api";
-import type { ProjectPulse as Pulse, PulseMode, UpdateStatus, WeeklyUpdate } from "@/lib/portal-types";
+import type { ProjectPulse as Pulse, PulseMode, UpdateStatus, WeeklyDraft, WeeklyUpdate } from "@/lib/portal-types";
 
 /** How often the live view re-reads the dashboard. */
 const REFRESH_MS = 15000;
@@ -59,6 +59,7 @@ export default function ProjectPulse({ projectId }: Props) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [drafting, setDrafting] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -130,10 +131,39 @@ export default function ProjectPulse({ projectId }: Props) {
     });
   }, [cadence]);
 
+  /** Compose the week's record from real activity, then let the user edit it. */
+  const draftWithAi = async () => {
+    setDrafting(true);
+    setError("");
+    try {
+      const res = await apiFetch(`${API_BASE_URL}/ai/projects/${projectId}/weekly-draft`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...authHeaders() },
+      });
+      const data: WeeklyDraft & { detail?: string } = await res.json().catch(() => ({}) as never);
+      if (!res.ok) throw new Error(data.detail || "Could not draft this week's record.");
+
+      setForm((current) => ({
+        ...current,
+        status: data.status,
+        headline: data.headline ?? "",
+        progress_note: data.progress_note ?? "",
+        blockers: data.blockers ?? "",
+        next_steps: data.next_steps ?? "",
+        completion_percent:
+          data.completion_percent == null ? "" : String(data.completion_percent),
+      }));
+      setNotice("Draft ready — review it before filing.");
+    } catch (err) {
+      setError(friendlyError(err));
+    } finally {
+      setDrafting(false);
+    }
+  };
+
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!form.headline.trim()) return;
-
     setSaving(true);
     try {
       const completion = form.completion_percent.trim();
@@ -342,6 +372,20 @@ export default function ProjectPulse({ projectId }: Props) {
 
         {showForm && (
           <form onSubmit={submit} className="portal-pulse-form">
+            <div className="portal-pulse-ai">
+              <div>
+                <strong>Let AI draft it</strong>
+                <span>
+                  Composes the week from meetings held, actions closed or slipped, and blockers already on
+                  record. You review before filing.
+                </span>
+              </div>
+              <button type="button" className="btn-secondary" onClick={draftWithAi} disabled={drafting}>
+                <Sparkles size={15} aria-hidden />
+                {drafting ? "Drafting..." : "Draft with AI"}
+              </button>
+            </div>
+
             <div className="grid-3-cols" style={{ gap: "15px" }}>
               <div className="form-group">
                 <label>Week</label>

@@ -9,8 +9,10 @@ from __future__ import annotations
 
 import json
 import logging
-from functools import lru_cache
+from functools import lru_cache, partial
 from typing import Any, Optional
+
+from starlette.concurrency import run_in_threadpool
 
 logger = logging.getLogger(__name__)
 
@@ -84,6 +86,36 @@ class LLM:
         except json.JSONDecodeError:
             logger.warning("LLM returned non-JSON content")
             return None
+
+    # ---- async wrappers -------------------------------------------------
+    #
+    # The Azure SDK client is synchronous. Calling it straight from an async
+    # endpoint pins the event loop for the whole completion -- measured at ~7s,
+    # during which every other request on the service (including /health) also
+    # waits. These push the blocking call onto a worker thread so one person
+    # generating a review doesn't stall everyone else.
+
+    async def ajson(self, system: str, user: str, max_tokens: int = 900) -> Optional[dict]:
+        return await run_in_threadpool(self.json, system, user, max_tokens)
+
+    async def achat(
+        self,
+        messages: list[dict],
+        tools: Optional[list[dict]] = None,
+        json_mode: bool = False,
+        temperature: float = 0.2,
+        max_tokens: int = 900,
+    ) -> Any:
+        return await run_in_threadpool(
+            partial(
+                self.chat,
+                messages,
+                tools=tools,
+                json_mode=json_mode,
+                temperature=temperature,
+                max_tokens=max_tokens,
+            )
+        )
 
 
 @lru_cache

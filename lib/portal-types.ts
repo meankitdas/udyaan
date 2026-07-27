@@ -186,6 +186,48 @@ export type WeeklyDigest = {
   rows: DigestRow[];
 };
 
+// ---- AI advisor ----
+
+export type PillarKey = "innovation" | "operations" | "delight";
+
+export type AiRecommendation = {
+  title: string;
+  why: string;
+  first_step: string;
+  effort: string;
+  impact: string;
+};
+
+export type AiPillar = {
+  key: PillarKey;
+  label: string;
+  score: number;
+  headline: string;
+  findings: string[];
+  recommendations: AiRecommendation[];
+};
+
+export type AdvisorReport = {
+  project_id: string;
+  project_title?: string | null;
+  generated_at: string;
+  model: string;
+  health_score: number;
+  health_summary: string;
+  pillars: AiPillar[];
+  evidence: Record<string, Record<string, unknown>>;
+};
+
+export type WeeklyDraft = {
+  status: UpdateStatus;
+  headline: string;
+  progress_note: string;
+  blockers?: string | null;
+  next_steps?: string | null;
+  completion_percent?: number | null;
+  grounded_in: Record<string, number>;
+};
+
 // ---- Project management tool integrations ----
 
 export type ProjectToolStatus = "Proposed" | "Approved" | "Declined";

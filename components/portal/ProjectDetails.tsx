@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Pencil, Plus, Sparkles } from "lucide-react";
 import DashboardLayout from "./DashboardLayout";
+import ProjectAdvisor from "./ProjectAdvisor";
 import ProjectImpact from "./ProjectImpact";
 import ProjectPulse from "./ProjectPulse";
 import ProjectTools from "./ProjectTools";
@@ -81,6 +82,7 @@ export default function ProjectDetails() {
     { id: "dashboard", label: "Back to Dashboard" },
     { id: "overview", label: "Project Overview" },
     { id: "pulse", label: "Weekly Dashboard" },
+    { id: "advisor", label: "AI Advisor" },
     { id: "meetings", label: "Minutes of Meeting" },
     { id: "actions", label: "Action Taken Report" },
     { id: "impact", label: "Impact Chain" },
@@ -564,6 +566,7 @@ export default function ProjectDetails() {
     >
       {activeTab === "overview" && renderOverview()}
       {activeTab === "pulse" && id && <ProjectPulse projectId={id} />}
+      {activeTab === "advisor" && id && <ProjectAdvisor projectId={id} />}
       {activeTab === "meetings" && renderMeetings()}
       {activeTab === "actions" && renderActions()}
       {activeTab === "impact" && id && (
