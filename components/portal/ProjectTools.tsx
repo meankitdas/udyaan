@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Check, ExternalLink, Trash2, X } from "lucide-react";
+import { Check, Maximize2, PanelTop, Trash2, X } from "lucide-react";
 import { API_BASE_URL, apiFetch, authHeaders, friendlyError } from "@/lib/portal-api";
 import type { ProjectTool, ProjectToolStatus } from "@/lib/portal-types";
 
@@ -34,6 +34,35 @@ function isSafeUrl(url?: string | null): boolean {
   }
 }
 
+function workspaceEmbedUrl(tool: ProjectTool): string | null {
+  if (!isSafeUrl(tool.url)) return null;
+  const url = new URL(tool.url as string);
+  const host = url.hostname.toLowerCase();
+
+  if (tool.tool_key === "miro") {
+    if (host !== "miro.com" && !host.endsWith(".miro.com")) return null;
+    const match = url.pathname.match(/^\/app\/(?:board|live-embed)\/([^/]+)/);
+    if (!match || !/^uXjV[A-Za-z0-9_=-]{8,}$/.test(match[1])) return null;
+    const embed = new URL(`https://miro.com/app/live-embed/${match[1]}/`);
+    embed.searchParams.set("embedMode", "view_only_without_ui");
+    embed.searchParams.set("embedAutoplay", "true");
+    return embed.toString();
+  }
+
+  if (tool.tool_key === "notion") {
+    const allowed =
+      host === "notion.so" ||
+      host.endsWith(".notion.so") ||
+      host === "notion.site" ||
+      host.endsWith(".notion.site") ||
+      host === "notion.com" ||
+      host.endsWith(".notion.com");
+    return allowed ? url.toString() : null;
+  }
+
+  return null;
+}
+
 type Props = {
   projectId: string;
   /** Faculty, admins and project heads decide what the project officially runs on. */
@@ -48,6 +77,8 @@ export default function ProjectTools({ projectId, canReview, currentUserId }: Pr
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [form, setForm] = useState({ tool_key: "notion", name: "", url: "", purpose: "" });
+  const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(null);
+  const [embedLoaded, setEmbedLoaded] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -76,11 +107,29 @@ export default function ProjectTools({ projectId, canReview, currentUserId }: Pr
     [tools],
   );
 
+  const embeddedTools = useMemo(
+    () => grouped.Approved.filter((tool) => workspaceEmbedUrl(tool)),
+    [grouped.Approved],
+  );
+  const activeWorkspace =
+    embeddedTools.find((tool) => tool.id === activeWorkspaceId) ?? embeddedTools[0] ?? null;
+
+  useEffect(() => {
+    if (!activeWorkspaceId && embeddedTools[0]) setActiveWorkspaceId(embeddedTools[0].id);
+    if (activeWorkspaceId && !embeddedTools.some((tool) => tool.id === activeWorkspaceId)) {
+      setActiveWorkspaceId(embeddedTools[0]?.id ?? null);
+    }
+  }, [activeWorkspaceId, embeddedTools]);
+
   const propose = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!form.name.trim()) return;
     if (form.url.trim() && !isSafeUrl(form.url.trim())) {
       setError("Workspace link must be a full http:// or https:// URL.");
+      return;
+    }
+    if (["notion", "miro"].includes(form.tool_key) && !form.url.trim()) {
+      setError("Notion and Miro require a shared workspace URL so they can be embedded.");
       return;
     }
 
@@ -198,16 +247,19 @@ export default function ProjectTools({ projectId, canReview, currentUserId }: Pr
                   )}
 
                   <div style={{ marginTop: "8px", display: "flex", gap: "14px", flexWrap: "wrap", alignItems: "center" }}>
-                    {isSafeUrl(tool.url) && (
-                      <a
-                        href={tool.url as string}
-                        target="_blank"
-                        rel="noreferrer noopener"
+                    {tool.status === "Approved" && workspaceEmbedUrl(tool) && (
+                      <button
+                        type="button"
                         className="btn-link"
+                        onClick={() => {
+                          setEmbedLoaded(false);
+                          setActiveWorkspaceId(tool.id);
+                          document.getElementById("embedded-workspace")?.scrollIntoView({ behavior: "smooth" });
+                        }}
                         style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "0.85rem" }}
                       >
-                        <ExternalLink size={14} aria-hidden /> Open workspace
-                      </a>
+                        <PanelTop size={14} aria-hidden /> Open in dashboard
+                      </button>
                     )}
                     <span style={{ color: "var(--text-light)", fontSize: "0.8rem" }}>
                       Proposed by {tool.proposed_by_name || "a team member"}
@@ -248,9 +300,70 @@ export default function ProjectTools({ projectId, canReview, currentUserId }: Pr
   if (loading) return <div>Loading tools...</div>;
 
   return (
-    <div style={{ display: "grid", gap: "24px" }}>
+    <div className="portal-tools" style={{ display: "grid", gap: "24px" }}>
       {error && <div className="alert alert-danger">{error}</div>}
       {notice && !error && <div className="alert alert-success">{notice}</div>}
+
+      {activeWorkspace && (
+        <section id="embedded-workspace" className="table-card portal-tool-embed">
+          <div className="portal-tool-embed-head">
+            <div>
+              <span className="portal-tool-eyebrow">Embedded workspace</span>
+              <h4>{activeWorkspace.name}</h4>
+              <p>
+                {activeWorkspace.tool_key === "miro"
+                  ? "Collaborate on the project board without leaving Udyaan."
+                  : "View the project's published Notion workspace inside Udyaan."}
+              </p>
+            </div>
+            <div className="portal-tool-tabs" aria-label="Connected workspaces">
+              {embeddedTools.map((tool) => (
+                <button
+                  key={tool.id}
+                  type="button"
+                  className={tool.id === activeWorkspace.id ? "is-active" : ""}
+                  onClick={() => {
+                    setEmbedLoaded(false);
+                    setActiveWorkspaceId(tool.id);
+                  }}
+                >
+                  {TOOL_CATALOG.find((entry) => entry.key === tool.tool_key)?.name ?? tool.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="portal-tool-frame">
+            {!embedLoaded && (
+              <div className="portal-tool-loading">
+                <strong>Loading {activeWorkspace.tool_key === "miro" ? "Miro board" : "Notion page"}...</strong>
+                <span>
+                  {activeWorkspace.tool_key === "miro"
+                    ? "The board must allow viewing for everyone with the link."
+                    : "The page must be published using Notion's Share to web option."}
+                </span>
+              </div>
+            )}
+            <iframe
+              key={activeWorkspace.id}
+              title={`${activeWorkspace.name} embedded workspace`}
+              src={workspaceEmbedUrl(activeWorkspace) as string}
+              loading="eager"
+              allow="clipboard-read; clipboard-write; fullscreen"
+              sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
+              referrerPolicy="strict-origin-when-cross-origin"
+              onLoad={() => setEmbedLoaded(true)}
+            />
+          </div>
+
+          <div className="portal-tool-embed-note">
+            <Maximize2 size={14} aria-hidden />
+            {activeWorkspace.tool_key === "notion"
+              ? "Notion must be published to the web. Private pages require a Notion OAuth/API connection."
+              : "Miro uses its secure live-embed view; board permissions still apply."}
+          </div>
+        </section>
+      )}
 
       <div className="table-card">
         <h4 style={{ fontSize: "1.1rem", fontWeight: 600, color: "var(--dark-green)", marginBottom: "4px" }}>
@@ -327,6 +440,7 @@ export default function ProjectTools({ projectId, canReview, currentUserId }: Pr
             <input
               type="url"
               className="form-control"
+              required={["notion", "miro"].includes(form.tool_key)}
               value={form.url}
               onChange={(e) => setForm({ ...form, url: e.target.value })}
               placeholder="https://www.notion.so/..."

@@ -1,9 +1,10 @@
 from datetime import datetime
+import re
 from typing import Optional
 from urllib.parse import urlsplit
 from uuid import UUID
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from app.portal.models.project_tool import ToolStatus
 
@@ -37,6 +38,30 @@ class ProjectToolCreate(BaseModel):
     @classmethod
     def validate_url(cls, value: Optional[str]) -> Optional[str]:
         return _clean_url(value)
+
+    @model_validator(mode="after")
+    def validate_embedded_provider(self):
+        key = self.tool_key.lower()
+        if key not in {"notion", "miro"}:
+            return self
+        if not self.url:
+            raise ValueError("Notion and Miro require a shared workspace URL.")
+
+        host = (urlsplit(self.url).hostname or "").lower()
+        if key == "miro":
+            if host != "miro.com" and not host.endswith(".miro.com"):
+                raise ValueError("Miro workspace URL must be hosted on miro.com.")
+            match = re.match(r"^/app/(?:board|live-embed)/([^/]+)", urlsplit(self.url).path)
+            if not match or not re.match(r"^uXjV[A-Za-z0-9_=-]{8,}$", match.group(1)):
+                raise ValueError("Use a Miro board share URL.")
+        if key == "notion":
+            allowed = any(
+                host == domain or host.endswith(f".{domain}")
+                for domain in ("notion.so", "notion.site", "notion.com")
+            )
+            if not allowed:
+                raise ValueError("Notion workspace URL must be hosted on notion.so, notion.site, or notion.com.")
+        return self
 
 
 class ProjectToolDecision(BaseModel):
