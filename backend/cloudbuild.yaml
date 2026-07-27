@@ -15,19 +15,22 @@ substitutions:
   _FRONTEND_URL: https://udyaan.org
   _MAIL_FROM: info@udyaan.org
   _CORS_ORIGINS: https://udyaan.org,https://www.udyaan.org,https://udyaan.vercel.app,http://localhost:3000
+  # Manual `gcloud builds submit` has no SHORT_SHA. CI triggers can override
+  # this with `$SHORT_SHA`; one-shot deploys pass a timestamp.
+  _IMAGE_TAG: manual
 
 steps:
   - name: gcr.io/cloud-builders/docker
     args:
       - build
       - -t
-      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$SHORT_SHA
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:${_IMAGE_TAG}
       - .
 
   - name: gcr.io/cloud-builders/docker
     args:
       - push
-      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$SHORT_SHA
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:${_IMAGE_TAG}
 
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
     entrypoint: gcloud
@@ -35,7 +38,7 @@ steps:
       - run
       - deploy
       - ${_SERVICE}
-      - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$SHORT_SHA
+      - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:${_IMAGE_TAG}
       - --region=${_REGION}
       - --platform=managed
       - --allow-unauthenticated
@@ -45,4 +48,4 @@ steps:
       - --update-secrets=AZURE_OPENAI_API_KEY=azure-openai-api-key:latest,JWT_SECRET=udyaan-jwt-secret:latest,ADMIN_PASSWORD=udyaan-admin-password:latest,DATABASE_URL=udyaan-database-url:latest,SECRET_KEY=udyaan-secret-key:latest,REDIS_URL=udyaan-redis-url:latest,MAIL_USERNAME=udyaan-mail-username:latest,MAIL_PASSWORD=udyaan-mail-password:latest
 
 images:
-  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:$SHORT_SHA
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:${_IMAGE_TAG}

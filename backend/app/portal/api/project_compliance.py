@@ -19,7 +19,7 @@ router = APIRouter(tags=["project-compliance"])
 
 @router.post("/projects/{project_id}/meetings", response_model=MeetingResponse)
 async def create_meeting(
-    project_id: UUID,
+    project_id: str,
     meeting: MeetingCreate,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -45,7 +45,7 @@ async def create_meeting(
 
 @router.get("/projects/{project_id}/meetings", response_model=List[MeetingResponse])
 async def list_meetings(
-    project_id: UUID,
+    project_id: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -81,7 +81,7 @@ async def update_meeting_mom(
 
 @router.post("/projects/{project_id}/action-items", response_model=ActionItemResponse)
 async def create_action_item(
-    project_id: UUID,
+    project_id: str,
     item: ActionItemCreate,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -104,7 +104,7 @@ async def create_action_item(
 
 @router.get("/projects/{project_id}/action-items", response_model=List[ActionItemResponse])
 async def list_action_items(
-    project_id: UUID,
+    project_id: str,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):

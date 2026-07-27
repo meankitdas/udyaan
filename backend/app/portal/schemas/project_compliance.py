@@ -21,8 +21,8 @@ class MeetingUpdate(BaseModel):
 
 class MeetingResponse(MeetingBase):
     id: UUID
-    project_id: UUID
-    created_by: UUID
+    project_id: str
+    created_by: str
     mom_content: Optional[str] = None
     created_at: datetime
     
@@ -37,7 +37,7 @@ class ActionItemBase(BaseModel):
     urgency: UrgencyLevel = UrgencyLevel.MEDIUM
 
 class ActionItemCreate(ActionItemBase):
-    assigned_to: UUID # User ID of the student
+    assigned_to: str # Custom user ID of the student
     meeting_id: Optional[UUID] = None # Optional link to a meeting
 
 class ActionItemUpdateStatus(BaseModel):
@@ -45,9 +45,9 @@ class ActionItemUpdateStatus(BaseModel):
 
 class ActionItemResponse(ActionItemBase):
     id: UUID
-    project_id: UUID
-    created_by: UUID
-    assigned_to: UUID
+    project_id: str
+    created_by: str
+    assigned_to: str
     meeting_id: Optional[UUID] = None
     status: ActionStatus
     created_at: datetime
