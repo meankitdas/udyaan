@@ -11,12 +11,15 @@ import {
   FileText,
   FolderKanban,
   Gauge,
+  GitBranch,
   GraduationCap,
   Handshake,
   LayoutDashboard,
+  LayoutGrid,
   ListChecks,
   Network,
   NotebookPen,
+  Radar,
   Settings,
   ShieldCheck,
   Sparkles,
@@ -40,6 +43,8 @@ type SidebarProps = {
 
 const NAV_ICONS = {
   profile: LayoutDashboard,
+  control: LayoutGrid,
+  ops: Radar,
   dashboard: ArrowLeft,
   insights: BarChart3,
   maturity: Gauge,
@@ -64,6 +69,7 @@ const NAV_ICONS = {
   pulse: CalendarCheck,
   advisor: Sparkles,
   meetings: NotebookPen,
+  dependencies: GitBranch,
   impact: TrendingUp,
   tools: Wrench,
 } as const;

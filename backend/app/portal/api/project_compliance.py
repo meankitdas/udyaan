@@ -3,8 +3,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.portal.database import get_db
 from app.portal.models.user import User
+from app.portal.models.action_dependency import ActionDependency
 from app.portal.models.project_compliance import ProjectMeeting, ActionItem, ActionStatus
 from app.portal.models.project import Project
+from app.portal.models.role import Role, UserRole
 from app.portal.api.auth import get_current_user
 from app.portal.schemas.project_compliance import (
     MeetingCreate, MeetingUpdate, MeetingResponse,
@@ -14,6 +16,18 @@ from uuid import UUID
 from typing import List
 
 router = APIRouter(tags=["project-compliance"])
+
+
+async def get_role_key(user: User, db: AsyncSession) -> list[str]:
+    return list(
+        (
+            await db.execute(
+                select(Role.role_key)
+                .join(UserRole, Role.id == UserRole.role_id)
+                .where(UserRole.user_id == user.id)
+            )
+        ).scalars().all()
+    )
 
 # --- Meetings ---
 
@@ -162,6 +176,45 @@ async def update_action_status(
     item = result.scalars().first()
     if not item:
         raise HTTPException(status_code=404, detail="Action Item not found")
+
+    project = (
+        await db.execute(select(Project).where(Project.id == item.project_id))
+    ).scalars().first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    roles = set(await get_role_key(current_user, db))
+    is_manager = bool(roles & {"ADMIN", "FACULTY", "PROJECT_HEAD", "SUPERADMIN"})
+    is_assignee = item.assigned_to == current_user.id
+    same_org = bool(current_user.organization_id and project.organization_id == current_user.organization_id)
+    if "SUPERADMIN" not in roles and not same_org:
+        raise HTTPException(status_code=403, detail="Access denied")
+    if not (is_manager or is_assignee):
+        raise HTTPException(status_code=403, detail="You cannot update this action item.")
+
+    if status_update.status == ActionStatus.COMPLETED:
+        prerequisite_ids = (
+            await db.execute(
+                select(ActionDependency.depends_on_id).where(ActionDependency.action_id == item.id)
+            )
+        ).scalars().all()
+        if prerequisite_ids:
+            completed_ids = set(
+                (
+                    await db.execute(
+                        select(ActionItem.id).where(
+                            ActionItem.id.in_(prerequisite_ids),
+                            ActionItem.status == ActionStatus.COMPLETED.value,
+                        )
+                    )
+                ).scalars().all()
+            )
+            unresolved = len(set(prerequisite_ids) - completed_ids)
+            if unresolved:
+                raise HTTPException(
+                    status_code=409,
+                    detail=f"Complete {unresolved} prerequisite action(s) first.",
+                )
         
     item.status = status_update.status
     await db.commit()

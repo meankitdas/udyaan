@@ -55,6 +55,39 @@ export type ActionItem = {
   assigned_to: string;
 };
 
+export type DependencyEdge = {
+  id: string;
+  action_id: string;
+  depends_on_id: string;
+};
+
+export type DependencyNode = {
+  id: string;
+  title: string;
+  status: string;
+  urgency: string;
+  due_date: string;
+  assigned_to: string;
+  assigned_to_name?: string | null;
+  prerequisite_ids: string[];
+  dependent_ids: string[];
+  unresolved_prerequisites: number;
+  blocked: boolean;
+  overdue: boolean;
+  ready: boolean;
+  on_critical_path: boolean;
+};
+
+export type DependencyGraph = {
+  project_id: string;
+  nodes: DependencyNode[];
+  edges: DependencyEdge[];
+  blocked_count: number;
+  ready_count: number;
+  overdue_count: number;
+  critical_path: string[];
+};
+
 export type Meeting = {
   id: string;
   title: string;
@@ -226,6 +259,78 @@ export type WeeklyDraft = {
   next_steps?: string | null;
   completion_percent?: number | null;
   grounded_in: Record<string, number>;
+};
+
+// ---- Reports ----
+
+export type ReportDetail = {
+  id: string;
+  title: string;
+  content: string;
+  project_id: string;
+  project_title?: string | null;
+  submitted_by: string;
+  submitted_by_name?: string | null;
+  submitted_to: string;
+  submitted_to_name?: string | null;
+  created_at: string;
+};
+
+// ---- Control centre ----
+
+export type ControlMetric = {
+  key: string;
+  label: string;
+  value: number;
+  delta?: number | null;
+  unit?: string | null;
+  spark: number[];
+};
+
+export type ControlSeriesPoint = {
+  label: string;
+  projects: number;
+  updates: number;
+  meetings: number;
+  actions: number;
+};
+
+export type ControlSlice = { name: string; value: number };
+
+export type DirectoryRow = {
+  kind: "project" | "person" | "organisation";
+  id: string;
+  name: string;
+  subtitle?: string | null;
+  status?: string | null;
+  organization_id?: string | null;
+  organization_name?: string | null;
+  role?: string | null;
+  created_at?: string | null;
+  approved?: boolean | null;
+};
+
+export type ControlFeedItem = {
+  kind: string;
+  title: string;
+  detail?: string | null;
+  project_id?: string | null;
+  at?: string | null;
+};
+
+export type ControlCentre = {
+  scope: "platform" | "organization";
+  organization_id?: string | null;
+  organization_name?: string | null;
+  generated_at: string;
+  metrics: ControlMetric[];
+  series: ControlSeriesPoint[];
+  project_status: ControlSlice[];
+  role_mix: ControlSlice[];
+  update_status: ControlSlice[];
+  directory: DirectoryRow[];
+  feed: ControlFeedItem[];
+  pending_approvals: number;
 };
 
 // ---- Digital Maturity Index ----

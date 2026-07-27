@@ -7,6 +7,9 @@ import CreateProject from "./CreateProject";
 import ProjectList from "./ProjectList";
 import InsightsTab from "./InsightsTab";
 import AiCopilot from "./AiCopilot";
+import ControlCentre from "./ControlCentre";
+import ReportsConsole from "./ReportsConsole";
+import OpsControlCentre from "./OpsControlCentre";
 import OrgMaturity from "./OrgMaturity";
 import { API_BASE_URL, apiFetch, authHeaders } from "@/lib/portal-api";
 import type { ActionItem, NavItem, Organization, PortalUser, Profile } from "@/lib/portal-types";
@@ -15,6 +18,9 @@ type EditFormData = { full_name: string; phone: string; organization_id: string 
 
 const TAB_TITLES: Record<string, string> = {
   profile: "My Profile",
+  control: "Control Centre",
+  reports: "Reports",
+  ops: "Delivery Control Centre",
   insights: "Insights",
   maturity: "Digital Maturity Index",
   copilot: "Udyaan Copilot",
@@ -313,6 +319,12 @@ export default function AdminDashboard() {
         return <ProjectList />;
       case "insights":
         return <InsightsTab />;
+      case "ops":
+        return <OpsControlCentre />;
+      case "control":
+        return <ControlCentre />;
+      case "reports":
+        return <ReportsConsole />;
       case "maturity":
         return <OrgMaturity />;
       case "copilot":
@@ -604,7 +616,10 @@ export default function AdminDashboard() {
 
   const navItems: NavItem[] = [
     { id: "profile", label: "My Profile" },
+    { id: "control", label: "Control Centre" },
+    { id: "ops", label: "Delivery" },
     { id: "insights", label: "Insights" },
+    { id: "reports", label: "Reports" },
     { id: "maturity", label: "Digital Maturity" },
     { id: "copilot", label: "Udyaan Copilot" },
     { id: "students", label: "Students" },

@@ -3,6 +3,9 @@
 import { useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import DashboardLayout from "./DashboardLayout";
+import ControlCentre from "./ControlCentre";
+import OrgMaturity from "./OrgMaturity";
+import ReportsConsole from "./ReportsConsole";
 import CreateOrganization from "./CreateOrganization";
 import CreateOrgAdmin from "./CreateOrgAdmin";
 import OrgAdminList from "./OrgAdminList";
@@ -24,6 +27,12 @@ export default function SuperAdminDashboard() {
 
   const renderContent = () => {
     switch (activeTab) {
+      case "control":
+        return <ControlCentre />;
+      case "maturity":
+        return <OrgMaturity />;
+      case "reports":
+        return <ReportsConsole />;
       case "orgs":
         if (viewMode === "list") {
           return (
@@ -90,6 +99,12 @@ export default function SuperAdminDashboard() {
 
   const getTitle = () => {
     switch (activeTab) {
+      case "control":
+        return "Control Centre";
+      case "maturity":
+        return "Digital Maturity Index";
+      case "reports":
+        return "Reports";
       case "orgs":
         return viewMode === "list" ? "Organizations" : "Create Organization";
       case "project-heads":
@@ -102,11 +117,12 @@ export default function SuperAdminDashboard() {
   };
 
   const navItems: NavItem[] = [
+    { id: "control", label: "Control Centre" },
     { id: "orgs", label: "Organizations" },
     { id: "project-heads", label: "Project Heads" },
     { id: "projects", label: "View All Projects" },
-    { id: "reports", label: "Reports (Coming Soon)" },
-    { id: "settings", label: "Settings" },
+    { id: "reports", label: "Reports" },
+    { id: "maturity", label: "Digital Maturity" },
   ];
 
   return (

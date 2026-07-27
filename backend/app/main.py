@@ -59,9 +59,11 @@ app.include_router(screening.router)
 _PORTAL_ENABLED = False
 try:
     from .portal.api import (
+        action_dependencies as portal_action_dependencies,
         admin as portal_admin,
         auth as portal_auth,
         community as portal_community,
+        control as portal_control,
         maturity as portal_maturity,
         organizations as portal_organizations,
         project_compliance as portal_compliance,
@@ -82,10 +84,12 @@ try:
         portal_reports.router,
         portal_admin.router,
         portal_compliance.router,
+        portal_action_dependencies.router,
         portal_project_tools.router,
         portal_project_impact.router,
         portal_project_updates.router,
         portal_maturity.router,
+        portal_control.router,
         portal_community.router,
         portal_ai.router,
     ):

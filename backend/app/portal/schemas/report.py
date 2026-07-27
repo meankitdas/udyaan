@@ -22,3 +22,11 @@ class ReportResponse(ReportBase):
 
     class Config:
         from_attributes = True
+
+
+class ReportDetail(ReportResponse):
+    """Read model: ids resolved to names so a console can render without extra calls."""
+
+    project_title: Optional[str] = None
+    submitted_by_name: Optional[str] = None
+    submitted_to_name: Optional[str] = None

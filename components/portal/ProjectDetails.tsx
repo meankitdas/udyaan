@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Pencil, Plus, Sparkles } from "lucide-react";
 import DashboardLayout from "./DashboardLayout";
+import DependencyPlanner from "./DependencyPlanner";
 import MeetingMinutesEditor from "./MeetingMinutesEditor";
 import ProjectAdvisor from "./ProjectAdvisor";
 import ProjectImpact from "./ProjectImpact";
@@ -86,6 +87,7 @@ export default function ProjectDetails() {
     { id: "advisor", label: "AI Advisor" },
     { id: "meetings", label: "Minutes of Meeting" },
     { id: "actions", label: "Action Taken Report" },
+    { id: "dependencies", label: "Dependencies" },
     { id: "impact", label: "Impact Chain" },
     { id: "tools", label: "Workspace Tools" },
   ];
@@ -517,6 +519,7 @@ export default function ProjectDetails() {
       {activeTab === "advisor" && id && <ProjectAdvisor projectId={id} />}
       {activeTab === "meetings" && renderMeetings()}
       {activeTab === "actions" && renderActions()}
+      {activeTab === "dependencies" && id && <DependencyPlanner projectId={id} canManage={canManage} />}
       {activeTab === "impact" && id && (
         <ProjectImpact projectId={id} canReview={canManage} currentUserId={profile?.id} />
       )}
