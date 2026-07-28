@@ -142,4 +142,25 @@ def healthz() -> dict:
         "storage": "firestore" if settings.use_firestore else "local",
         "screening": "azure-openai-rag" if settings.use_azure_openai else "heuristic",
         "portal": "enabled" if _PORTAL_ENABLED else "disabled",
+        "community_ranking": _community_ranking_mode(),
     }
+
+
+def _community_ranking_mode() -> str:
+    """Report whether community ranking is using embeddings or tag overlap.
+
+    Whether pgvector exists is decided at startup against whatever database the
+    instance was pointed at, so it cannot be inferred from config alone. The app
+    degrades to tag overlap silently and by design, which means without this the
+    only record of the choice is a startup INFO line that the default uvicorn
+    logging config drops. Surfacing it here makes the active mode checkable.
+    """
+    if not _PORTAL_ENABLED:
+        return "disabled"
+    try:
+        from .portal import vectors
+    except Exception:
+        return "unknown"
+    if vectors.HAS_PGVECTOR is None:
+        return "uninitialized"  # init_models never ran; see the startup hook
+    return "embeddings" if vectors.HAS_PGVECTOR else "tags-only"
