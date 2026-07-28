@@ -97,19 +97,23 @@ async def init_models():
     from app.portal import vectors
 
     _init_db_sync()
-    async with engine.begin() as conn:
-        try:
+
+    # Extensions run in their own transactions, before the schema one. A failed
+    # statement aborts its entire Postgres transaction, so a CREATE EXTENSION the
+    # instance does not permit would otherwise roll back create_all along with
+    # it and leave the portal with no tables at all.
+    try:
+        async with engine.begin() as conn:
             await conn.execute(text('CREATE EXTENSION IF NOT EXISTS "pgcrypto"'))
-        except Exception:
-            # Managed Postgres may not permit extensions; tables may still work if it already exists.
-            pass
-        # Determines whether community ranking can use embedding similarity.
-        # Must run before create_all so the flag is set for anything reading it.
-        await vectors.detect_pgvector(conn)
+    except Exception:
+        # Managed Postgres may not permit extensions; tables may still work if it already exists.
+        pass
+
+    # Determines whether community ranking can use embedding similarity.
+    await vectors.detect_pgvector(engine)
+
+    async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-        # Vector tables are raw DDL, deliberately outside create_all. See
-        # app/portal/vectors.py for why.
-        await vectors.ensure_vector_schema(conn)
         # Lightweight migrations for columns added after initial deployments.
         await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS skills TEXT"))
         # Community network profile fields (see models/community.py).
@@ -178,3 +182,8 @@ async def init_models():
                 ),
                 {"slug": slug, "label": label, "category": category},
             )
+
+    # After the schema transaction commits, so the foreign keys have targets, and
+    # outside it so a vector problem cannot cost the rest of the schema. These
+    # tables are raw DDL rather than model metadata -- see app/portal/vectors.py.
+    await vectors.ensure_vector_schema(engine)

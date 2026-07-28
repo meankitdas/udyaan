@@ -73,8 +73,14 @@ def vector_literal(values: Sequence[float]) -> str:
     return "[" + ",".join(repr(float(v)) for v in values) + "]"
 
 
-async def detect_pgvector(conn) -> bool:
+async def detect_pgvector(engine) -> bool:
     """Create the extension if permitted and report whether it is usable.
+
+    Takes an engine rather than a connection, and runs each statement in its own
+    transaction, because a failed statement poisons the entire Postgres
+    transaction it runs in. Sharing a transaction with ``create_all`` would mean
+    that an RDS instance too old for pgvector did not merely skip embeddings --
+    it rolled back the whole portal schema.
 
     Creation and detection are deliberately separate steps: the extension may
     already exist without this role having privileges to create it, in which case
@@ -82,15 +88,17 @@ async def detect_pgvector(conn) -> bool:
     """
     global HAS_PGVECTOR
     try:
-        await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+        async with engine.begin() as conn:
+            await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
     except Exception as exc:
         logger.info("Could not create the pgvector extension (%s); probing for it anyway.", exc)
 
     try:
-        result = await conn.execute(
-            text("SELECT 1 FROM pg_extension WHERE extname = 'vector'")
-        )
-        HAS_PGVECTOR = result.first() is not None
+        async with engine.connect() as conn:
+            result = await conn.execute(
+                text("SELECT 1 FROM pg_extension WHERE extname = 'vector'")
+            )
+            HAS_PGVECTOR = result.first() is not None
     except Exception as exc:
         logger.warning("pgvector probe failed (%s); disabling embedding ranking.", exc)
         HAS_PGVECTOR = False
@@ -131,12 +139,14 @@ async def _column_dim(conn, table: str) -> Optional[int]:
     return int(row[0]) if row else None
 
 
-async def ensure_vector_schema(conn) -> None:
+async def ensure_vector_schema(engine) -> None:
     """Create (or rebuild) the embedding cache tables.
 
-    Called after ``create_all`` so the foreign keys have their targets. Does
-    nothing when pgvector is unavailable, leaving the ranker on its tag-overlap
-    path.
+    Every statement runs in its own transaction for the reason given in
+    :func:`detect_pgvector`: this is optional infrastructure, and no failure here
+    may be allowed to roll back the schema the rest of the portal depends on.
+    Does nothing when pgvector is unavailable, leaving the ranker on its
+    tag-overlap path.
     """
     if not HAS_PGVECTOR:
         return
@@ -147,44 +157,54 @@ async def ensure_vector_schema(conn) -> None:
         (POST_EMBEDDING_TABLE, "post_id UUID PRIMARY KEY REFERENCES community_posts(id) ON DELETE CASCADE"),
         (USER_EMBEDDING_TABLE, "user_id VARCHAR(10) PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE"),
     ):
-        current = await _column_dim(conn, table)
-        if current is not None and current != dim:
-            # Derived data: rebuilding is cheaper than a dimension mismatch that
-            # would fail every subsequent insert.
-            logger.warning(
-                "Embedding width for %s changed from %s to %s; rebuilding the cache.",
-                table,
-                current,
-                dim,
-            )
-            await conn.execute(text(f"DROP TABLE IF EXISTS {table}"))
-            current = None
-
-        if current is None:
-            await conn.execute(
-                text(
-                    f"""
-                    CREATE TABLE IF NOT EXISTS {table} (
-                        {owner_ddl},
-                        embedding vector({dim}) NOT NULL,
-                        model VARCHAR(80) NOT NULL,
-                        source_hash VARCHAR(64) NOT NULL,
-                        updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+        try:
+            async with engine.begin() as conn:
+                current = await _column_dim(conn, table)
+                if current is not None and current != dim:
+                    # Derived data: rebuilding is cheaper than a dimension
+                    # mismatch that would fail every subsequent insert.
+                    logger.warning(
+                        "Embedding width for %s changed from %s to %s; rebuilding the cache.",
+                        table,
+                        current,
+                        dim,
                     )
-                    """
-                )
+                    await conn.execute(text(f"DROP TABLE IF EXISTS {table}"))
+                    current = None
+
+                if current is None:
+                    await conn.execute(
+                        text(
+                            f"""
+                            CREATE TABLE IF NOT EXISTS {table} (
+                                {owner_ddl},
+                                embedding vector({dim}) NOT NULL,
+                                model VARCHAR(80) NOT NULL,
+                                source_hash VARCHAR(64) NOT NULL,
+                                updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+                            )
+                            """
+                        )
+                    )
+        except Exception as exc:
+            logger.warning(
+                "Could not provision %s (%s); embedding ranking stays disabled for it.",
+                table,
+                exc,
             )
+            continue
 
         # HNSW over cosine distance, matching the `<=>` operator used when
         # ranking. Index creation is optional: without it queries still return
         # correct results, just with a sequential scan, so a permission or
         # memory failure here must not take the feature down.
         try:
-            await conn.execute(
-                text(
-                    f"CREATE INDEX IF NOT EXISTS ix_{table}_hnsw "
-                    f"ON {table} USING hnsw (embedding vector_cosine_ops)"
+            async with engine.begin() as conn:
+                await conn.execute(
+                    text(
+                        f"CREATE INDEX IF NOT EXISTS ix_{table}_hnsw "
+                        f"ON {table} USING hnsw (embedding vector_cosine_ops)"
+                    )
                 )
-            )
         except Exception as exc:
             logger.info("Could not build the HNSW index on %s (%s); scans will be used.", table, exc)
