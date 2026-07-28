@@ -1,0 +1,105 @@
+name: Deploy backend
+
+# Replaces Cloud Build. Only backend paths trigger it — the frontend deploys
+# from Vercel off the same branch and must not be coupled to this pipeline.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - ".github/workflows/deploy-backend.yml"
+  workflow_dispatch:
+
+env:
+  AWS_REGION: ap-south-1
+  ECR_REPOSITORY: udyaan-api
+  SERVICE_ARN: arn:aws:apprunner:ap-south-1:209483892786:service/udyaan-api/dc648f8028ae4128a569f17244d56c77
+
+# Two deploys racing would leave App Runner on whichever image finished last
+# rather than the newest commit.
+concurrency:
+  group: deploy-backend
+  cancel-in-progress: false
+
+permissions:
+  # Required for OIDC. Nothing here uses a long-lived AWS access key.
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::209483892786:role/udyaan-github-deploy
+          aws-region: ${{ env.AWS_REGION }}
+
+      - id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push
+        id: image
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          TAG: ${{ github.sha }}
+        working-directory: backend
+        run: |
+          set -euo pipefail
+          URI="$REGISTRY/$ECR_REPOSITORY:$TAG"
+          # App Runner runs on x86; a build from an arm machine would otherwise
+          # produce an image the service cannot start.
+          docker build --platform linux/amd64 -t "$URI" -t "$REGISTRY/$ECR_REPOSITORY:latest" .
+          docker push "$URI"
+          docker push "$REGISTRY/$ECR_REPOSITORY:latest"
+          echo "uri=$URI" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy to App Runner
+        env:
+          IMAGE: ${{ steps.image.outputs.uri }}
+        run: |
+          set -euo pipefail
+          # Only the image identifier is sent. Environment variables and secret
+          # bindings are deliberately left alone: update-service replaces any
+          # configuration block it is given, so listing them here would make an
+          # omission silently unset them.
+          aws apprunner update-service \
+            --service-arn "$SERVICE_ARN" \
+            --region "$AWS_REGION" \
+            --source-configuration "ImageRepository={ImageIdentifier=$IMAGE,ImageRepositoryType=ECR}" \
+            >/dev/null
+
+      - name: Wait for the new revision to serve
+        run: |
+          set -euo pipefail
+          for _ in $(seq 1 60); do
+            status="$(aws apprunner describe-service --service-arn "$SERVICE_ARN" \
+              --region "$AWS_REGION" --query 'Service.Status' --output text)"
+            echo "status: $status"
+            case "$status" in
+              RUNNING) exit 0 ;;
+              CREATE_FAILED|DELETE_FAILED) exit 1 ;;
+            esac
+            sleep 15
+          done
+          echo "Timed out waiting for App Runner to reach RUNNING." >&2
+          exit 1
+
+      - name: Verify health
+        run: |
+          set -euo pipefail
+          URL="https://$(aws apprunner describe-service --service-arn "$SERVICE_ARN" \
+            --region "$AWS_REGION" --query 'Service.ServiceUrl' --output text)"
+          # App Runner reports RUNNING before the new revision necessarily
+          # serves, so this is retried rather than checked once.
+          for _ in $(seq 1 10); do
+            if body="$(curl -fsS --max-time 20 "$URL/health")"; then
+              echo "$body"
+              echo "$body" | grep -q '"status":"ok"' && exit 0
+            fi
+            sleep 10
+          done
+          echo "Health check never returned ok." >&2
+          exit 1

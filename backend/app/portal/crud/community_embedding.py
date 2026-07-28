@@ -4,13 +4,13 @@ The design is shaped by three properties of the surrounding system.
 
 **The embedder is synchronous.** ``app/rag/embeddings.py`` wraps the blocking
 ``AzureOpenAI`` client. Calling it directly from an async request handler stalls
-the event loop for the whole round trip, which on a single Cloud Run instance
+the event loop for the whole round trip, which on a single App Runner instance
 stalls every concurrent request, not just the one doing the embedding. Every
 call here goes through ``asyncio.to_thread``.
 
 **Embeddings can be missing, and that must be survivable.** They are produced by
-a network call to a third party, written by background tasks that a scaled-to-
-zero Cloud Run instance may never finish, and skipped entirely when pgvector is
+a network call to a third party, written by background tasks that an idle
+App Runner instance may never finish, and skipped entirely when pgvector is
 absent. So a missing row is a normal state rather than an error: ranking falls
 back to tag overlap for that post, and :func:`backfill_post_embeddings` catches
 up later. Nothing in this module raises into a request path.

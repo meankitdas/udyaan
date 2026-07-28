@@ -254,6 +254,7 @@ export interface UploadTicket {
   file_url: string;
   object_key: string;
   method: string;
+  fields: Record<string, string>;
   headers: Record<string, string>;
   max_bytes: number;
   expires_at: string;

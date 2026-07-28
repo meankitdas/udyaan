@@ -139,7 +139,7 @@ async def init_portal_db() -> None:
 def healthz() -> dict:
     return {
         "status": "ok",
-        "storage": "firestore" if settings.use_firestore else "local",
+        "storage": "postgres" if settings.use_postgres else "local",
         "screening": "azure-openai-rag" if settings.use_azure_openai else "heuristic",
         "portal": "enabled" if _PORTAL_ENABLED else "disabled",
         "community_ranking": _community_ranking_mode(),

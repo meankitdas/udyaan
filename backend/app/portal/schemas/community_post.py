@@ -50,7 +50,10 @@ class UploadSignResponse(BaseModel):
     upload_url: str
     file_url: str
     object_key: str
-    method: str = "PUT"
+    method: str = "POST"
+    # Multipart form fields carrying the signed S3 policy. The file must be
+    # appended after them, since S3 ignores any field that follows the body.
+    fields: dict = {}
     headers: dict = {}
     max_bytes: int
     expires_at: datetime

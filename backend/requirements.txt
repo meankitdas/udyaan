@@ -3,13 +3,15 @@ uvicorn[standard]>=0.30,<1
 pydantic>=2.8,<3
 PyJWT>=2.9,<3
 openai>=1.40,<2
-google-cloud-firestore>=2.16,<3
-google-cloud-storage>=2.18,<4
+boto3>=1.34,<2
 
 # ---- Portal (role-based platform) merged from backend_dev ----
 pydantic-settings>=2.4,<3
 SQLAlchemy>=2.0,<3
 asyncpg>=0.29,<1
+# Synchronous driver for the survey storage, which runs in FastAPI's threadpool
+# and cannot use the portal's async engine.
+psycopg[binary]>=3.1,<4
 redis>=5.0,<8
 passlib>=1.7,<2
 python-jose[cryptography]>=3.3,<4

@@ -1,7 +1,8 @@
 """Application settings, loaded from environment variables.
 
 Cloud integrations activate automatically when their env vars are present:
-- GCP Firestore:  GCP_PROJECT (+ GOOGLE_APPLICATION_CREDENTIALS or ADC)
+- Postgres:       DATABASE_URL (survey forms and responses; the portal uses the
+                  same database through its own async engine)
 - Azure OpenAI:   AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY,
                   AZURE_OPENAI_CHAT_DEPLOYMENT, AZURE_OPENAI_EMBEDDING_DEPLOYMENT
 Without them the API falls back to local JSON storage and heuristic screening,
@@ -26,10 +27,14 @@ class Settings:
         self.jwt_secret = os.getenv("JWT_SECRET", "change-me-in-production")
         self.jwt_ttl_hours = int(os.getenv("JWT_TTL_HOURS", "12"))
 
-        # Google Cloud
-        self.gcp_project = os.getenv("GCP_PROJECT", "")
-        self.firestore_database = os.getenv("FIRESTORE_DATABASE", "(default)")
-        self.gcs_bucket = os.getenv("GCS_BUCKET", "")
+        # AWS. Region matters: the database and asset bucket both live in
+        # ap-south-1, and placing compute elsewhere puts a cross-region hop on
+        # every query.
+        self.aws_region = os.getenv("AWS_REGION", "ap-south-1")
+
+        # Survey storage. Shares the portal's Postgres instance rather than
+        # running a second datastore for six documents.
+        self.database_url = os.getenv("DATABASE_URL", "")
 
         # Azure OpenAI
         self.azure_openai_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT", "")
@@ -42,8 +47,8 @@ class Settings:
         self.data_dir = os.getenv("DATA_DIR", os.path.join(os.path.dirname(__file__), "..", "data"))
 
     @property
-    def use_firestore(self) -> bool:
-        return bool(self.gcp_project)
+    def use_postgres(self) -> bool:
+        return bool(self.database_url)
 
     @property
     def use_azure_openai(self) -> bool:

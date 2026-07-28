@@ -327,13 +327,27 @@ export async function uploadAttachment(file: File): Promise<Attachment> {
 
   // Deliberately plain fetch, not apiFetch: this request goes to storage, and
   // attaching the portal's auth header would break the signature.
-  const put = await fetch(ticket.upload_url, {
-    method: ticket.method || "PUT",
-    headers: ticket.headers,
-    body: file,
-  });
-  if (!put.ok) {
-    throw new Error(`Upload failed (${put.status}). Please try again.`);
+  //
+  // S3 presigned POST takes the policy as multipart fields with the file last —
+  // S3 ignores anything sent after the body. A presigned PUT (fields absent)
+  // still works, so both shapes are handled.
+  let response: Response;
+  if (ticket.fields && Object.keys(ticket.fields).length > 0) {
+    const form = new FormData();
+    for (const [key, value] of Object.entries(ticket.fields)) {
+      form.append(key, value);
+    }
+    form.append("file", file);
+    response = await fetch(ticket.upload_url, { method: "POST", body: form });
+  } else {
+    response = await fetch(ticket.upload_url, {
+      method: ticket.method || "PUT",
+      headers: ticket.headers,
+      body: file,
+    });
+  }
+  if (!response.ok) {
+    throw new Error(`Upload failed (${response.status}). Please try again.`);
   }
 
   return {

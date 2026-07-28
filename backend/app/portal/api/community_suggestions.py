@@ -79,7 +79,7 @@ async def require_backfill_caller(
 ) -> Optional[User]:
     """Accept either an admin session or the scheduler's service token.
 
-    Embedding writes are best-effort background tasks, and Cloud Run throttles
+    Embedding writes are best-effort background tasks, and App Runner throttles
     CPU once a response is sent, so some of them are lost and nothing else
     reconciles them. That makes unattended backfill necessary, but a recurring
     job cannot hold an admin JWT because access tokens expire. The service token
@@ -140,7 +140,7 @@ async def backfill_embeddings(
 ):
     """Embed posts and profiles that have no vector yet.
 
-    The recovery path for background tasks that Cloud Run killed before they
+    The recovery path for background tasks that App Runner killed before they
     finished, and the migration path for content that predates embeddings being
     enabled. Idempotent: rows that already have a current vector are skipped.
     """
