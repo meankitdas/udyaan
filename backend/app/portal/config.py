@@ -38,6 +38,11 @@ class Settings(BaseSettings):
     GCS_SIGNED_URL_TTL_SECONDS: int = 600
     MAX_UPLOAD_BYTES: int = 25 * 1024 * 1024
 
+    # Lets Cloud Scheduler run the embedding backfill unattended, since an admin
+    # JWT expires and cannot be baked into a recurring job. Empty disables that
+    # auth path outright, so an unset secret can never leave the endpoint open.
+    BACKFILL_TOKEN: str = ""
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 

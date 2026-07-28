@@ -6,13 +6,21 @@ which exists only because of it.
 """
 
 import logging
+import secrets
+from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Header, HTTPException, Query
+from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from app.portal import vectors
-from app.portal.core.deps import get_current_user
+from app.portal.config import settings
+from app.portal.core.deps import (
+    get_current_user,
+    unauthorized,
+    user_from_access_token,
+)
 from app.portal.crud import community_embedding as embedding_crud
 from app.portal.crud import community_suggestion as suggestion_crud
 from app.portal.database import get_db
@@ -30,27 +38,61 @@ router = APIRouter(prefix="/community", tags=["community-suggestions"])
 
 ADMIN_ROLE_KEYS = ("ADMIN", "SUPERADMIN")
 
+# auto_error=False so a missing Authorization header falls through to the
+# service-token check instead of 401-ing before it runs.
+oauth2_optional = OAuth2PasswordBearer(tokenUrl="portal/auth/login", auto_error=False)
+
 # Backfill is a paid, long-running operation. The cap bounds both the spend and
 # the request duration, and the endpoint is designed to be called repeatedly
 # until it reports zero rather than to finish everything in one shot.
 MAX_BACKFILL = 500
 
 
-async def require_admin(
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-) -> User:
+async def _has_admin_role(db: AsyncSession, user_id: str) -> bool:
     role_keys = (
         await db.execute(
             select(Role.role_key)
             .join(UserRole, UserRole.role_id == Role.id)
-            .where(UserRole.user_id == current_user.id)
+            .where(UserRole.user_id == user_id)
         )
     ).scalars().all()
+    return bool(set(role_keys) & set(ADMIN_ROLE_KEYS))
 
-    if not set(role_keys) & set(ADMIN_ROLE_KEYS):
+
+def _service_token_valid(candidate: Optional[str]) -> bool:
+    """Constant-time check of the unattended-maintenance token.
+
+    An unset ``BACKFILL_TOKEN`` must reject every candidate rather than compare
+    equal to an absent header, otherwise forgetting to configure the secret
+    would silently expose the endpoint.
+    """
+    expected = settings.BACKFILL_TOKEN
+    if not expected or not candidate:
+        return False
+    return secrets.compare_digest(candidate, expected)
+
+
+async def require_backfill_caller(
+    x_internal_token: Optional[str] = Header(default=None, alias="X-Internal-Token"),
+    token: Optional[str] = Depends(oauth2_optional),
+    db: AsyncSession = Depends(get_db),
+) -> Optional[User]:
+    """Accept either an admin session or the scheduler's service token.
+
+    Embedding writes are best-effort background tasks, and Cloud Run throttles
+    CPU once a response is sent, so some of them are lost and nothing else
+    reconciles them. That makes unattended backfill necessary, but a recurring
+    job cannot hold an admin JWT because access tokens expire. The service token
+    covers that gap without widening access for anyone else.
+    """
+    if _service_token_valid(x_internal_token):
+        return None
+    if token is None:
+        raise unauthorized("Could not validate credentials", "token_invalid")
+    user = await user_from_access_token(token, db)
+    if not await _has_admin_role(db, user.id):
         raise HTTPException(status_code=403, detail="Admin access required")
-    return current_user
+    return user
 
 
 @router.get("/suggestions", response_model=SuggestionPage)
@@ -93,7 +135,7 @@ async def dismiss_suggestion(
 @router.post("/embeddings/backfill", response_model=BackfillResult)
 async def backfill_embeddings(
     limit: int = Query(200, ge=1, le=MAX_BACKFILL),
-    _admin: User = Depends(require_admin),
+    _admin: Optional[User] = Depends(require_backfill_caller),
     db: AsyncSession = Depends(get_db),
 ):
     """Embed posts and profiles that have no vector yet.

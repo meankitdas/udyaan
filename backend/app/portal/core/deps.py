@@ -52,10 +52,14 @@ def decode_token(token: str, expected_type: str = "access") -> dict:
     return payload
 
 
-async def get_current_user(
-    token: str = Depends(oauth2_scheme),
-    db: AsyncSession = Depends(get_db),
-) -> User:
+async def user_from_access_token(token: str, db: AsyncSession) -> User:
+    """Resolve an access token to an active user.
+
+    Split out of :func:`get_current_user` so callers that accept more than one
+    kind of credential can reuse the exact same validation instead of
+    reimplementing it and drifting, which is the failure this module exists to
+    prevent.
+    """
     payload = decode_token(token, "access")
 
     email = payload.get("sub")
@@ -71,3 +75,10 @@ async def get_current_user(
         raise HTTPException(status_code=403, detail="This account has been deactivated.")
 
     return user
+
+
+async def get_current_user(
+    token: str = Depends(oauth2_scheme),
+    db: AsyncSession = Depends(get_db),
+) -> User:
+    return await user_from_access_token(token, db)

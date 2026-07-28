@@ -60,7 +60,7 @@ steps:
       # one silently unconfigures that feature on the next deploy (this is how
       # Azure OpenAI and the Firestore database name were once dropped).
       - --set-env-vars=^|^GCP_PROJECT=$PROJECT_ID|FIRESTORE_DATABASE=${_FIRESTORE_DATABASE}|ADMIN_EMAIL=${_ADMIN_EMAIL}|FRONTEND_URL=${_FRONTEND_URL}|MAIL_FROM=${_MAIL_FROM}|CORS_ORIGINS=${_CORS_ORIGINS}|AZURE_OPENAI_ENDPOINT=${_AZURE_OPENAI_ENDPOINT}|AZURE_OPENAI_CHAT_DEPLOYMENT=${_AZURE_OPENAI_CHAT_DEPLOYMENT}|AZURE_OPENAI_EMBEDDING_DEPLOYMENT=${_AZURE_OPENAI_EMBEDDING_DEPLOYMENT}|GCS_BUCKET=${_GCS_BUCKET}
-      - --update-secrets=AZURE_OPENAI_API_KEY=azure-openai-api-key:latest,JWT_SECRET=udyaan-jwt-secret:latest,ADMIN_PASSWORD=udyaan-admin-password:latest,DATABASE_URL=udyaan-database-url:latest,SECRET_KEY=udyaan-secret-key:latest,REDIS_URL=udyaan-redis-url:latest,MAIL_USERNAME=udyaan-mail-username:latest,MAIL_PASSWORD=udyaan-mail-password:latest
+      - --update-secrets=AZURE_OPENAI_API_KEY=azure-openai-api-key:latest,JWT_SECRET=udyaan-jwt-secret:latest,ADMIN_PASSWORD=udyaan-admin-password:latest,DATABASE_URL=udyaan-database-url:latest,SECRET_KEY=udyaan-secret-key:latest,REDIS_URL=udyaan-redis-url:latest,MAIL_USERNAME=udyaan-mail-username:latest,MAIL_PASSWORD=udyaan-mail-password:latest,BACKFILL_TOKEN=udyaan-backfill-token:latest
 
 images:
   - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE}:${_IMAGE_TAG}
