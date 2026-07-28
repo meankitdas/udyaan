@@ -3,13 +3,14 @@
 from typing import List, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from sqlalchemy import distinct, func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from app.portal.core.deps import get_current_user
 from app.portal.crud import community as crud
+from app.portal.crud import community_embedding as embedding_crud
 from app.portal.database import get_db
 from app.portal.models.community import (
     CommunityTag,
@@ -162,6 +163,7 @@ async def get_my_profile(
 @router.put("/profiles/me", response_model=ProfileDetail)
 async def update_my_profile(
     payload: ProfileUpdate,
+    background: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -171,16 +173,20 @@ async def update_my_profile(
 
     await db.commit()
     await db.refresh(current_user)
+    # Headline, bio and university all feed the interest vector.
+    background.add_task(embedding_crud.embed_user_task, current_user.id)
     return await _build_detail(db, current_user, current_user)
 
 
 @router.put("/profiles/me/tags", response_model=List[TagOut])
 async def update_my_tags(
     payload: ProfileTagsUpdate,
+    background: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     tags = await crud.set_user_tags(db, current_user, payload.tags)
+    background.add_task(embedding_crud.embed_user_task, current_user.id)
     return [TagOut.model_validate(tag) for tag in tags]
 
 

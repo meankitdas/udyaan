@@ -4,12 +4,13 @@ from datetime import datetime, timezone
 from typing import List, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Response
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.portal.core.deps import get_current_user
 from app.portal.crud import community as community_crud
+from app.portal.crud import community_embedding as embedding_crud
 from app.portal.crud import community_post as crud
 from app.portal.database import get_db
 from app.portal.models.community import UserAchievement
@@ -160,6 +161,7 @@ async def sign_upload(
 @router.post("/posts", response_model=PostOut, status_code=201)
 async def create_post(
     payload: PostCreate,
+    background: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -207,7 +209,18 @@ async def create_post(
 
     await db.commit()
     await db.refresh(post)
-    return await _single_output(db, post, current_user.id)
+    output = await _single_output(db, post, current_user.id)
+
+    # Queued after the response, so an embedding provider having a bad day never
+    # delays a post. A failure here simply leaves the post ranked on tag overlap
+    # until the next backfill sweeps it up.
+    background.add_task(
+        embedding_crud.embed_post_task,
+        post.id,
+        post.body,
+        [t.label for t in output.tags],
+    )
+    return output
 
 
 @router.get("/feed", response_model=FeedPage)

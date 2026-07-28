@@ -57,6 +57,7 @@ class ReportTargetType(str, enum.Enum):
     USER = "user"
     POST = "post"
     COMMENT = "comment"
+    MESSAGE = "message"
 
 
 class CommunityTag(Base):
@@ -188,11 +189,12 @@ class Follow(Base):
 
 
 class ModerationReport(Base):
-    """A user-submitted report against a user, post, or comment.
+    """A user-submitted report against a user, post, comment, or message.
 
     ``target_id`` is a plain string because the things it points at do not share
-    an ID type: users use the 10-char custom ID, posts and comments will use
-    UUIDs. A real FK per type would mean a nullable column per content type.
+    an ID type: users use the 10-char custom ID, while posts, comments and
+    messages use UUIDs. A real FK per type would mean a nullable column per
+    content type.
     """
 
     __tablename__ = "moderation_reports"

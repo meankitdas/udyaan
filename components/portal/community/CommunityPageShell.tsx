@@ -25,6 +25,8 @@ const VIEW_TITLES: Record<CommunityView, string> = {
   directory: "Directory",
   profile: "Profile",
   me: "My Profile",
+  messages: "Messages",
+  suggestions: "Discover",
   requests: "My Network",
   moderation: "Moderation",
 };

@@ -10,6 +10,7 @@ import {
   Flag,
   GraduationCap,
   Mail,
+  MessageSquare,
   Pencil,
   Phone,
   UserMinus,
@@ -30,6 +31,7 @@ type ProfileViewProps = {
   onBack?: () => void;
   onEdit?: () => void;
   onOpenProfile?: (userId: string) => void;
+  onMessage?: (userId: string) => void;
 };
 
 function formatDate(value?: string | null): string | null {
@@ -44,6 +46,7 @@ export default function ProfileView({
   onBack,
   onEdit,
   onOpenProfile,
+  onMessage,
 }: ProfileViewProps) {
   const [profile, setProfile] = useState<ProfileDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -202,6 +205,15 @@ export default function ProfileView({
           ) : (
             <>
               <ConnectionButton person={profile} onChange={handleConnectionChange} />
+              {profile.connection_state === "connected" && onMessage && (
+                <button
+                  type="button"
+                  className="community-btn outline"
+                  onClick={() => onMessage(profile.id)}
+                >
+                  <MessageSquare size={15} strokeWidth={1.9} aria-hidden /> Message
+                </button>
+              )}
               <button
                 type="button"
                 className={`community-btn ${profile.is_following ? "ghost" : "outline"}`}

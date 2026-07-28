@@ -64,9 +64,11 @@ try:
         auth as portal_auth,
         community as portal_community,
         community_connections as portal_community_connections,
+        community_messages as portal_community_messages,
         community_moderation as portal_community_moderation,
         community_posts as portal_community_posts,
         community_profiles as portal_community_profiles,
+        community_suggestions as portal_community_suggestions,
         control as portal_control,
         maturity as portal_maturity,
         organizations as portal_organizations,
@@ -99,6 +101,8 @@ try:
         portal_community_connections.router,
         portal_community_moderation.router,
         portal_community_posts.router,
+        portal_community_messages.router,
+        portal_community_suggestions.router,
         portal_ai.router,
     ):
         app.include_router(_portal_router, prefix="/portal")

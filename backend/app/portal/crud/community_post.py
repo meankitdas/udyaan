@@ -10,7 +10,9 @@ so the weights in :data:`RANKING_WEIGHTS` mean what they appear to mean and can
 be retuned without re-deriving the whole formula:
 
 ``tag``
-    Overlap between the post's tags and the viewer's interests, saturating at
+    Relevance of the post to the viewer's interests. Where embeddings are
+    available this is a blend of cosine similarity and tag overlap (see
+    :data:`SIMILARITY_SHARE`); otherwise it is tag overlap alone, saturating at
     :data:`TAG_SATURATION` shared tags. Saturating rather than dividing by the
     viewer's tag count avoids penalising users with broad interests.
 ``recency``
@@ -23,9 +25,12 @@ be retuned without re-deriving the whole formula:
 ``graph``
     A flat boost when the viewer follows or is connected to the author.
 
-This whole function is the Phase 4 swap point: replacing the ``tag`` term with
-cosine similarity between a post embedding and a viewer embedding changes this
-module and nothing else, because every caller sees only :func:`fetch_feed`.
+Embedding similarity is computed by Postgres via pgvector's ``<=>`` operator, so
+ranking stays a single ``ORDER BY ... LIMIT`` even with vectors in play. When the
+extension is absent, or a post has not been embedded yet, the similarity term is
+a literal zero and the query is exactly the tag-overlap ranking that preceded
+it -- see ``app/portal/vectors.py`` for why that fallback is load-bearing rather
+than theoretical.
 """
 
 from __future__ import annotations
@@ -37,6 +42,7 @@ from uuid import UUID
 from sqlalchemy import delete, func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.portal import vectors
 from app.portal.crud.community import build_summaries, resolve_tags
 from app.portal.models.community import CommunityTag, UserAchievement
 from app.portal.models.community_post import (
@@ -67,6 +73,13 @@ TAG_SATURATION = 3.0
 RECENCY_HALF_LIFE_HOURS = 24.0
 # Weighted interaction count that earns a full engagement score.
 ENGAGEMENT_SATURATION = 100.0
+
+# How much of the relevance term embedding similarity claims when both signals
+# are available. Similarity leads because it catches neighbours tags cannot --
+# "precision agriculture" and "agri-tech" share no tag_id -- but tags keep a real
+# share because they are the user's own explicit statement of interest, and
+# discarding them would let an inferred vector overrule a stated preference.
+SIMILARITY_SHARE = 0.6
 
 MAX_PAGE_SIZE = 50
 
@@ -237,7 +250,7 @@ async def fetch_feed(
         # be read as-is rather than reconstructed from the source table.
         score_expr = f"""
             (
-                {RANKING_WEIGHTS['tag']} * LEAST(overlap::float / {TAG_SATURATION}, 1.0)
+                {RANKING_WEIGHTS['tag']} * relevance
               + {RANKING_WEIGHTS['recency']} * POWER(
                     0.5,
                     EXTRACT(EPOCH FROM (NOW() - created_at)) / 3600.0
@@ -272,6 +285,29 @@ async def fetch_feed(
         ) THEN 1.0 ELSE 0.0 END
     """
 
+    # Embedding similarity is optional infrastructure. When pgvector is missing
+    # the joins are omitted entirely rather than left as dead LEFT JOINs, so the
+    # planner never sees a table that may not exist.
+    if vectors.HAS_PGVECTOR:
+        vector_join = f"""
+            LEFT JOIN {vectors.POST_EMBEDDING_TABLE} pe ON pe.post_id = p.id
+            LEFT JOIN {vectors.USER_EMBEDDING_TABLE} ue ON ue.user_id = :viewer_id
+        """
+        # `<=>` is cosine distance in [0, 2]. GREATEST clamps the obtuse half to
+        # zero so an unrelated post cannot score negatively and drag down a post
+        # that genuinely shares tags.
+        relevance_sql = f"""
+            CASE
+                WHEN pe.embedding IS NULL OR ue.embedding IS NULL
+                THEN LEAST({overlap_sql}::float / {TAG_SATURATION}, 1.0)
+                ELSE {1.0 - SIMILARITY_SHARE} * LEAST({overlap_sql}::float / {TAG_SATURATION}, 1.0)
+                   + {SIMILARITY_SHARE} * GREATEST(0.0, 1.0 - (ue.embedding <=> pe.embedding))
+            END
+        """
+    else:
+        vector_join = ""
+        relevance_sql = f"LEAST({overlap_sql}::float / {TAG_SATURATION}, 1.0)"
+
     query = text(
         f"""
         WITH candidates AS (
@@ -282,8 +318,10 @@ async def fetch_feed(
                 p.comment_count AS comment_count,
                 p.share_count   AS share_count,
                 {overlap_sql}   AS overlap,
+                {relevance_sql} AS relevance,
                 {graph_sql}     AS graph_boost
             FROM community_posts p
+            {vector_join}
             WHERE {where_sql}
         )
         SELECT id, overlap, {score_expr} AS score

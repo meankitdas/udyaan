@@ -190,7 +190,7 @@ class ConnectionActionResult(BaseModel):
 # --------------------------------------------------------------------------
 
 class ReportCreate(BaseModel):
-    target_type: Literal["user", "post", "comment"]
+    target_type: Literal["user", "post", "comment", "message"]
     target_id: str = Field(min_length=1, max_length=64)
     reason: ReportReason
     details: Optional[str] = Field(default=None, max_length=2000)
@@ -218,3 +218,36 @@ class ReportOut(BaseModel):
 class ReportResolve(BaseModel):
     action: Literal["dismiss", "remove_content", "deactivate_user"]
     note: Optional[str] = Field(default=None, max_length=2000)
+
+
+# --------------------------------------------------------------------------
+# Phase 4: suggestions
+
+
+class SuggestionPage(BaseModel):
+    """One page of "people you may know".
+
+    Reuses :class:`ProfileSummary` so the directory card renders a suggestion
+    without a second component: ``shared_tags`` and ``mutual_connections`` are
+    already the two things the card explains itself with.
+    """
+
+    results: List[ProfileSummary]
+    has_more: bool
+    # False when pgvector is unavailable, so the client can avoid promising
+    # semantic matching it is not actually getting.
+    personalized: bool = False
+
+
+class DismissResult(BaseModel):
+    dismissed: bool
+    user_id: str
+
+
+class BackfillResult(BaseModel):
+    """Outcome of an embedding backfill run."""
+
+    posts_embedded: int
+    users_embedded: int
+    # Distinguishes "nothing needed doing" from "embeddings are switched off".
+    vector_search_enabled: bool

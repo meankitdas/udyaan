@@ -31,3 +31,10 @@ from .community_post import (
     PostType,
     PostVisibility,
 )
+from .community_message import (
+    Conversation,
+    ConversationParticipant,
+    Message,
+    pair_key_for,
+)
+from .community_suggestion import SuggestionDismissal

@@ -11,9 +11,11 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import aliased
 
 from app.portal.core.deps import get_current_user
+from app.portal.crud import community_message as message_crud
 from app.portal.crud import community_post as post_crud
 from app.portal.database import get_db
 from app.portal.models.community import ModerationReport, ReportStatus
+from app.portal.models.community_message import Conversation, Message
 from app.portal.models.community_post import CommunityPost, PostComment
 from app.portal.models.role import Role, UserRole
 from app.portal.models.user import User
@@ -79,6 +81,16 @@ async def _get_comment(db: AsyncSession, target_id: str) -> Optional[PostComment
     ).scalars().first()
 
 
+async def _get_message(db: AsyncSession, target_id: str) -> Optional[Message]:
+    try:
+        message_uuid = UUID(target_id)
+    except (ValueError, AttributeError):
+        return None
+    return (
+        await db.execute(select(Message).where(Message.id == message_uuid))
+    ).scalars().first()
+
+
 async def _load_reportable_content(
     db: AsyncSession, target_type: str, target_id: str, reporter: User
 ):
@@ -95,6 +107,24 @@ async def _load_reportable_content(
                 status_code=400, detail="You cannot report your own post."
             )
         return post
+
+    if target_type == "message":
+        message = await _get_message(db, target_id)
+        if not message or message.is_removed:
+            raise HTTPException(status_code=404, detail="Message not found")
+        # Only a participant can report a message, and only one they did not
+        # send. Anything else 404s rather than 403s so a stranger cannot use
+        # the report endpoint to test whether a message id exists.
+        participant = await message_crud.get_participant(
+            db, message.conversation_id, reporter.id
+        )
+        if participant is None:
+            raise HTTPException(status_code=404, detail="Message not found")
+        if message.sender_id == reporter.id:
+            raise HTTPException(
+                status_code=400, detail="You cannot report your own message."
+            )
+        return message
 
     comment = await _get_comment(db, target_id)
     if not comment or comment.is_removed:
@@ -131,6 +161,7 @@ async def _content_labels(db: AsyncSession, reports) -> dict:
 
     post_ids = [r.target_id for r in reports if r.target_type == "post"]
     comment_ids = [r.target_id for r in reports if r.target_type == "comment"]
+    message_ids = [r.target_id for r in reports if r.target_type == "message"]
     labels: dict = {}
 
     def _as_uuids(values):
@@ -162,6 +193,18 @@ async def _content_labels(db: AsyncSession, reports) -> dict:
         ).all()
         for comment_id, body in rows:
             labels[str(comment_id)] = _snippet(body, "(comment)")
+
+    if message_ids:
+        rows = (
+            await db.execute(
+                select(Message.id, Message.body, Message.attachment_name).where(
+                    Message.id.in_(_as_uuids(message_ids))
+                )
+            )
+        ).all()
+        for message_id, body, attachment_name in rows:
+            fallback = f"(attachment: {attachment_name})" if attachment_name else "(message)"
+            labels[str(message_id)] = _snippet(body, fallback)
 
     return labels
 
@@ -338,6 +381,28 @@ async def resolve_report(
             parent_post = await _get_post(db, str(comment.post_id))
             if parent_post:
                 await post_crud.recount_post(db, parent_post)
+        elif report.target_type == "message":
+            message = await _get_message(db, report.target_id)
+            if not message:
+                raise HTTPException(
+                    status_code=404, detail="Reported message no longer exists"
+                )
+            message.is_removed = True
+            message.removed_at = datetime.utcnow()
+            message.removed_by = moderator.id
+            await db.flush()
+            conversation = (
+                await db.execute(
+                    select(Conversation).where(
+                        Conversation.id == message.conversation_id
+                    )
+                )
+            ).scalars().first()
+            if conversation is not None:
+                # The inbox preview may still be quoting the removed text, and
+                # the recipient's unread count included it.
+                await message_crud.touch_conversation(db, conversation)
+                await message_crud.recount_conversation(db, conversation.id)
 
     report.status = (
         ReportStatus.DISMISSED.value

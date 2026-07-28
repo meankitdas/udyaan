@@ -4,11 +4,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Loader2, Sparkles } from "lucide-react";
 import PostCard from "./PostCard";
 import PostComposer from "./PostComposer";
+import SuggestionsRail from "./SuggestionsRail";
 import { getFeed, getMyProfile } from "@/lib/community-api";
 import type { FeedScope, Post } from "@/lib/community-types";
 
 type FeedProps = {
   onOpenProfile?: (userId: string) => void;
+  onSeeAllSuggestions?: () => void;
 };
 
 const SCOPES: { value: FeedScope; label: string; blurb: string }[] = [
@@ -33,7 +35,7 @@ function FeedSkeleton() {
   );
 }
 
-export default function Feed({ onOpenProfile }: FeedProps) {
+export default function Feed({ onOpenProfile, onSeeAllSuggestions }: FeedProps) {
   const [scope, setScope] = useState<FeedScope>("for-you");
   const [posts, setPosts] = useState<Post[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -123,6 +125,11 @@ export default function Feed({ onOpenProfile }: FeedProps) {
   return (
     <div className="community-feed">
       <PostComposer onPosted={(post) => setPosts((prev) => [post, ...prev])} />
+
+      <SuggestionsRail
+        onOpenProfile={onOpenProfile}
+        onSeeAll={onSeeAllSuggestions}
+      />
 
       <div className="community-feed-scopes" role="tablist" aria-label="Feed filter">
         {SCOPES.map((item) => (

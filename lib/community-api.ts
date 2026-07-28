@@ -24,10 +24,20 @@ import type {
   Attachment,
   Comment,
   CommentPage,
+  Conversation,
+  ConversationPage,
+  DirectMessage,
   FeedPage,
   FeedScope,
   LikeResult,
+  MessageInput,
+  MessagePage,
   Post,
+  ReadResult,
+  SyncResponse,
+  UnreadSummary,
+  DismissResult,
+  SuggestionPage,
   PostInput,
   PostVisibility,
   UploadTicket,
@@ -332,4 +342,110 @@ export async function uploadAttachment(file: File): Promise<Attachment> {
     content_type: file.type || null,
     size: file.size,
   };
+}
+
+// ------------------------------------------------------------ messaging
+
+export async function listConversations(options: {
+  cursor?: string | null;
+  includeArchived?: boolean;
+} = {}): Promise<ConversationPage> {
+  const params = new URLSearchParams({ limit: "30" });
+  if (options.cursor) params.set("cursor", options.cursor);
+  if (options.includeArchived) params.set("include_archived", "true");
+  return unwrap(await apiFetch(`${BASE}/conversations?${params}`));
+}
+
+export async function openConversation(userId: string): Promise<Conversation> {
+  return unwrap(
+    await apiFetch(`${BASE}/conversations`, jsonInit("POST", { user_id: userId })),
+  );
+}
+
+export async function getConversation(conversationId: string): Promise<Conversation> {
+  return unwrap(await apiFetch(`${BASE}/conversations/${conversationId}`));
+}
+
+export async function updateConversation(
+  conversationId: string,
+  patch: { is_muted?: boolean; is_archived?: boolean },
+): Promise<Conversation> {
+  const params = new URLSearchParams();
+  if (patch.is_muted !== undefined) params.set("is_muted", String(patch.is_muted));
+  if (patch.is_archived !== undefined) {
+    params.set("is_archived", String(patch.is_archived));
+  }
+  return unwrap(
+    await apiFetch(`${BASE}/conversations/${conversationId}?${params}`, {
+      method: "PATCH",
+    }),
+  );
+}
+
+export async function listMessages(
+  conversationId: string,
+  cursor?: string | null,
+): Promise<MessagePage> {
+  const params = new URLSearchParams({ limit: "40" });
+  if (cursor) params.set("cursor", cursor);
+  return unwrap(
+    await apiFetch(`${BASE}/conversations/${conversationId}/messages?${params}`),
+  );
+}
+
+export async function sendMessage(
+  conversationId: string,
+  payload: MessageInput,
+): Promise<DirectMessage> {
+  return unwrap(
+    await apiFetch(
+      `${BASE}/conversations/${conversationId}/messages`,
+      jsonInit("POST", payload),
+    ),
+  );
+}
+
+export async function deleteMessage(messageId: string): Promise<void> {
+  return unwrap(await apiFetch(`${BASE}/messages/${messageId}`, { method: "DELETE" }));
+}
+
+export async function markConversationRead(
+  conversationId: string,
+  until?: string | null,
+): Promise<ReadResult> {
+  return unwrap(
+    await apiFetch(
+      `${BASE}/conversations/${conversationId}/read`,
+      jsonInit("POST", { until: until ?? null }),
+    ),
+  );
+}
+
+export async function getUnreadSummary(): Promise<UnreadSummary> {
+  return unwrap(await apiFetch(`${BASE}/messages/unread`));
+}
+
+/** The transport seam. Swapping to SSE/WebSockets replaces only this call. */
+export async function syncMessages(cursor?: string | null): Promise<SyncResponse> {
+  const params = new URLSearchParams();
+  if (cursor) params.set("since", cursor);
+  return unwrap(await apiFetch(`${BASE}/messages/sync?${params}`));
+}
+
+// --------------------------------------------------------------------------
+// Phase 4: suggestions
+
+export async function listSuggestions(
+  params: { limit?: number; offset?: number } = {},
+): Promise<SuggestionPage> {
+  const query = new URLSearchParams();
+  if (params.limit != null) query.set("limit", String(params.limit));
+  if (params.offset != null) query.set("offset", String(params.offset));
+  return unwrap(await apiFetch(`${BASE}/suggestions?${query}`));
+}
+
+export async function dismissSuggestion(userId: string): Promise<DismissResult> {
+  return unwrap(
+    await apiFetch(`${BASE}/suggestions/${userId}/dismiss`, jsonInit("POST", {})),
+  );
 }

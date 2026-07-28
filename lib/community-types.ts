@@ -16,7 +16,7 @@ export type ReportReason =
   | "inappropriate"
   | "other";
 
-export type ReportTargetType = "user" | "post" | "comment";
+export type ReportTargetType = "user" | "post" | "comment" | "message";
 
 export type Tag = {
   id: number;
@@ -257,4 +257,104 @@ export interface UploadTicket {
   headers: Record<string, string>;
   max_bytes: number;
   expires_at: string;
+}
+
+// -------------------------------------------------------------- messaging
+
+export interface DirectMessage {
+  id: string;
+  conversation_id: string;
+  sender_id: string;
+  body?: string | null;
+  attachment?: Attachment | null;
+  is_mine: boolean;
+  is_removed: boolean;
+  can_delete: boolean;
+  created_at?: string | null;
+  edited_at?: string | null;
+  /** Client-only: set on optimistic bubbles that have not been confirmed yet. */
+  pending?: boolean;
+  failed?: boolean;
+}
+
+export interface MessagePage {
+  items: DirectMessage[];
+  next_cursor?: string | null;
+  has_more: boolean;
+}
+
+export interface Conversation {
+  id: string;
+  other?: ProfileSummary | null;
+  last_message_preview?: string | null;
+  last_message_at?: string | null;
+  last_message_is_mine: boolean;
+  unread_count: number;
+  is_muted: boolean;
+  is_archived: boolean;
+  created_at?: string | null;
+}
+
+export interface ConversationPage {
+  items: Conversation[];
+  next_cursor?: string | null;
+  has_more: boolean;
+  total_unread: number;
+}
+
+export interface MessageInput {
+  body?: string | null;
+  attachment?: Attachment | null;
+  client_token?: string | null;
+}
+
+export interface ReadResult {
+  conversation_id: string;
+  unread_count: number;
+  total_unread: number;
+}
+
+/**
+ * A change set, not a snapshot. Polling produces it today; a socket would
+ * deliver the identical payload, so the client reducer is transport-agnostic.
+ */
+export interface SyncResponse {
+  cursor: string;
+  server_time: string;
+  messages: DirectMessage[];
+  conversations: Conversation[];
+  total_unread: number;
+}
+
+export interface UnreadSummary {
+  total_unread: number;
+  conversation_count: number;
+}
+
+// --------------------------------------------------------------------------
+// Phase 4: suggestions
+
+/**
+ * One page of "people you may know".
+ *
+ * Results are plain `ProfileSummary` values, so a suggestion renders through
+ * the same card as a directory result. `personalized` reports whether embedding
+ * similarity contributed to the ranking; when false the list is still ordered,
+ * just by mutuals, shared tags and cohort alone.
+ */
+export interface SuggestionPage {
+  results: ProfileSummary[];
+  has_more: boolean;
+  personalized: boolean;
+}
+
+export interface DismissResult {
+  dismissed: boolean;
+  user_id: string;
+}
+
+export interface BackfillResult {
+  posts_embedded: number;
+  users_embedded: number;
+  vector_search_enabled: boolean;
 }

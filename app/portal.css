@@ -8163,3 +8163,860 @@ button.community-chip:hover {
     animation: none;
   }
 }
+
+/* ==========================================================================
+   COMMUNITY — PHASE 3: MESSAGING
+   Two panes on desktop, one at a time on mobile. The thread column is a fixed
+   height flex box so only the message list scrolls: the header stays put and
+   the composer stays reachable without hunting for it at the end of a long
+   conversation.
+   ========================================================================== */
+
+.community-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.community-msg-offline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  padding: 9px 14px;
+  border-radius: 10px;
+  background: #fff8e6;
+  border: 1px solid #f5e0a3;
+  color: #92670a;
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.community-msg-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 320px) 1fr;
+  gap: 16px;
+  height: min(72vh, 680px);
+  min-height: 440px;
+}
+
+/* ~~~~~ Conversation list ~~~~~ */
+
+.community-msg-list {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid #e6e9e7;
+  border-radius: 14px;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.community-msg-search {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 14px;
+  border-bottom: 1px solid #f0f2f1;
+  flex-shrink: 0;
+}
+
+.community-msg-search svg {
+  color: var(--text-light);
+  flex-shrink: 0;
+}
+
+.community-msg-search input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: none;
+  font-size: 0.88rem;
+  color: var(--dark-green);
+}
+
+.community-msg-search input::placeholder {
+  color: var(--text-light);
+}
+
+.community-msg-items {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.community-msg-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.18s;
+}
+
+.community-msg-item:hover {
+  background: #f5f7f6;
+}
+
+.community-msg-item.active {
+  background: #eaf3ee;
+}
+
+.community-msg-item-main {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+
+.community-msg-item-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.community-msg-item-top strong {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--dark-green);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.community-msg-item-top small {
+  font-size: 0.72rem;
+  color: var(--text-light);
+  flex-shrink: 0;
+}
+
+.community-msg-item-preview {
+  font-size: 0.8rem;
+  color: var(--text-light);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.community-msg-item.unread .community-msg-item-top strong,
+.community-msg-item.unread .community-msg-item-preview {
+  color: var(--dark-green);
+  font-weight: 700;
+}
+
+.community-msg-you {
+  color: var(--text-light);
+  font-weight: 400;
+}
+
+.community-msg-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--primary-green);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.community-msg-hint {
+  padding: 24px 18px;
+  text-align: center;
+}
+
+/* ~~~~~ Thread ~~~~~ */
+
+.community-msg-thread,
+.community-msg-placeholder {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid #e6e9e7;
+  border-radius: 14px;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  min-height: 0;
+}
+
+.community-msg-placeholder {
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
+  color: var(--text-light);
+}
+
+.community-msg-placeholder svg {
+  color: #b8c0bb;
+}
+
+.community-msg-placeholder h4 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--dark-green);
+}
+
+.community-msg-placeholder p {
+  margin: 0;
+  max-width: 320px;
+  font-size: 0.87rem;
+  line-height: 1.55;
+}
+
+.community-msg-thread-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  border-bottom: 1px solid #f0f2f1;
+  flex-shrink: 0;
+}
+
+/* Only useful in the single-pane mobile layout. */
+.community-msg-back {
+  display: none;
+}
+
+.community-msg-peer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.community-msg-peer > span {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.community-msg-peer strong {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--dark-green);
+}
+
+.community-msg-peer:hover strong {
+  color: var(--primary-green);
+}
+
+.community-msg-peer small {
+  font-size: 0.76rem;
+  color: var(--text-light);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.community-msg-thread-menu {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.community-msg-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 14px;
+  background: var(--bg-cream);
+}
+
+.community-msg-older {
+  display: flex;
+  margin: 0 auto 14px auto;
+}
+
+.community-msg-day {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 14px 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-light);
+}
+
+.community-msg-day::before,
+.community-msg-day::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #e6e9e7;
+  margin: 0 12px;
+}
+
+.community-msg-bubble-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.community-msg-bubble-row.mine {
+  flex-direction: row-reverse;
+}
+
+.community-msg-bubble {
+  position: relative;
+  max-width: min(74%, 460px);
+  padding: 9px 13px 7px 13px;
+  border-radius: 14px 14px 14px 4px;
+  background: #fff;
+  border: 1px solid #e6e9e7;
+  box-shadow: var(--shadow-sm);
+}
+
+.community-msg-bubble.mine {
+  border-radius: 14px 14px 4px 14px;
+  background: var(--primary-green);
+  border-color: var(--primary-green);
+  color: #fff;
+}
+
+.community-msg-bubble.removed {
+  background: #f3f4f6;
+  border-color: #e5e7eb;
+  border-style: dashed;
+  color: var(--text-light);
+}
+
+.community-msg-bubble.pending {
+  opacity: 0.65;
+}
+
+.community-msg-bubble.failed {
+  border-color: var(--error-red);
+}
+
+.community-msg-text {
+  margin: 0;
+  font-size: 0.89rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: #374151;
+}
+
+.community-msg-bubble.mine .community-msg-text {
+  color: #fff;
+}
+
+.community-msg-text.removed {
+  font-style: italic;
+  font-size: 0.84rem;
+}
+
+.community-msg-time {
+  display: block;
+  margin-top: 3px;
+  font-size: 0.68rem;
+  text-align: right;
+  color: var(--text-light);
+}
+
+.community-msg-bubble.mine .community-msg-time {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.community-msg-bubble.failed .community-msg-time {
+  color: var(--error-red);
+  font-weight: 600;
+}
+
+.community-msg-bubble .community-post-attachments {
+  margin-bottom: 7px;
+}
+
+/* Revealed on hover so the thread stays uncluttered while reading. */
+.community-msg-bubble-actions {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.community-msg-bubble-row:hover .community-msg-bubble-actions,
+.community-msg-bubble-actions:focus-within {
+  opacity: 1;
+}
+
+.community-msg-bubble-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--text-light);
+  cursor: pointer;
+}
+
+.community-msg-bubble-actions button:hover {
+  background: #e9ecea;
+  color: var(--error-red);
+}
+
+/* ~~~~~ Composer ~~~~~ */
+
+.community-msg-composer {
+  padding: 11px 14px;
+  border-top: 1px solid #f0f2f1;
+  background: #fff;
+  flex-shrink: 0;
+}
+
+.community-msg-attachment {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 7px 11px;
+  border-radius: 8px;
+  background: #f3f5f4;
+  font-size: 0.81rem;
+  color: #374151;
+}
+
+.community-msg-attachment span {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.community-msg-attachment button {
+  display: inline-flex;
+  border: none;
+  background: none;
+  color: var(--text-light);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 5px;
+}
+
+.community-msg-attachment button:hover {
+  color: var(--error-red);
+  background: #fde8e8;
+}
+
+.community-msg-composer-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.community-msg-composer-row textarea {
+  flex: 1;
+  min-width: 0;
+  resize: none;
+  padding: 9px 13px;
+  border: 1px solid #e0e3e1;
+  border-radius: 18px;
+  font-family: inherit;
+  font-size: 0.89rem;
+  line-height: 1.5;
+  color: var(--dark-green);
+  outline: none;
+  transition: border-color 0.18s;
+}
+
+.community-msg-composer-row textarea:focus {
+  border-color: var(--primary-green);
+}
+
+.community-msg-composer-row textarea:disabled {
+  background: #f3f4f6;
+  cursor: not-allowed;
+}
+
+.community-msg-send {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  justify-content: center;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ~~~~~ Responsive ~~~~~ */
+
+@media (max-width: 900px) {
+  .community-msg-layout {
+    grid-template-columns: minmax(220px, 280px) 1fr;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 720px) {
+  /* One pane at a time: the list until a thread is picked, then the thread. */
+  .community-msg-layout {
+    grid-template-columns: 1fr;
+    height: calc(100vh - 210px);
+    min-height: 380px;
+  }
+
+  .community-messages.has-thread .community-msg-list {
+    display: none;
+  }
+
+  .community-messages:not(.has-thread) .community-msg-thread,
+  .community-messages:not(.has-thread) .community-msg-placeholder {
+    display: none;
+  }
+
+  .community-msg-back {
+    display: inline-flex;
+  }
+
+  .community-msg-bubble {
+    max-width: 86%;
+  }
+
+  /* Touch has no hover, so the per-message controls stay visible. */
+  .community-msg-bubble-actions {
+    opacity: 1;
+  }
+}
+
+/* ==========================================================================
+   COMMUNITY — PHASE 4: SUGGESTIONS & DISCOVERY
+   The rail is a horizontally scrolling strip above the feed; the Discover page
+   reuses the directory grid. Both put a dismiss control on the card, which is
+   why .community-card gains a positioning context here.
+   ========================================================================== */
+
+/* ~~~~~ Dismiss control on a directory card ~~~~~ */
+
+.community-card {
+  position: relative;
+}
+
+.community-card-dismiss {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--text-light);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.16s, background 0.16s, color 0.16s;
+}
+
+.community-card:hover .community-card-dismiss,
+.community-card-dismiss:focus-visible {
+  opacity: 1;
+}
+
+.community-card-dismiss:hover {
+  background: #fde8e8;
+  color: var(--error-red);
+}
+
+/* ~~~~~ Feed rail ~~~~~ */
+
+.community-rail {
+  margin-bottom: 14px;
+  padding: 14px 0 4px 0;
+  background: #fff;
+  border: 1px solid #e6e9e7;
+  border-radius: 14px;
+  box-shadow: var(--shadow-sm);
+}
+
+.community-rail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 16px 11px 16px;
+}
+
+.community-rail-head h3 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--dark-green);
+}
+
+.community-rail-head h3 svg {
+  color: var(--primary-green);
+}
+
+.community-rail-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--primary-green);
+  cursor: pointer;
+}
+
+.community-rail-all:hover {
+  text-decoration: underline;
+}
+
+/* Horizontal scroll rather than wrap: the rail must not grow tall enough to
+   push the feed it introduces off the screen. */
+.community-rail-track {
+  display: flex;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0 16px 12px 16px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+}
+
+.community-rail-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  width: 158px;
+  padding: 14px 10px 12px 10px;
+  border: 1px solid #eceeed;
+  border-radius: 12px;
+  background: var(--bg-cream);
+  scroll-snap-align: start;
+}
+
+.community-rail-dismiss {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--text-light);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.16s, background 0.16s, color 0.16s;
+}
+
+.community-rail-item:hover .community-rail-dismiss,
+.community-rail-dismiss:focus-visible {
+  opacity: 1;
+}
+
+.community-rail-dismiss:hover {
+  background: #fde8e8;
+  color: var(--error-red);
+}
+
+.community-rail-person {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  text-align: center;
+  cursor: pointer;
+}
+
+.community-rail-person strong {
+  font-size: 0.83rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--dark-green);
+  /* Two lines then ellipsis, so one long name cannot make every tile taller. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.community-rail-person:hover strong {
+  color: var(--primary-green);
+}
+
+.community-rail-person small {
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--text-light);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.community-rail-reason {
+  font-size: 0.69rem;
+  font-weight: 600;
+  color: var(--primary-green);
+  background: #eaf3ee;
+  border-radius: 999px;
+  padding: 2px 8px;
+  margin-top: 2px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.community-rail-item .community-btn {
+  width: 100%;
+  justify-content: center;
+}
+
+/* ~~~~~ Discover page ~~~~~ */
+
+.community-suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.community-suggestions-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.community-suggestions-head h2 {
+  margin: 0 0 3px 0;
+  font-size: 1.12rem;
+  font-weight: 700;
+  color: var(--dark-green);
+}
+
+.community-suggestions-head p {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.5;
+  max-width: 62ch;
+}
+
+.community-suggestions-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #eaf3ee;
+  color: var(--primary-green);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.community-suggestions-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 44px 16px;
+  color: var(--text-light);
+  font-size: 0.87rem;
+}
+
+.community-suggestions-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  padding: 52px 22px;
+  text-align: center;
+  background: #fff;
+  border: 1px solid #e6e9e7;
+  border-radius: 14px;
+  box-shadow: var(--shadow-sm);
+}
+
+.community-suggestions-empty svg {
+  color: #b8c0bb;
+}
+
+.community-suggestions-empty h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--dark-green);
+}
+
+.community-suggestions-empty p {
+  margin: 0;
+  max-width: 42ch;
+  font-size: 0.86rem;
+  line-height: 1.6;
+  color: var(--text-light);
+}
+
+.community-suggestions-more {
+  align-self: center;
+  min-width: 150px;
+  justify-content: center;
+}
+
+/* ~~~~~ Responsive ~~~~~ */
+
+@media (max-width: 720px) {
+  .community-suggestions-head {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .community-rail-item {
+    width: 142px;
+  }
+
+  /* Touch has no hover, so the dismiss controls stay visible. */
+  .community-card-dismiss,
+  .community-rail-dismiss {
+    opacity: 1;
+  }
+}

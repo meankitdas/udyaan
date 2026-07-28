@@ -1,14 +1,24 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Inbox, Network, Newspaper, ShieldCheck, UserRound } from "lucide-react";
+import {
+  Inbox,
+  MessagesSquare,
+  Sparkles,
+  Network,
+  Newspaper,
+  ShieldCheck,
+  UserRound,
+} from "lucide-react";
 import Directory from "./Directory";
 import Feed from "./Feed";
+import SuggestionsView from "./SuggestionsView";
+import MessagesView from "./MessagesView";
 import ModerationPanel from "./ModerationPanel";
 import ProfileEditor from "./ProfileEditor";
 import ProfileView from "./ProfileView";
 import RequestsInbox from "./RequestsInbox";
-import { listRequests } from "@/lib/community-api";
+import { getUnreadSummary, listRequests } from "@/lib/community-api";
 import { getRole } from "@/lib/portal-api";
 
 export type CommunityView =
@@ -16,6 +26,8 @@ export type CommunityView =
   | "directory"
   | "profile"
   | "me"
+  | "messages"
+  | "suggestions"
   | "requests"
   | "moderation";
 
@@ -35,6 +47,8 @@ const MODERATOR_ROLES = ["ADMIN", "SUPERADMIN"];
 function pathFor(view: CommunityView, userId?: string | null): string {
   if (view === "profile" && userId) return `/portal/community/${userId}`;
   if (view === "me") return "/portal/community/me";
+  if (view === "messages") return "/portal/community/messages";
+  if (view === "suggestions") return "/portal/community/suggestions";
   if (view === "requests") return "/portal/community/requests";
   if (view === "moderation") return "/portal/community/moderation";
   if (view === "directory") return "/portal/community/directory";
@@ -49,6 +63,8 @@ export default function CommunityNetwork({
   const [view, setView] = useState<CommunityView>(initialView);
   const [profileId, setProfileId] = useState<string | null>(initialUserId ?? null);
   const [pendingCount, setPendingCount] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [messageTarget, setMessageTarget] = useState<string | null>(null);
   const [isModerator, setIsModerator] = useState(false);
 
   useEffect(() => {
@@ -69,6 +85,14 @@ export default function CommunityNetwork({
     refreshPending();
   }, [refreshPending]);
 
+  // Seed the Messages badge before the inbox is ever opened. Once MessagesView
+  // mounts, its sync loop keeps the count live.
+  useEffect(() => {
+    getUnreadSummary()
+      .then((summary) => setUnreadCount(summary.total_unread))
+      .catch(() => setUnreadCount(0));
+  }, []);
+
   useEffect(() => {
     if (!syncUrl || typeof window === "undefined") return;
     const next = pathFor(view, profileId);
@@ -86,12 +110,23 @@ export default function CommunityNetwork({
   const go = (next: CommunityView) => {
     setView(next);
     if (next !== "profile") setProfileId(null);
+    // Clear the deep-link target so returning to Messages later opens the
+    // inbox rather than silently reopening the last thread.
+    if (next !== "messages") setMessageTarget(null);
   };
+
+  const openMessages = useCallback((userId: string) => {
+    setMessageTarget(userId);
+    setView("messages");
+    setProfileId(null);
+  }, []);
 
   const navItems: { id: CommunityView; label: string; icon: typeof Network; badge?: number }[] = [
     { id: "feed", label: "Feed", icon: Newspaper },
     { id: "directory", label: "Directory", icon: Network },
+    { id: "suggestions", label: "Discover", icon: Sparkles },
     { id: "me", label: "My profile", icon: UserRound },
+    { id: "messages", label: "Messages", icon: MessagesSquare, badge: unreadCount },
     { id: "requests", label: "Network", icon: Inbox, badge: pendingCount },
     ...(isModerator
       ? [{ id: "moderation" as CommunityView, label: "Moderation", icon: ShieldCheck }]
@@ -120,7 +155,14 @@ export default function CommunityNetwork({
         })}
       </nav>
 
-      {view === "feed" && <Feed onOpenProfile={openProfile} />}
+      {view === "feed" && (
+        <Feed
+          onOpenProfile={openProfile}
+          onSeeAllSuggestions={() => go("suggestions")}
+        />
+      )}
+
+      {view === "suggestions" && <SuggestionsView onOpenProfile={openProfile} />}
 
       {view === "directory" && <Directory onOpenProfile={openProfile} />}
 
@@ -130,11 +172,20 @@ export default function CommunityNetwork({
           onBack={() => go("directory")}
           onEdit={() => go("me")}
           onOpenProfile={openProfile}
+          onMessage={openMessages}
         />
       )}
 
       {view === "me" && (
         <ProfileEditor onSaved={refreshPending} onViewProfile={openProfile} />
+      )}
+
+      {view === "messages" && (
+        <MessagesView
+          startWithUserId={messageTarget}
+          onOpenProfile={openProfile}
+          onUnreadChange={setUnreadCount}
+        />
       )}
 
       {view === "requests" && (

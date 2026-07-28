@@ -94,6 +94,7 @@ async def init_models():
     """Create portal tables and seed roles. Safe to call repeatedly."""
     from sqlalchemy import text
     from app.portal.models import Base
+    from app.portal import vectors
 
     _init_db_sync()
     async with engine.begin() as conn:
@@ -102,7 +103,13 @@ async def init_models():
         except Exception:
             # Managed Postgres may not permit extensions; tables may still work if it already exists.
             pass
+        # Determines whether community ranking can use embedding similarity.
+        # Must run before create_all so the flag is set for anything reading it.
+        await vectors.detect_pgvector(conn)
         await conn.run_sync(Base.metadata.create_all)
+        # Vector tables are raw DDL, deliberately outside create_all. See
+        # app/portal/vectors.py for why.
+        await vectors.ensure_vector_schema(conn)
         # Lightweight migrations for columns added after initial deployments.
         await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS skills TEXT"))
         # Community network profile fields (see models/community.py).

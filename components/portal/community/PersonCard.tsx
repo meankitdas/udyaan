@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, GraduationCap, Users } from "lucide-react";
+import { Building2, GraduationCap, Users, X } from "lucide-react";
 import Avatar from "./Avatar";
 import ConnectionButton from "./ConnectionButton";
 import TagChip from "./TagChip";
@@ -13,11 +13,18 @@ type PersonCardProps = {
     userId: string,
     next: { connection_state: ConnectionState; connection_id?: string | null },
   ) => void;
+  /** Supplied only where the card is a suggestion the viewer can reject. */
+  onDismiss?: (userId: string) => void;
 };
 
 const MAX_VISIBLE_TAGS = 4;
 
-export default function PersonCard({ person, onOpen, onChange }: PersonCardProps) {
+export default function PersonCard({
+  person,
+  onOpen,
+  onChange,
+  onDismiss,
+}: PersonCardProps) {
   const shared = new Set(person.shared_tags);
   // Interests in common are the reason to click, so they sort to the front.
   const tags = [...person.tags].sort(
@@ -28,6 +35,17 @@ export default function PersonCard({ person, onOpen, onChange }: PersonCardProps
 
   return (
     <article className="community-card">
+      {onDismiss && (
+        <button
+          type="button"
+          className="community-card-dismiss"
+          onClick={() => onDismiss(person.id)}
+          aria-label={`Stop suggesting ${person.full_name}`}
+          title="Not interested"
+        >
+          <X size={15} strokeWidth={2} aria-hidden />
+        </button>
+      )}
       <button
         type="button"
         className="community-card-main"
