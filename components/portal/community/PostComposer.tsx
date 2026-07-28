@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
 import {
   Award,
   FileText,
   Globe,
+  Image as ImageIcon,
   Loader2,
   Lock,
   Paperclip,
@@ -144,21 +146,37 @@ export default function PostComposer({ onPosted }: PostComposerProps) {
 
   if (!expanded) {
     return (
-      <div className="community-composer collapsed">
-        <Avatar name={profile?.full_name ?? "You"} src={profile?.avatar_url} size={42} />
-        <button
-          type="button"
-          className="community-composer-trigger"
-          onClick={() => setExpanded(true)}
-        >
-          Share an update, a finding, or an achievement…
-        </button>
-      </div>
+      <motion.div
+        className="community-composer collapsed"
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        whileHover={{ y: -1 }}
+        transition={{ duration: 0.35 }}
+      >
+        <div className="community-composer-prompt">
+          <Avatar name={profile?.full_name ?? "You"} src={profile?.avatar_url} size={44} />
+          <button type="button" className="community-composer-trigger" onClick={() => setExpanded(true)}>
+            Do you have an update to share?
+          </button>
+        </div>
+        <div className="community-composer-quick" aria-label="Create a post">
+          <button type="button" onClick={() => { setType("update"); setExpanded(true); }}><ImageIcon size={17} aria-hidden /> Media</button>
+          <button type="button" onClick={() => { setType("research"); setExpanded(true); }}><FileText size={17} aria-hidden /> Research</button>
+          <button type="button" onClick={() => { setType("achievement"); setExpanded(true); }}><Award size={17} aria-hidden /> Achievement</button>
+          <button type="button" onClick={() => { setType("update"); setExpanded(true); }}><PencilLine size={17} aria-hidden /> Article</button>
+        </div>
+      </motion.div>
     );
   }
 
   return (
-    <form className="community-composer" onSubmit={submit}>
+    <motion.form
+      className="community-composer"
+      onSubmit={submit}
+      initial={{ opacity: 0, height: 88, y: 8 }}
+      animate={{ opacity: 1, height: "auto", y: 0 }}
+      transition={{ duration: 0.36, ease: [0.22, 1, 0.36, 1] }}
+    >
       <div className="community-composer-head">
         <Avatar name={profile?.full_name ?? "You"} src={profile?.avatar_url} size={42} />
         <div className="community-composer-types" role="tablist" aria-label="Post type">
@@ -319,6 +337,6 @@ export default function PostComposer({ onPosted }: PostComposerProps) {
           {saving ? "Posting…" : "Post"}
         </button>
       </div>
-    </form>
+    </motion.form>
   );
 }

@@ -159,6 +159,7 @@ export default function CommunityNetwork({
         <Feed
           onOpenProfile={openProfile}
           onSeeAllSuggestions={() => go("suggestions")}
+          onOpenNetwork={() => go("requests")}
         />
       )}
 

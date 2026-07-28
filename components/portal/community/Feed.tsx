@@ -1,16 +1,21 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { AnimatePresence, motion } from "framer-motion";
+import gsap from "gsap";
 import { Loader2, Sparkles } from "lucide-react";
+import CommunityHomeLeft from "./CommunityHomeLeft";
+import CommunityHomeRight from "./CommunityHomeRight";
 import PostCard from "./PostCard";
 import PostComposer from "./PostComposer";
-import SuggestionsRail from "./SuggestionsRail";
 import { getFeed, getMyProfile } from "@/lib/community-api";
-import type { FeedScope, Post } from "@/lib/community-types";
+import type { FeedScope, Post, ProfileDetail } from "@/lib/community-types";
 
 type FeedProps = {
   onOpenProfile?: (userId: string) => void;
   onSeeAllSuggestions?: () => void;
+  onOpenNetwork?: () => void;
 };
 
 const SCOPES: { value: FeedScope; label: string; blurb: string }[] = [
@@ -35,7 +40,9 @@ function FeedSkeleton() {
   );
 }
 
-export default function Feed({ onOpenProfile, onSeeAllSuggestions }: FeedProps) {
+export default function Feed({ onOpenProfile, onSeeAllSuggestions, onOpenNetwork }: FeedProps) {
+  const router = useRouter();
+  const homeRef = useRef<HTMLDivElement | null>(null);
   const [scope, setScope] = useState<FeedScope>("for-you");
   const [posts, setPosts] = useState<Post[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -44,6 +51,7 @@ export default function Feed({ onOpenProfile, onSeeAllSuggestions }: FeedProps) 
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [viewerTags, setViewerTags] = useState<Set<string>>(new Set());
+  const [profile, setProfile] = useState<ProfileDetail | null>(null);
 
   const sentinel = useRef<HTMLDivElement | null>(null);
   // Guards the observer against firing a second fetch for the same cursor while
@@ -54,8 +62,44 @@ export default function Feed({ onOpenProfile, onSeeAllSuggestions }: FeedProps) 
   // the ranked one where the server sends matched_tags.
   useEffect(() => {
     getMyProfile()
-      .then((profile) => setViewerTags(new Set(profile.tags.map((tag) => tag.slug))))
-      .catch(() => setViewerTags(new Set()));
+      .then((nextProfile) => {
+        setProfile(nextProfile);
+        setViewerTags(new Set(nextProfile.tags.map((tag) => tag.slug)));
+      })
+      .catch(() => {
+        setProfile(null);
+        setViewerTags(new Set());
+      });
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!homeRef.current) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    let context: ReturnType<typeof gsap.context> | undefined;
+    const animate = () => {
+      if (context || !homeRef.current) return;
+      context = gsap.context(() => {
+        const timeline = gsap.timeline({ defaults: { overwrite: "auto" } });
+        timeline.from(
+          ".community-home-column",
+          { y: 28, duration: 0.72, stagger: 0.11, ease: "power3.out", clearProps: "transform" },
+        );
+        timeline.from(
+          ".community-home-center > *",
+          { y: 18, duration: 0.48, stagger: 0.07, ease: "power2.out", clearProps: "transform" },
+          "-=0.42",
+        );
+      }, homeRef);
+    };
+
+    if (document.visibilityState === "visible") animate();
+    else document.addEventListener("visibilitychange", animate, { once: true });
+
+    return () => {
+      document.removeEventListener("visibilitychange", animate);
+      context?.revert();
+    };
   }, []);
 
   const loadFirstPage = useCallback(async (nextScope: FeedScope) => {
@@ -123,29 +167,35 @@ export default function Feed({ onOpenProfile, onSeeAllSuggestions }: FeedProps) 
   const activeScope = SCOPES.find((s) => s.value === scope);
 
   return (
-    <div className="community-feed">
-      <PostComposer onPosted={(post) => setPosts((prev) => [post, ...prev])} />
+    <div ref={homeRef} className="community-home-grid">
+      <div className="community-home-column community-home-left-column">
+        <CommunityHomeLeft
+          profile={profile}
+          onOpenProfile={onOpenProfile}
+          onOpenNetwork={onOpenNetwork}
+          onOpenDiscover={onSeeAllSuggestions}
+        />
+      </div>
 
-      <SuggestionsRail
-        onOpenProfile={onOpenProfile}
-        onSeeAll={onSeeAllSuggestions}
-      />
+      <main className="community-home-column community-home-center">
+        <PostComposer onPosted={(post) => setPosts((prev) => [post, ...prev])} />
 
-      <div className="community-feed-scopes" role="tablist" aria-label="Feed filter">
+        <motion.div className="community-feed-scopes" role="tablist" aria-label="Feed filter" layout>
         {SCOPES.map((item) => (
-          <button
+          <motion.button
             key={item.value}
             type="button"
             role="tab"
             aria-selected={scope === item.value}
             className={`community-feed-scope${scope === item.value ? " active" : ""}`}
             onClick={() => setScope(item.value)}
+            whileTap={{ scale: 0.97 }}
           >
             {item.value === "for-you" && <Sparkles size={13} strokeWidth={2.2} aria-hidden />}
             {item.label}
-          </button>
+          </motion.button>
         ))}
-      </div>
+        </motion.div>
 
       {activeScope && <p className="community-feed-blurb">{activeScope.blurb}</p>}
 
@@ -166,17 +216,28 @@ export default function Feed({ onOpenProfile, onSeeAllSuggestions }: FeedProps) 
           </p>
         </div>
       ) : (
-        posts.map((post) => (
-          <PostCard
-            key={post.id}
-            post={post}
-            viewerTags={viewerTags}
-            onChange={(patch) => patchPost(post.id, patch)}
-            onRemoved={(id) => setPosts((prev) => prev.filter((p) => p.id !== id))}
-            onShared={(created) => setPosts((prev) => [created, ...prev])}
-            onOpenProfile={onOpenProfile}
-          />
-        ))
+        <AnimatePresence initial={false} mode="popLayout">
+          {posts.map((post, index) => (
+            <motion.div
+              key={post.id}
+              layout
+              initial={{ opacity: 0, y: 22, scale: 0.985 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -12, scale: 0.98 }}
+              transition={{ duration: 0.38, delay: Math.min(index, 4) * 0.045, ease: [0.22, 1, 0.36, 1] }}
+              whileHover={{ y: -2 }}
+            >
+              <PostCard
+                post={post}
+                viewerTags={viewerTags}
+                onChange={(patch) => patchPost(post.id, patch)}
+                onRemoved={(id) => setPosts((prev) => prev.filter((p) => p.id !== id))}
+                onShared={(created) => setPosts((prev) => [created, ...prev])}
+                onOpenProfile={onOpenProfile}
+              />
+            </motion.div>
+          ))}
+        </AnimatePresence>
       )}
 
       <div ref={sentinel} className="community-feed-sentinel" aria-hidden />
@@ -190,6 +251,15 @@ export default function Feed({ onOpenProfile, onSeeAllSuggestions }: FeedProps) 
       {!loading && !hasMore && posts.length > 0 && (
         <p className="community-feed-end">You’re all caught up.</p>
       )}
+      </main>
+
+      <div className="community-home-column community-home-right-column">
+        <CommunityHomeRight
+          onOpenProfile={onOpenProfile}
+          onSeeAll={onSeeAllSuggestions}
+          onOpenProject={(projectId) => router.push(`/portal/projects/${projectId}`)}
+        />
+      </div>
     </div>
   );
 }
