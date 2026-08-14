@@ -42,7 +42,7 @@ const AD_CHANCE = 0.5;
 
 type Stage = "title" | "levels" | "plan" | "running" | "paused" | "over" | "ad";
 type Save = { v: 1; stars: Record<string, number> };
-type AdBreakState = { nextLevel: number; creative: 0 | 1; watched: boolean };
+type AdBreakState = { nextLevel: number; watched: boolean };
 
 function emptySave(): Save {
   return { v: 1, stars: {} };
@@ -73,7 +73,6 @@ function loadAdBreak(): AdBreakState | null {
       Number.isInteger(parsed.nextLevel) &&
       parsed.nextLevel > 0 &&
       parsed.nextLevel < LEVELS.length &&
-      (parsed.creative === 0 || parsed.creative === 1) &&
       typeof parsed.watched === "boolean"
     ) {
       return parsed;
@@ -148,31 +147,18 @@ function BrandMark() {
 
 const AD_CTA_HREF = "/survey";
 
-const AD_CREATIVES = [
-  {
-    src: "/ad1.mp4",
-    poster: undefined,
-    kicker: "Udyaan",
-    headline: "Grow what matters.",
-    body: "One practical observation. One solution with real-world impact.",
-    ctaTitle: "Udyaan",
-    ctaSubtitle: "Build a real agri venture",
-    ctaAction: "Apply now",
-  },
-  {
-    src: "/udyaan-aerial.mp4",
-    poster: "/udyaan-aerial-poster.jpg",
-    kicker: "Udyaan",
-    headline: "Ideas take root here.",
-    body: "Test your conviction, build independently, and turn problems into ventures.",
-    ctaTitle: "Udyaan",
-    ctaSubtitle: "Applications now open",
-    ctaAction: "Apply now",
-  },
-] as const;
+const AD_CREATIVE = {
+  src: "/udyaan-aerial.mp4",
+  poster: "/udyaan-aerial-poster.jpg",
+  kicker: "Udyaan",
+  headline: "Ideas take root here.",
+  body: "Test your conviction, build independently, and turn problems into ventures.",
+  ctaTitle: "Udyaan",
+  ctaSubtitle: "Applications now open",
+  ctaAction: "Apply now",
+} as const;
 
 function AdBreak({
-  creative,
   nextLevel,
   watched,
   onWatched,
@@ -184,7 +170,7 @@ function AdBreak({
   const [progress, setProgress] = useState(watched ? 1 : 0);
   const [remaining, setRemaining] = useState<number | null>(null);
   const [needsPlay, setNeedsPlay] = useState(false);
-  const copy = AD_CREATIVES[creative];
+  const copy = AD_CREATIVE;
 
   useEffect(() => {
     const element = video.current;
@@ -333,7 +319,6 @@ export default function HarvestGuard() {
   const [fullscreenAvailable, setFullscreenAvailable] = useState(false);
   const [levelMenuReturn, setLevelMenuReturn] = useState<"title" | "plan">("title");
   const [adBreak, setAdBreak] = useState<AdBreakState | null>(null);
-  const adsShown = useRef(0);
   const lastAdField = useRef(0);
 
   const level = LEVELS[levelIndex];
@@ -486,12 +471,7 @@ export default function HarvestGuard() {
       completedField >= AD_FIRST_FIELD && lastAdField.current !== completedField - 1;
     if (eligible && Math.random() < AD_CHANCE) {
       lastAdField.current = completedField;
-      const nextAd: AdBreakState = {
-        nextLevel,
-        creative: (adsShown.current % 2) as 0 | 1,
-        watched: false,
-      };
-      adsShown.current += 1;
+      const nextAd: AdBreakState = { nextLevel, watched: false };
       setAdBreak(nextAd);
       persistAdBreak(nextAd);
       setStage("ad");
