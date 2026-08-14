@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from app.portal.core.deps import get_current_user
+from app.portal.core.roles import ADMIN_ROLES, PLATFORM_ROLES
 from app.portal.database import get_db
 from app.portal.maturity import DIMENSIONS, FRAMEWORK_VERSION, OrgFacts, assess, framework_definition
 from app.portal.models.maturity import MaturityAssessment
@@ -33,8 +34,6 @@ from app.portal.schemas.maturity import (
 )
 
 router = APIRouter(prefix="/maturity", tags=["maturity"])
-
-ADMIN_ROLES = {"ADMIN", "SUPERADMIN"}
 
 
 async def _role_keys(db: AsyncSession, user: User) -> set[str]:

@@ -21,6 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from app.portal.core.deps import get_current_user
+from app.portal.core.roles import ADMIN_ROLES, PLATFORM_ROLES
 from app.portal.database import get_db
 from app.portal.models.organization import Organization
 from app.portal.models.project import Project
@@ -33,7 +34,6 @@ from app.portal.models.user import User
 
 router = APIRouter(prefix="/control", tags=["control-centre"])
 
-ADMIN_ROLES = {"ADMIN", "SUPERADMIN"}
 TREND_WEEKS = 12
 FEED_LIMIT = 25
 # Anything older than this is history, not "activity".

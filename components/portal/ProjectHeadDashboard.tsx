@@ -7,6 +7,7 @@ import CreateProject from "./CreateProject";
 import ProjectList from "./ProjectList";
 import InsightsTab from "./InsightsTab";
 import AiCopilot from "./AiCopilot";
+import CommunityTab from "./CommunityTab";
 import { API_BASE_URL, apiFetch, authHeaders } from "@/lib/portal-api";
 import type { NavItem, Organization, Profile } from "@/lib/portal-types";
 
@@ -15,6 +16,7 @@ type EditFormData = { full_name: string; phone: string; organization_id: string 
 const TAB_TITLES: Record<string, string> = {
   profile: "My Profile",
   insights: "Insights",
+  community: "Community",
   copilot: "Udyaan Copilot",
   "create-project": "Create Project",
   "view-projects": "Projects",
@@ -157,6 +159,8 @@ export default function ProjectHeadDashboard() {
         return <ProjectList />;
       case "insights":
         return <InsightsTab />;
+      case "community":
+        return <CommunityTab />;
       case "copilot":
         return <AiCopilot role="PROJECT_HEAD" />;
       case "profile":
@@ -192,6 +196,7 @@ export default function ProjectHeadDashboard() {
   const navItems: NavItem[] = [
     { id: "profile", label: "My Profile" },
     { id: "insights", label: "Insights" },
+    { id: "community", label: "Community" },
     { id: "copilot", label: "Udyaan Copilot" },
     { id: "create-project", label: "Create Project" },
     { id: "view-projects", label: "View Projects" },

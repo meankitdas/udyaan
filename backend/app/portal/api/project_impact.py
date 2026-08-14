@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from app.portal.core.deps import get_current_user
+from app.portal.core.roles import REVIEWER_ROLES
 from app.portal.database import get_db
 from app.portal.models.project import Project
 from app.portal.models.project_impact import ImpactStage, ProjectImpactEntry
@@ -34,7 +35,6 @@ STAGE_ORDER = [
     ImpactStage.OUTCOMES,
     ImpactStage.IMPACT,
 ]
-REVIEWER_ROLES = {"ADMIN", "PROJECT_HEAD", "FACULTY", "SUPERADMIN"}
 
 
 async def _role_keys(db: AsyncSession, user: User) -> set[str]:

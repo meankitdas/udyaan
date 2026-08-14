@@ -43,7 +43,7 @@ from app.portal.utils import storage
 
 router = APIRouter(prefix="/community", tags=["community-messages"])
 
-ADMIN_ROLE_KEYS = ("ADMIN", "SUPERADMIN")
+ADMIN_ROLE_KEYS = ("OWNER", "ADMIN", "SUPERADMIN")
 
 
 # --------------------------------------------------------------------------

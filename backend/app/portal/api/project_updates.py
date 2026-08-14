@@ -21,6 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from app.portal.core.deps import get_current_user
+from app.portal.core.roles import REVIEWER_ROLES
 from app.portal.database import get_db
 from app.portal.models.project import Project
 from app.portal.models.project_compliance import ActionItem, ProjectMeeting
@@ -41,8 +42,6 @@ from app.portal.schemas.project_update import (
 )
 
 router = APIRouter(tags=["project-updates"])
-
-REVIEWER_ROLES = {"ADMIN", "PROJECT_HEAD", "FACULTY", "SUPERADMIN"}
 
 # How far back the cadence scorecard looks. Bounded so a long-running project's
 # on-time rate reflects recent discipline rather than being diluted by history.

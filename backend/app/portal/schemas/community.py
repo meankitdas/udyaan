@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field, field_validator
 # Which portal roles are treated as mentors in the community. Students get
 # instant connections; mentors approve theirs, so this list is what decides
 # whether a connection request needs a human in the loop.
-MENTOR_ROLE_KEYS = ("FACULTY", "PROJECT_HEAD", "ADMIN", "SUPERADMIN")
+MENTOR_ROLE_KEYS = ("FACULTY", "PROJECT_HEAD", "ADMIN", "SUPERADMIN", "OWNER")
 
 CommunityRole = Literal["student", "mentor"]
 ConnectionState = Literal["none", "pending_outgoing", "pending_incoming", "connected"]

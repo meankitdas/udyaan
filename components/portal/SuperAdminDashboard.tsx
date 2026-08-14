@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import DashboardLayout from "./DashboardLayout";
+import CommunityTab from "./CommunityTab";
 import ControlCentre from "./ControlCentre";
 import OrgMaturity from "./OrgMaturity";
 import ReportsConsole from "./ReportsConsole";
@@ -33,6 +34,8 @@ export default function SuperAdminDashboard() {
         return <OrgMaturity />;
       case "reports":
         return <ReportsConsole />;
+      case "community":
+        return <CommunityTab />;
       case "orgs":
         if (viewMode === "list") {
           return (
@@ -105,6 +108,8 @@ export default function SuperAdminDashboard() {
         return "Digital Maturity Index";
       case "reports":
         return "Reports";
+      case "community":
+        return "Community";
       case "orgs":
         return viewMode === "list" ? "Organizations" : "Create Organization";
       case "project-heads":
@@ -123,6 +128,7 @@ export default function SuperAdminDashboard() {
     { id: "projects", label: "View All Projects" },
     { id: "reports", label: "Reports" },
     { id: "maturity", label: "Digital Maturity" },
+    { id: "community", label: "Community" },
   ];
 
   return (

@@ -25,6 +25,7 @@ import {
   Sparkles,
   TrendingUp,
   UserCheck,
+  UserCog,
   Users,
   Wrench,
 } from "lucide-react";
@@ -43,6 +44,7 @@ type SidebarProps = {
 
 const NAV_ICONS = {
   profile: LayoutDashboard,
+  users: UserCog,
   control: LayoutGrid,
   ops: Radar,
   dashboard: ArrowLeft,

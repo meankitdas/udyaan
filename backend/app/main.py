@@ -72,6 +72,7 @@ try:
         control as portal_control,
         maturity as portal_maturity,
         organizations as portal_organizations,
+        owner as portal_owner,
         project_compliance as portal_compliance,
         project_heads as portal_project_heads,
         project_impact as portal_project_impact,
@@ -89,6 +90,7 @@ try:
         portal_projects.router,
         portal_reports.router,
         portal_admin.router,
+        portal_owner.router,
         portal_compliance.router,
         portal_action_dependencies.router,
         portal_project_tools.router,
@@ -132,6 +134,14 @@ async def init_portal_db() -> None:
         await init_models()
     except Exception as exc:  # pragma: no cover - don't crash boot if DB is unreachable
         logging.getLogger(__name__).warning("Portal DB init skipped: %s", exc)
+        return
+
+    try:
+        from .portal.bootstrap import bootstrap_owner
+
+        await bootstrap_owner()
+    except Exception as exc:  # pragma: no cover - a failed bootstrap must not block boot
+        logging.getLogger(__name__).warning("Owner bootstrap skipped: %s", exc)
 
 
 @app.get("/health", tags=["ops"])

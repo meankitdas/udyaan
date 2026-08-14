@@ -44,6 +44,14 @@ class Settings(BaseSettings):
     # auth path outright, so an unset secret can never leave the endpoint open.
     BACKFILL_TOKEN: str = ""
 
+    # Bootstrap owner. Both must be set for the account to be created on startup;
+    # there is deliberately no default password, so an unconfigured deployment
+    # never ships a known super-user credential. Set these in .env, never here —
+    # this file is tracked by git.
+    OWNER_EMAIL: str = ""
+    OWNER_PASSWORD: str = ""
+    OWNER_NAME: str = "Platform Owner"
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 

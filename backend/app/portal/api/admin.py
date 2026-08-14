@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.portal.database import get_db
+from app.portal.core.roles import ADMIN_ROLES, PLATFORM_ROLES
 from app.portal.models.user import User
 from app.portal.models.role import Role, UserRole
 from app.portal.api.auth import get_current_user
@@ -20,10 +21,10 @@ async def get_org_admin(current_user: User = Depends(get_current_user), db: Asyn
     roles = result.scalars().all()
     role_keys = [r.role_key for r in roles]
     
-    if "ADMIN" not in role_keys and "SUPERADMIN" not in role_keys:
+    if not (ADMIN_ROLES & set(role_keys)):
          raise HTTPException(status_code=403, detail="Not authorized")
          
-    if not current_user.organization_id and "SUPERADMIN" not in role_keys:
+    if not current_user.organization_id and not (PLATFORM_ROLES & set(role_keys)):
         raise HTTPException(status_code=400, detail="Admin not associated with any organization")
         
     return current_user

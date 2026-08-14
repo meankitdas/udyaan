@@ -55,6 +55,7 @@ def generate_user_id(role_key: str):
     Project Head: PH + 8 chars
     Admin: AD + 8 chars
     Superadmin: SA + 8 chars
+    Owner: OW + 8 chars
     Others: US + 8 chars
     Total: 10 chars
     """
@@ -68,6 +69,8 @@ def generate_user_id(role_key: str):
         prefix = "AD"
     elif role_key == "SUPERADMIN":
         prefix = "SA"
+    elif role_key == "OWNER":
+        prefix = "OW"
     else:
         prefix = "US"
         

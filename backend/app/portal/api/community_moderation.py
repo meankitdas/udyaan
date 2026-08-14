@@ -23,7 +23,7 @@ from app.portal.schemas.community import ReportCreate, ReportOut, ReportResolve
 
 router = APIRouter(prefix="/community", tags=["community-moderation"])
 
-ADMIN_ROLE_KEYS = ("ADMIN", "SUPERADMIN")
+ADMIN_ROLE_KEYS = ("OWNER", "ADMIN", "SUPERADMIN")
 
 # How much of a post or comment to show in the admin queue.
 SNIPPET_LENGTH = 140

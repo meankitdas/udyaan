@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.portal.database import get_db
+from app.portal.core.roles import PLATFORM_ROLES
 from app.portal.schemas.auth import UserCreate, UserResponse
 from app.portal.crud.user import create_user, get_user_by_email
 from app.portal.models.user import User
@@ -25,8 +26,8 @@ async def get_current_superadmin(current_user: User = Depends(get_current_user),
     )
     roles = result.scalars().all()
     role_keys = [r.role_key for r in roles]
-    
-    if "SUPERADMIN" not in role_keys:
+
+    if not (PLATFORM_ROLES & set(role_keys)):
         raise HTTPException(status_code=403, detail="Not enough permissions")
     return current_user
 

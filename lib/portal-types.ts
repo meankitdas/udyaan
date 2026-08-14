@@ -31,6 +31,33 @@ export type PortalUser = {
   created_at?: string;
 };
 
+/** A row in the owner console's user table. */
+export type ManagedUser = {
+  id: string;
+  full_name: string;
+  email: string;
+  phone?: string | null;
+  role_key?: string | null;
+  organization_id?: string | null;
+  organization_name?: string | null;
+  is_active: boolean;
+  is_approved: boolean;
+  is_email_verified: boolean;
+  created_at?: string | null;
+};
+
+export type ManagedUserPage = { total: number; users: ManagedUser[] };
+
+export type RoleOption = { role_key: string; role_name: string; user_count: number };
+
+export type OwnerOverview = {
+  total_users: number;
+  active_users: number;
+  pending_approval: number;
+  organizations: number;
+  users_by_role: Record<string, number>;
+};
+
 export type Project = {
   id: string;
   title: string;

@@ -129,6 +129,7 @@ async def init_models():
                 text(f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {column_ddl}")
             )
         roles = [
+            ("OWNER", "Owner"),
             ("SUPERADMIN", "Super Admin"),
             ("ADMIN", "Admin"),
             ("PROJECT_HEAD", "Project Head"),

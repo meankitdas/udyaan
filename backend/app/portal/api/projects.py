@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.portal.database import get_db
+from app.portal.core.roles import ADMIN_ROLES, PLATFORM_ROLES
 from app.portal.schemas.project import ProjectCreate, ProjectResponse, ProjectWithDetails
 from app.portal.crud.project import create_project
 from app.portal.models.user import User
@@ -24,7 +25,7 @@ async def get_privileged_user(current_user: User = Depends(get_current_user), db
     roles = result.scalars().all()
     role_keys = [r.role_key for r in roles]
     
-    if "ADMIN" in role_keys or "PROJECT_HEAD" in role_keys:
+    if set(role_keys) & (ADMIN_ROLES | {"PROJECT_HEAD"}):
         return current_user, role_keys
         
     raise HTTPException(status_code=403, detail="Not enough permissions")
@@ -78,7 +79,7 @@ async def read_projects(
     roles = result.scalars().all()
     role_keys = [r.role_key for r in roles]
     
-    is_superadmin = "SUPERADMIN" in role_keys
+    is_superadmin = bool(PLATFORM_ROLES & set(role_keys))
     
     if not current_user.organization_id and not is_superadmin:
         raise HTTPException(status_code=400, detail="User is not part of any organization")
@@ -95,7 +96,7 @@ async def read_projects(
     # We check if they are NOT Admin/ProjectHead/Superadmin.
     # Basically if they have STUDENT or FACULTY role and none of the higher privs.
     
-    has_higher_priv = "ADMIN" in role_keys or "SUPERADMIN" in role_keys or "PROJECT_HEAD" in role_keys
+    has_higher_priv = bool(set(role_keys) & (ADMIN_ROLES | {"PROJECT_HEAD"}))
     
     if ("STUDENT" in role_keys or "FACULTY" in role_keys) and not has_higher_priv:
         target_assignee_id = str(current_user.id)
@@ -142,7 +143,7 @@ async def delete_project(
     roles = result.scalars().all()
     role_keys = [r.role_key for r in roles]
 
-    is_superadmin = "SUPERADMIN" in role_keys
+    is_superadmin = bool(PLATFORM_ROLES & set(role_keys))
     is_org_admin = "ADMIN" in role_keys and current_user.organization_id == project.organization_id
     is_creator = project.created_by == current_user.id
     

@@ -5,10 +5,11 @@
 const RAW_BASE = (process.env.NEXT_PUBLIC_UDYAAN_API ?? "http://localhost:8080").replace(/\/$/, "");
 export const API_BASE_URL = `${RAW_BASE}/portal`;
 
-export type RoleKey = "SUPERADMIN" | "ADMIN" | "STUDENT" | "FACULTY" | "PROJECT_HEAD";
+export type RoleKey = "OWNER" | "SUPERADMIN" | "ADMIN" | "STUDENT" | "FACULTY" | "PROJECT_HEAD";
 
 /** Where each role lands after logging in. */
 export const roleHome: Record<string, string> = {
+  OWNER: "/portal/owner",
   SUPERADMIN: "/portal/superadmin",
   ADMIN: "/portal/admin",
   STUDENT: "/portal/student",

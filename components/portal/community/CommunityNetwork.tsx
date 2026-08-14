@@ -42,7 +42,7 @@ type CommunityNetworkProps = {
   syncUrl?: boolean;
 };
 
-const MODERATOR_ROLES = ["ADMIN", "SUPERADMIN"];
+const MODERATOR_ROLES = ["OWNER", "ADMIN", "SUPERADMIN"];
 
 function pathFor(view: CommunityView, userId?: string | null): string {
   if (view === "profile" && userId) return `/portal/community/${userId}`;

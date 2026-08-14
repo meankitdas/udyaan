@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: "Community Moderation" };
 
 export default function CommunityModerationPage() {
   return (
-    <ProtectedRoute allowedRoles={["ADMIN", "SUPERADMIN"]}>
+    <ProtectedRoute allowedRoles={["OWNER", "ADMIN", "SUPERADMIN"]}>
       <CommunityPageShell view="moderation" />
     </ProtectedRoute>
   );

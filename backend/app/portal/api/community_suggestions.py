@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/community", tags=["community-suggestions"])
 
-ADMIN_ROLE_KEYS = ("ADMIN", "SUPERADMIN")
+ADMIN_ROLE_KEYS = ("OWNER", "ADMIN", "SUPERADMIN")
 
 # auto_error=False so a missing Authorization header falls through to the
 # service-token check instead of 401-ing before it runs.

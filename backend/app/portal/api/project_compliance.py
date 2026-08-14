@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.portal.database import get_db
+from app.portal.core.roles import MANAGER_ROLES, PLATFORM_ROLES
 from app.portal.models.user import User
 from app.portal.models.action_dependency import ActionDependency
 from app.portal.models.project_compliance import ProjectMeeting, ActionItem, ActionStatus
@@ -184,10 +185,10 @@ async def update_action_status(
         raise HTTPException(status_code=404, detail="Project not found")
 
     roles = set(await get_role_key(current_user, db))
-    is_manager = bool(roles & {"ADMIN", "FACULTY", "PROJECT_HEAD", "SUPERADMIN"})
+    is_manager = bool(roles & MANAGER_ROLES)
     is_assignee = item.assigned_to == current_user.id
     same_org = bool(current_user.organization_id and project.organization_id == current_user.organization_id)
-    if "SUPERADMIN" not in roles and not same_org:
+    if not (roles & PLATFORM_ROLES) and not same_org:
         raise HTTPException(status_code=403, detail="Access denied")
     if not (is_manager or is_assignee):
         raise HTTPException(status_code=403, detail="You cannot update this action item.")

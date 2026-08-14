@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from app.portal.core.deps import get_current_user
+from app.portal.core.roles import REVIEWER_ROLES
 from app.portal.database import get_db
 from app.portal.models.project import Project
 from app.portal.models.project_tool import ProjectTool, ToolStatus
@@ -20,9 +21,6 @@ from app.portal.schemas.project_tool import (
 )
 
 router = APIRouter(tags=["project-tools"])
-
-# Who may approve or decline a proposed workspace.
-REVIEWER_ROLES = {"ADMIN", "PROJECT_HEAD", "FACULTY", "SUPERADMIN"}
 
 
 async def _role_keys(db: AsyncSession, user: User) -> set[str]:

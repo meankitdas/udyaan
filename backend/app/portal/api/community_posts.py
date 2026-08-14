@@ -39,7 +39,7 @@ from app.portal.utils import storage
 
 router = APIRouter(prefix="/community", tags=["community-feed"])
 
-ADMIN_ROLE_KEYS = ("ADMIN", "SUPERADMIN")
+ADMIN_ROLE_KEYS = ("OWNER", "ADMIN", "SUPERADMIN")
 
 
 def _utcnow() -> datetime:

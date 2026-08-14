@@ -12,6 +12,7 @@ import ControlCentre from "./ControlCentre";
 import ReportsConsole from "./ReportsConsole";
 import OpsControlCentre from "./OpsControlCentre";
 import OrgMaturity from "./OrgMaturity";
+import CommunityTab from "./CommunityTab";
 import { API_BASE_URL, apiFetch, authHeaders } from "@/lib/portal-api";
 import type { ActionItem, NavItem, Organization, PortalUser, Profile } from "@/lib/portal-types";
 
@@ -24,6 +25,7 @@ const TAB_TITLES: Record<string, string> = {
   ops: "Delivery Control Centre",
   insights: "Insights",
   maturity: "Digital Maturity Index",
+  community: "Community",
   copilot: "Udyaan Copilot",
   students: "Students",
   mentors: "Mentors",
@@ -328,6 +330,8 @@ export default function AdminDashboard() {
         return <ReportsConsole />;
       case "maturity":
         return <OrgMaturity />;
+      case "community":
+        return <CommunityTab />;
       case "copilot":
         return <AiCopilot role="ADMIN" />;
       case "students": {
@@ -622,6 +626,7 @@ export default function AdminDashboard() {
     { id: "insights", label: "Insights" },
     { id: "reports", label: "Reports" },
     { id: "maturity", label: "Digital Maturity" },
+    { id: "community", label: "Community" },
     { id: "copilot", label: "Udyaan Copilot" },
     { id: "students", label: "Students" },
     { id: "mentors", label: "Mentors" },

@@ -14,6 +14,7 @@ from sqlalchemy import func
 from sqlalchemy.future import select
 
 from app.portal.core.deps import get_current_user
+from app.portal.core.roles import MANAGER_ROLES
 from app.portal.database import get_db
 from app.portal.models.action_dependency import ActionDependency
 from app.portal.models.project import Project
@@ -28,7 +29,6 @@ from app.portal.schemas.action_dependency import (
 )
 
 router = APIRouter(tags=["action-dependencies"])
-MANAGER_ROLES = {"ADMIN", "FACULTY", "PROJECT_HEAD", "SUPERADMIN"}
 
 
 async def _role_keys(db: AsyncSession, user: User) -> set[str]:
