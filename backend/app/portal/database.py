@@ -124,6 +124,8 @@ async def init_models():
             "university VARCHAR(150)",
             "cohort VARCHAR(50)",
             "is_discoverable BOOLEAN DEFAULT TRUE",
+            "last_seen_at TIMESTAMP",
+            "email_digest_enabled BOOLEAN DEFAULT TRUE",
         ):
             await conn.execute(
                 text(f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {column_ddl}")

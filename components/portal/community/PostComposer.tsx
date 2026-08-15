@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
 import {
   Award,
   FileText,
@@ -146,13 +145,7 @@ export default function PostComposer({ onPosted }: PostComposerProps) {
 
   if (!expanded) {
     return (
-      <motion.div
-        className="community-composer collapsed"
-        initial={{ opacity: 0, y: 14 }}
-        animate={{ opacity: 1, y: 0 }}
-        whileHover={{ y: -1 }}
-        transition={{ duration: 0.35 }}
-      >
+      <div className="community-composer collapsed">
         <div className="community-composer-prompt">
           <Avatar name={profile?.full_name ?? "You"} src={profile?.avatar_url} size={44} />
           <button type="button" className="community-composer-trigger" onClick={() => setExpanded(true)}>
@@ -165,18 +158,12 @@ export default function PostComposer({ onPosted }: PostComposerProps) {
           <button type="button" onClick={() => { setType("achievement"); setExpanded(true); }}><Award size={17} aria-hidden /> Achievement</button>
           <button type="button" onClick={() => { setType("update"); setExpanded(true); }}><PencilLine size={17} aria-hidden /> Article</button>
         </div>
-      </motion.div>
+      </div>
     );
   }
 
   return (
-    <motion.form
-      className="community-composer"
-      onSubmit={submit}
-      initial={{ opacity: 0, height: 88, y: 8 }}
-      animate={{ opacity: 1, height: "auto", y: 0 }}
-      transition={{ duration: 0.36, ease: [0.22, 1, 0.36, 1] }}
-    >
+    <form className="community-composer" onSubmit={submit}>
       <div className="community-composer-head">
         <Avatar name={profile?.full_name ?? "You"} src={profile?.avatar_url} size={42} />
         <div className="community-composer-types" role="tablist" aria-label="Post type">
@@ -337,6 +324,6 @@ export default function PostComposer({ onPosted }: PostComposerProps) {
           {saving ? "Posting…" : "Post"}
         </button>
       </div>
-    </motion.form>
+    </form>
   );
 }

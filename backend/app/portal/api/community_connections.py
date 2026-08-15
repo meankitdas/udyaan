@@ -11,6 +11,8 @@ from sqlalchemy.future import select
 
 from app.portal.core.deps import get_current_user
 from app.portal.crud import community as crud
+from app.portal.crud import notification as notification_crud
+from app.portal.models.notification import NotificationKind
 from app.portal.database import get_db
 from app.portal.models.community import Connection, ConnectionStatus, Follow
 from app.portal.models.user import User
@@ -133,6 +135,13 @@ async def request_connection(
         connection.status = ConnectionStatus.PENDING.value
         connection.responded_at = None
         message = f"Request sent to {target.full_name}. They'll be notified to review it."
+        await notification_crud.enqueue(
+            db,
+            user_id=target.id,
+            kind=NotificationKind.CONNECTION_REQUEST,
+            actor_id=current_user.id,
+            target_id=str(connection.id) if connection.id else current_user.id,
+        )
     else:
         connection.status = ConnectionStatus.ACCEPTED.value
         connection.responded_at = datetime.utcnow()

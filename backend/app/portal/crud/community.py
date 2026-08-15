@@ -15,6 +15,7 @@ from sqlalchemy import func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
+from app.portal.core import presence
 from app.portal.models.community import (
     CommunityTag,
     Connection,
@@ -66,7 +67,14 @@ async def get_role_keys(db: AsyncSession, user_ids: Sequence[str]) -> Dict[str, 
 
     # Ranked so a FACULTY who is also a STUDENT is presented as a mentor rather
     # than flipping based on row order.
-    precedence = {"SUPERADMIN": 5, "ADMIN": 4, "PROJECT_HEAD": 3, "FACULTY": 2, "STUDENT": 1}
+    precedence = {
+        "OWNER": 6,
+        "SUPERADMIN": 5,
+        "ADMIN": 4,
+        "PROJECT_HEAD": 3,
+        "FACULTY": 2,
+        "STUDENT": 1,
+    }
     best: Dict[str, str] = {}
     for user_id, role_key in result:
         current = best.get(user_id)
@@ -231,6 +239,14 @@ async def get_accepted_partner_ids(db: AsyncSession, user_id: str) -> Set[str]:
     return partners
 
 
+async def get_follower_ids(db: AsyncSession, user_id: str) -> Set[str]:
+    """IDs of everyone following this user, i.e. who should see their posts."""
+    result = await db.execute(
+        select(Follow.follower_id).where(Follow.following_id == user_id)
+    )
+    return {row for row in result.scalars().all() if row}
+
+
 async def get_mutual_counts(
     db: AsyncSession, viewer_partners: Set[str], user_ids: Sequence[str]
 ) -> Dict[str, int]:
@@ -288,6 +304,7 @@ async def build_summaries(
     states = await get_connection_states(db, viewer_id, user_ids)
     following = await get_following(db, viewer_id, user_ids)
     org_names = await get_org_names(db, [u.organization_id for u in users])
+    online = await presence.online_map(user_ids)
 
     mutuals: Dict[str, int] = {}
     if include_mutuals:
@@ -320,6 +337,8 @@ async def build_summaries(
                 organization_name=org_names.get(user.organization_id or ""),
                 cohort=user.cohort,
                 tags=tags,
+                is_online=online.get(user.id, False),
+                last_seen_at=user.last_seen_at,
                 connection_state=state,
                 connection_id=conn_id,
                 is_following=user.id in following,

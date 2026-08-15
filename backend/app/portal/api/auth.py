@@ -14,12 +14,12 @@ from app.portal.config import settings
 from sqlalchemy.future import select
 from uuid import uuid4, UUID
 from pydantic import BaseModel
-from app.portal.utils.email import send_email
+from app.portal.utils.email import asend_email, send_email
 import random
 
-def send_otp_email(to_email: str, otp: str):
+def _otp_message(otp: str) -> tuple[str, str, str]:
     subject = "Your Udyaan Verification Code"
-    
+
     # Plain text version
     body = f"Your verification code is: {otp}\nValid for 15 minutes."
     
@@ -62,13 +62,14 @@ def send_otp_email(to_email: str, otp: str):
     </body>
     </html>
     """
-    
-    if send_email(to_email, subject, body, html_content=html_content):
-        # logger.info(f"Email sent to {to_email}")
-        pass
-    else:
-        # logger.error(f"Email failed for {to_email}")
-        pass
+
+    return subject, body, html_content
+
+
+async def asend_otp_email(to_email: str, otp: str) -> None:
+    """SES calls are synchronous, so keep them off the event loop."""
+    subject, body, html_content = _otp_message(otp)
+    await asend_email(to_email, subject, body, html_content=html_content)
 
 
 
@@ -108,7 +109,7 @@ async def signup(user: UserCreate, db: AsyncSession = Depends(get_db), redis_cli
         print(f"\n========== SIGNUP OTP ==========\nEmail: {user.email}\nOTP:   {otp}\n(valid for 15 minutes)\n================================\n", flush=True)
         
         # 5. Send email with OTP
-        send_otp_email(user.email, otp)
+        await asend_otp_email(user.email, otp)
         
         return {"message": "OTP sent to your email. Please verify to complete registration."}
     except HTTPException:
@@ -371,12 +372,10 @@ async def forgot_password(data: ForgotPasswordRequest, db: AsyncSession = Depend
     </html>
     """
     
-    if send_email(user.email, subject, body, html_content=html_content):
-        pass
-    else:
-         print(f"Failed to send reset email")
+    if not await asend_email(user.email, subject, body, html_content=html_content):
+        print("Failed to send reset email")
         # Log error, but still return success to user
-        
+
     return {"message": "If an account exists with this email, a reset link has been sent."}
 
 @router.post("/reset-password")

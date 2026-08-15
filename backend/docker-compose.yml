@@ -17,14 +17,31 @@ services:
       timeout: 5s
       retries: 10
 
+  # OTP storage and the presence/typing pub-sub. Production points at Upstash;
+  # locally this stands in so the messaging features can actually be exercised.
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   api:
     build: .
     ports:
       - "8080:8080"
     env_file:
       - .env
+    environment:
+      # Overrides the .env value so the local stack never talks to Upstash.
+      REDIS_URL: redis://redis:6379/0
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     volumes:
       - api-data:/srv/data

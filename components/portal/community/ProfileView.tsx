@@ -24,6 +24,7 @@ import ReportDialog from "./ReportDialog";
 import TagChip from "./TagChip";
 import PortalSkeleton from "../PortalSkeleton";
 import { followUser, getProfile, unfollowUser } from "@/lib/community-api";
+import { roleLabel } from "@/lib/community-types";
 import type { ConnectionState, ProfileDetail } from "@/lib/community-types";
 
 type ProfileViewProps = {
@@ -143,7 +144,7 @@ export default function ProfileView({
           <div className="community-profile-nameline">
             <h2>{profile.full_name}</h2>
             <span className={`community-role-badge ${profile.community_role}`}>
-              {profile.community_role === "mentor" ? "Mentor" : "Student"}
+              {roleLabel(profile.role_key, profile.community_role)}
             </span>
           </div>
 

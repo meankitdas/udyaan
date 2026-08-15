@@ -13,15 +13,21 @@ delivering the same payload over a different pipe, with no schema change and no
 change to the client's reducer.
 """
 
+import json
 from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from fastapi.encoders import jsonable_encoder
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.portal.core import presence
+from app.portal.core import crypto
 from app.portal.core.deps import get_current_user
+from app.portal.crud import notification as notification_crud
+from app.portal.models.notification import NotificationKind
 from app.portal.crud import community_message as crud
 from app.portal.database import get_db
 from app.portal.models.community_message import Conversation, Message
@@ -233,7 +239,7 @@ async def send_message(
     message = Message(
         conversation_id=conversation.id,
         sender_id=current_user.id,
-        body=payload.body.strip() if payload.body else None,
+        body=crypto.encrypt_text(payload.body.strip()) if payload.body else None,
         created_at=crud.utcnow(),
     )
     if payload.attachment:
@@ -257,7 +263,36 @@ async def send_message(
     await db.commit()
     await db.refresh(message)
 
-    return crud.build_message_output(message, current_user.id)
+    output = crud.build_message_output(message, current_user.id)
+
+    # Push to the recipient's live sockets. Best-effort: the sync endpoint is
+    # still the source of truth, so a dropped push only costs latency.
+    other_ids = await crud.get_other_participant_ids(db, [conversation.id], current_user.id)
+    other_id = other_ids.get(conversation.id)
+    if other_id:
+        await notification_crud.enqueue(
+            db,
+            user_id=other_id,
+            kind=NotificationKind.MESSAGE,
+            actor_id=current_user.id,
+            target_id=str(conversation.id),
+        )
+        await db.commit()
+
+        await presence.publish_event(
+            other_id,
+            json.dumps(
+                {
+                    "type": "message",
+                    "conversation_id": str(conversation.id),
+                    "message": jsonable_encoder(output),
+                }
+            ),
+        )
+        # A message means the sender stopped typing.
+        await presence.publish_typing(str(conversation.id), current_user.id, False)
+
+    return output
 
 
 @router.delete("/messages/{message_id}", status_code=204)
@@ -324,6 +359,13 @@ async def mark_read(
         participant.last_read_at = until
 
     await crud.recount_unread(db, participant)
+    # Seeing the thread in-app cancels the queued digest line for it.
+    await notification_crud.mark_seen(
+        db,
+        current_user.id,
+        kind=NotificationKind.MESSAGE,
+        target_id=str(conversation_id),
+    )
     await db.commit()
 
     return ReadResult(

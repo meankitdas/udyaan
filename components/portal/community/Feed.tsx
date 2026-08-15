@@ -1,9 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AnimatePresence, motion } from "framer-motion";
-import gsap from "gsap";
 import { Loader2, Sparkles } from "lucide-react";
 import CommunityHomeLeft from "./CommunityHomeLeft";
 import CommunityHomeRight from "./CommunityHomeRight";
@@ -70,36 +68,6 @@ export default function Feed({ onOpenProfile, onSeeAllSuggestions, onOpenNetwork
         setProfile(null);
         setViewerTags(new Set());
       });
-  }, []);
-
-  useLayoutEffect(() => {
-    if (!homeRef.current) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
-    let context: ReturnType<typeof gsap.context> | undefined;
-    const animate = () => {
-      if (context || !homeRef.current) return;
-      context = gsap.context(() => {
-        const timeline = gsap.timeline({ defaults: { overwrite: "auto" } });
-        timeline.from(
-          ".community-home-column",
-          { y: 28, duration: 0.72, stagger: 0.11, ease: "power3.out", clearProps: "transform" },
-        );
-        timeline.from(
-          ".community-home-center > *",
-          { y: 18, duration: 0.48, stagger: 0.07, ease: "power2.out", clearProps: "transform" },
-          "-=0.42",
-        );
-      }, homeRef);
-    };
-
-    if (document.visibilityState === "visible") animate();
-    else document.addEventListener("visibilitychange", animate, { once: true });
-
-    return () => {
-      document.removeEventListener("visibilitychange", animate);
-      context?.revert();
-    };
   }, []);
 
   const loadFirstPage = useCallback(async (nextScope: FeedScope) => {
@@ -180,22 +148,21 @@ export default function Feed({ onOpenProfile, onSeeAllSuggestions, onOpenNetwork
       <main className="community-home-column community-home-center">
         <PostComposer onPosted={(post) => setPosts((prev) => [post, ...prev])} />
 
-        <motion.div className="community-feed-scopes" role="tablist" aria-label="Feed filter" layout>
+        <div className="community-feed-scopes" role="tablist" aria-label="Feed filter">
         {SCOPES.map((item) => (
-          <motion.button
+          <button
             key={item.value}
             type="button"
             role="tab"
             aria-selected={scope === item.value}
             className={`community-feed-scope${scope === item.value ? " active" : ""}`}
             onClick={() => setScope(item.value)}
-            whileTap={{ scale: 0.97 }}
           >
             {item.value === "for-you" && <Sparkles size={13} strokeWidth={2.2} aria-hidden />}
             {item.label}
-          </motion.button>
+          </button>
         ))}
-        </motion.div>
+        </div>
 
       {activeScope && <p className="community-feed-blurb">{activeScope.blurb}</p>}
 
@@ -216,17 +183,9 @@ export default function Feed({ onOpenProfile, onSeeAllSuggestions, onOpenNetwork
           </p>
         </div>
       ) : (
-        <AnimatePresence initial={false} mode="popLayout">
-          {posts.map((post, index) => (
-            <motion.div
-              key={post.id}
-              layout
-              initial={{ opacity: 0, y: 22, scale: 0.985 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -12, scale: 0.98 }}
-              transition={{ duration: 0.38, delay: Math.min(index, 4) * 0.045, ease: [0.22, 1, 0.36, 1] }}
-              whileHover={{ y: -2 }}
-            >
+        <>
+          {posts.map((post) => (
+            <div key={post.id}>
               <PostCard
                 post={post}
                 viewerTags={viewerTags}
@@ -235,9 +194,9 @@ export default function Feed({ onOpenProfile, onSeeAllSuggestions, onOpenNetwork
                 onShared={(created) => setPosts((prev) => [created, ...prev])}
                 onOpenProfile={onOpenProfile}
               />
-            </motion.div>
+            </div>
           ))}
-        </AnimatePresence>
+        </>
       )}
 
       <div ref={sentinel} className="community-feed-sentinel" aria-hidden />

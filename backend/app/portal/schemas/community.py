@@ -88,6 +88,10 @@ class ProfileSummary(BaseModel):
     cohort: Optional[str] = None
     tags: List[TagOut] = []
 
+    # Live from Redis; last_seen_at is the fallback once presence has expired.
+    is_online: bool = False
+    last_seen_at: Optional[datetime] = None
+
     # Viewer-relative. Lets the directory render the right button without a
     # follow-up request per card.
     connection_state: ConnectionState = "none"

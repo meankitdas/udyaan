@@ -11,6 +11,7 @@ import {
   listRequests,
   removeConnection,
 } from "@/lib/community-api";
+import { roleLabel } from "@/lib/community-types";
 import type { ConnectionItem, ConnectionRequests } from "@/lib/community-types";
 
 type RequestsInboxProps = {
@@ -151,7 +152,7 @@ export default function RequestsInbox({
                 <span>
                   <strong>{item.person.full_name}</strong>
                   <span className={`community-role-badge ${item.person.community_role}`}>
-                    {item.person.community_role === "mentor" ? "Mentor" : "Student"}
+                    {roleLabel(item.person.role_key, item.person.community_role)}
                   </span>
                   {item.person.headline && <small>{item.person.headline}</small>}
                 </span>

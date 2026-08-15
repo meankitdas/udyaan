@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import aliased
 
+from app.portal.core import crypto
 from app.portal.core.deps import get_current_user
 from app.portal.crud import community_message as message_crud
 from app.portal.crud import community_post as post_crud
@@ -204,7 +205,7 @@ async def _content_labels(db: AsyncSession, reports) -> dict:
         ).all()
         for message_id, body, attachment_name in rows:
             fallback = f"(attachment: {attachment_name})" if attachment_name else "(message)"
-            labels[str(message_id)] = _snippet(body, fallback)
+            labels[str(message_id)] = _snippet(crypto.decrypt_text(body), fallback)
 
     return labels
 

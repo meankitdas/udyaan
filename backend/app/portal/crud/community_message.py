@@ -28,6 +28,7 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.portal.core import crypto
 from app.portal.crud import community as community_crud
 from app.portal.models.community_message import (
     Conversation,
@@ -200,7 +201,7 @@ async def build_conversation_outputs(
             ConversationOut(
                 id=conv.id,
                 other=users.get(other_id) if other_id else None,
-                last_message_preview=conv.last_message_preview,
+                last_message_preview=crypto.decrypt_text(conv.last_message_preview),
                 last_message_at=conv.last_message_at,
                 last_message_is_mine=conv.last_message_sender_id == viewer_id,
                 unread_count=participant.unread_count if participant else 0,
@@ -277,7 +278,7 @@ def build_message_output(message: Message, viewer_id: str) -> MessageOut:
         id=message.id,
         conversation_id=message.conversation_id,
         sender_id=message.sender_id,
-        body=None if message.is_removed else message.body,
+        body=None if message.is_removed else crypto.decrypt_text(message.body),
         attachment=attachment,
         is_mine=is_mine,
         is_removed=message.is_removed,
@@ -328,8 +329,10 @@ async def fetch_messages(
 
 
 def preview_for(message: Message) -> str:
-    if message.body:
-        flat = " ".join(message.body.split())
+    """Preview text in the clear; the caller encrypts before it is stored."""
+    body = crypto.decrypt_text(message.body)
+    if body:
+        flat = " ".join(body.split())
         return flat[:PREVIEW_LENGTH]
     if message.attachment_name:
         return f"📎 {message.attachment_name}"[:PREVIEW_LENGTH]
@@ -354,7 +357,8 @@ async def touch_conversation(db: AsyncSession, conversation: Conversation) -> No
 
     conversation.last_message_at = latest.created_at
     conversation.last_message_sender_id = latest.sender_id
-    conversation.last_message_preview = (
+    # Encrypted too: an unencrypted preview would leak the message it previews.
+    conversation.last_message_preview = crypto.encrypt_text(
         "This message was removed" if latest.is_removed else preview_for(latest)
     )
 

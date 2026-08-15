@@ -3,6 +3,30 @@
 
 export type CommunityRole = "student" | "mentor";
 
+/**
+ * `community_role` is only the binary that decides whether a connection needs
+ * approval, so badging with it labelled every admin, faculty and owner as
+ * "Mentor". Badges show this instead; mirrors ALL_ROLES in core/roles.py.
+ */
+const ROLE_LABELS: Record<string, string> = {
+  OWNER: "Owner",
+  SUPERADMIN: "Super Admin",
+  ADMIN: "Admin",
+  PROJECT_HEAD: "Project Head",
+  FACULTY: "Faculty",
+  STUDENT: "Student",
+};
+
+export function roleLabel(
+  roleKey?: string | null,
+  communityRole: CommunityRole = "student",
+): string {
+  return (
+    ROLE_LABELS[(roleKey ?? "").toUpperCase()] ??
+    (communityRole === "mentor" ? "Mentor" : "Student")
+  );
+}
+
 export type ConnectionState =
   | "none"
   | "pending_outgoing"
@@ -57,6 +81,8 @@ export type ProfileSummary = {
   organization_name?: string | null;
   cohort?: string | null;
   tags: Tag[];
+  is_online: boolean;
+  last_seen_at?: string | null;
   connection_state: ConnectionState;
   connection_id?: string | null;
   is_following: boolean;

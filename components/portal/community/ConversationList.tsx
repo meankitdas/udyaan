@@ -9,6 +9,8 @@ type ConversationListProps = {
   conversations: Conversation[];
   activeId: string | null;
   loading: boolean;
+  /** Live presence by user id, from the community socket. */
+  online?: Record<string, boolean>;
   onSelect: (conversation: Conversation) => void;
 };
 
@@ -27,6 +29,7 @@ export default function ConversationList({
   conversations,
   activeId,
   loading,
+  online = {},
   onSelect,
 }: ConversationListProps) {
   const [query, setQuery] = useState("");
@@ -64,6 +67,8 @@ export default function ConversationList({
           {visible.map((conversation) => {
             const other = conversation.other;
             const unread = conversation.unread_count > 0;
+            // Socket value wins; the payload value is the page-load fallback.
+            const isOnline = other ? (online[other.id] ?? other.is_online) : false;
             return (
               <li key={conversation.id}>
                 <button
@@ -74,12 +79,17 @@ export default function ConversationList({
                   onClick={() => onSelect(conversation)}
                   aria-current={conversation.id === activeId ? "true" : undefined}
                 >
-                  <Avatar
-                    name={other?.full_name ?? "Member"}
-                    src={other?.avatar_url}
-                    size={42}
-                    role={other?.community_role}
-                  />
+                  <span className="community-presence-wrap">
+                    <Avatar
+                      name={other?.full_name ?? "Member"}
+                      src={other?.avatar_url}
+                      size={42}
+                      role={other?.community_role}
+                    />
+                    {isOnline && (
+                      <span className="community-presence-dot" title="Online" aria-label="Online" />
+                    )}
+                  </span>
                   <span className="community-msg-item-main">
                     <span className="community-msg-item-top">
                       <strong>{other?.full_name ?? "Member"}</strong>

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
 import { ArrowRight, BriefcaseBusiness, Info, UserPlus } from "lucide-react";
 import Avatar from "./Avatar";
 import ConnectionButton from "./ConnectionButton";
@@ -36,7 +35,7 @@ export default function CommunityHomeRight({ onOpenProfile, onSeeAll, onOpenProj
 
   return (
     <aside className="community-home-right" aria-label="Community recommendations">
-      <motion.section className="community-home-side-card community-home-suggestions" whileHover={{ y: -2 }}>
+      <section className="community-home-side-card community-home-suggestions">
         <header><h3>People to follow</h3><Info size={16} aria-label="Recommendations based on shared skills and network" /></header>
         {people.length ? (
           <ul>
@@ -47,7 +46,7 @@ export default function CommunityHomeRight({ onOpenProfile, onSeeAll, onOpenProj
                   ? `${person.mutual_connections} mutual connection${person.mutual_connections === 1 ? "" : "s"}`
                   : person.headline || person.organization_name || "Suggested for you";
               return (
-                <motion.li key={person.id} layout exit={{ opacity: 0, x: 18 }}>
+                <li key={person.id}>
                   <button type="button" className="community-home-suggestion-person" onClick={() => onOpenProfile?.(person.id)}>
                     <Avatar name={person.full_name} src={person.avatar_url} role={person.community_role} size={44} />
                     <span><strong>{person.full_name}</strong><small>{reason}</small></span>
@@ -62,7 +61,7 @@ export default function CommunityHomeRight({ onOpenProfile, onSeeAll, onOpenProj
                     }}
                     aria-label={`Dismiss ${person.full_name}`}
                   >×</button>
-                </motion.li>
+                </li>
               );
             })}
           </ul>
@@ -70,9 +69,9 @@ export default function CommunityHomeRight({ onOpenProfile, onSeeAll, onOpenProj
           <div className="community-home-rail-empty"><UserPlus size={18} aria-hidden /><span>Your recommendations will appear here.</span></div>
         )}
         <button type="button" className="community-home-view-all" onClick={onSeeAll}>View all recommendations <ArrowRight size={14} aria-hidden /></button>
-      </motion.section>
+      </section>
 
-      <motion.section className="community-home-side-card community-home-opportunities" whileHover={{ y: -2 }}>
+      <section className="community-home-side-card community-home-opportunities">
         <header><h3>Matched opportunities</h3><BriefcaseBusiness size={16} aria-hidden /></header>
         {matches?.projects?.length ? (
           <ul>
@@ -91,7 +90,7 @@ export default function CommunityHomeRight({ onOpenProfile, onSeeAll, onOpenProj
         ) : (
           <div className="community-home-rail-empty"><BriefcaseBusiness size={18} aria-hidden /><span>Add skills to your profile to reveal matched projects.</span></div>
         )}
-      </motion.section>
+      </section>
     </aside>
   );
 }

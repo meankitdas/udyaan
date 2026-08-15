@@ -6720,12 +6720,11 @@ button.community-chip:hover {
   border: 1px solid rgba(0, 0, 0, 0.05);
   border-radius: 14px;
   box-shadow: var(--shadow-sm);
-  transition: box-shadow 0.2s, transform 0.2s;
+  transition: box-shadow 0.2s;
 }
 
 .community-card:hover {
   box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
 }
 
 .community-card-skeleton {
@@ -8613,6 +8612,82 @@ button.community-chip:hover {
 @keyframes community-spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* ~~~~~ Presence and typing ~~~~~ */
+
+.community-presence-wrap {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.community-presence-dot {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #22c55e;
+  /* Reads as a badge on the avatar rather than a dot floating over it. */
+  border: 2px solid #fff;
+}
+
+.community-msg-status {
+  color: var(--text-light);
+  font-size: 0.78rem;
+}
+
+.community-typing {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 6px 14px;
+  color: var(--text-light);
+  font-size: 0.82rem;
+}
+
+.community-typing-dots {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.community-typing-dots span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: community-typing-bounce 1.2s ease-in-out infinite;
+}
+
+.community-typing-dots span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.community-typing-dots span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes community-typing-bounce {
+  0%,
+  60%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .community-typing-dots span {
+    animation: none;
+    opacity: 0.7;
   }
 }
 

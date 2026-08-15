@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { Bookmark, Eye, Link2, Network, Sparkles } from "lucide-react";
 import Avatar from "./Avatar";
 import type { ProfileDetail } from "@/lib/community-types";
@@ -22,11 +21,7 @@ export default function CommunityHomeLeft({
 
   return (
     <aside className="community-home-left" aria-label="Your community profile">
-      <motion.section
-        className="community-home-profile-card"
-        whileHover={{ y: -2 }}
-        transition={{ duration: 0.2 }}
-      >
+      <section className="community-home-profile-card">
         <div className="community-home-cover" aria-hidden>
           <span />
           <span />
@@ -69,16 +64,16 @@ export default function CommunityHomeLeft({
         <button type="button" className="community-home-saved" onClick={() => profile?.id && onOpenProfile?.(profile.id)}>
           <Bookmark size={15} aria-hidden /> My posts & achievements
         </button>
-      </motion.section>
+      </section>
 
       {profile?.tags?.length ? (
-        <motion.section className="community-home-side-card" whileHover={{ y: -2 }}>
+        <section className="community-home-side-card">
           <header><h3>My interests</h3><Link2 size={15} aria-hidden /></header>
           <div className="community-home-interest-list">
             {profile.tags.slice(0, 6).map((tag) => <span key={tag.id}>#{tag.label}</span>)}
           </div>
           <button type="button" onClick={onOpenDiscover}>Explore matching people</button>
-        </motion.section>
+        </section>
       ) : null}
     </aside>
   );

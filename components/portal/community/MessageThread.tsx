@@ -19,6 +19,10 @@ type MessageThreadProps = {
   onToggleMute: () => void;
   onOpenProfile?: (userId: string) => void;
   onTyping?: () => void;
+  onStopTyping?: () => void;
+  /** Live presence; falls back to the value on the conversation payload. */
+  isOnline?: boolean;
+  isPeerTyping?: boolean;
 };
 
 function parseUtc(iso?: string | null): Date | null {
@@ -33,6 +37,16 @@ function clockLabel(iso?: string | null): string {
   const date = parseUtc(iso);
   if (!date) return "";
   return date.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+}
+
+function lastSeenLabel(iso?: string | null): string {
+  const date = parseUtc(iso);
+  if (!date) return "Offline";
+  const mins = Math.max(0, Math.round((Date.now() - date.getTime()) / 60000));
+  if (mins < 1) return "Last seen just now";
+  if (mins < 60) return `Last seen ${mins}m ago`;
+  if (mins < 1440) return `Last seen ${Math.round(mins / 60)}h ago`;
+  return `Last seen ${date.toLocaleDateString(undefined, { month: "short", day: "numeric" })}`;
 }
 
 function dayLabel(date: Date): string {
@@ -60,6 +74,9 @@ export default function MessageThread({
   onToggleMute,
   onOpenProfile,
   onTyping,
+  onStopTyping,
+  isOnline,
+  isPeerTyping = false,
 }: MessageThreadProps) {
   const [loadingOlder, setLoadingOlder] = useState(false);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -74,6 +91,8 @@ export default function MessageThread({
   const previousHeight = useRef(0);
 
   const other = conversation.other;
+  // Socket value wins; the payload value is what we had at page load.
+  const online = isOnline ?? other?.is_online ?? false;
 
   useEffect(() => {
     let cancelled = false;
@@ -164,15 +183,26 @@ export default function MessageThread({
           className="community-msg-peer"
           onClick={() => other && onOpenProfile?.(other.id)}
         >
-          <Avatar
-            name={other?.full_name ?? "Member"}
-            src={other?.avatar_url}
-            size={38}
-            role={other?.community_role}
-          />
+          <span className="community-presence-wrap">
+            <Avatar
+              name={other?.full_name ?? "Member"}
+              src={other?.avatar_url}
+              size={38}
+              role={other?.community_role}
+            />
+            {online && (
+              <span className="community-presence-dot" aria-hidden />
+            )}
+          </span>
           <span>
             <strong>{other?.full_name ?? "Member"}</strong>
-            {other?.headline && <small>{other.headline}</small>}
+            <small className="community-msg-status">
+              {isPeerTyping
+                ? "Typing…"
+                : online
+                  ? "Online"
+                  : lastSeenLabel(other?.last_seen_at)}
+            </small>
           </span>
         </button>
 
@@ -296,7 +326,24 @@ export default function MessageThread({
 
       {error && <p className="community-inline-error community-msg-hint">{error}</p>}
 
-      <MessageComposer onSend={onSend} onTyping={onTyping} />
+      {isPeerTyping && (
+        <p className="community-typing" aria-live="polite">
+          <span className="community-typing-dots" aria-hidden>
+            <span />
+            <span />
+            <span />
+          </span>
+          {other?.full_name ?? "They"} is typing…
+        </p>
+      )}
+
+      <MessageComposer
+        onSend={async (body, attachment) => {
+          onStopTyping?.();
+          await onSend(body, attachment);
+        }}
+        onTyping={onTyping}
+      />
 
       {reporting && (
         <ReportDialog

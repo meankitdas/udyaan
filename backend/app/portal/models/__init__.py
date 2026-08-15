@@ -11,6 +11,7 @@ from .project_tool import ProjectTool
 from .project_impact import ProjectImpactEntry
 from .project_update import ProjectWeeklyUpdate
 from .maturity import MaturityAssessment
+from .notification import Notification, NotificationKind
 from .ai import AiDocument
 from .community import (
     CommunityTag,

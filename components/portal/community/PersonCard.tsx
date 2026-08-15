@@ -4,6 +4,7 @@ import { Building2, GraduationCap, Users, X } from "lucide-react";
 import Avatar from "./Avatar";
 import ConnectionButton from "./ConnectionButton";
 import TagChip from "./TagChip";
+import { roleLabel } from "@/lib/community-types";
 import type { ConnectionState, ProfileSummary } from "@/lib/community-types";
 
 type PersonCardProps = {
@@ -58,7 +59,7 @@ export default function PersonCard({
           <span
             className={`community-role-badge ${person.community_role}`}
           >
-            {person.community_role === "mentor" ? "Mentor" : "Student"}
+            {roleLabel(person.role_key, person.community_role)}
           </span>
           {person.headline && <p className="community-card-headline">{person.headline}</p>}
         </div>

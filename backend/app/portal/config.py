@@ -19,12 +19,23 @@ class Settings(BaseSettings):
 
     MAX_CONTENT_LENGTH: int = 16 * 1024 * 1024
 
-    # Mail Settings
-    MAIL_USERNAME: str = ""
-    MAIL_PASSWORD: str = ""
+    # Mail — Amazon SES. Credentials come from the App Runner instance role, so
+    # there is no username/password to rotate. MAIL_FROM must be a verified SES
+    # identity or every send is rejected.
     MAIL_FROM: str = "info@udyaan.org"
-    MAIL_PORT: int = 587
-    MAIL_SERVER: str = "smtp.zeptomail.in"
+    MAIL_FROM_NAME: str = "Udyaan Pvt Ltd"
+    MAIL_REPLY_TO: str = ""
+    # Defaults to AWS_REGION; set only when SES lives in a different region to
+    # the rest of the stack (SES is not available in every region).
+    SES_REGION: str = ""
+    # Optional: enables bounce/complaint/open tracking on the SES side.
+    SES_CONFIGURATION_SET: str = ""
+
+    # Encrypts message bodies and inbox previews at rest. Comma-separated
+    # Fernet keys, newest first; every key is tried on read, only the first is
+    # used to write, which is what makes rotation possible. Empty stores
+    # plaintext so a laptop with no secrets still runs.
+    MESSAGE_ENCRYPTION_KEYS: str = ""
 
     # Redis (Upstash) — OTP + short-lived state
     REDIS_URL: str = ""

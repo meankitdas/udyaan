@@ -10,6 +10,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.portal.core.deps import get_current_user
 from app.portal.crud import community as community_crud
+from app.portal.crud import notification as notification_crud
+from app.portal.models.notification import NotificationKind
 from app.portal.crud import community_embedding as embedding_crud
 from app.portal.crud import community_post as crud
 from app.portal.database import get_db
@@ -210,6 +212,22 @@ async def create_post(
     await db.commit()
     await db.refresh(post)
     output = await _single_output(db, post, current_user.id)
+
+    # Fan out to followers and connections for the digest. Bounded in the crud
+    # layer so one post from a well-connected member cannot flood the queue.
+    try:
+        audience = await community_crud.get_accepted_partner_ids(db, current_user.id)
+        followers = await community_crud.get_follower_ids(db, current_user.id)
+        await notification_crud.enqueue_many(
+            db,
+            user_ids=list(audience | set(followers)),
+            kind=NotificationKind.POST,
+            actor_id=current_user.id,
+            target_id=str(post.id),
+        )
+        await db.commit()
+    except Exception:
+        await db.rollback()
 
     # Queued after the response, so an embedding provider having a bad day never
     # delays a post. A failure here simply leaves the post ranked on tag overlap

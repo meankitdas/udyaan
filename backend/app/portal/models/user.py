@@ -23,6 +23,14 @@ class User(Base):
     cohort = Column(String(50), nullable=True)  # e.g. "2026" — used for cohort matching
     is_discoverable = Column(Boolean, server_default=text("TRUE"))
 
+    # Live presence lives in Redis; this is only the fallback shown once the
+    # presence key has expired ("last seen 2h ago").
+    last_seen_at = Column(TIMESTAMP, nullable=True)
+
+    # Opt-out for the notification digest. Unsubscribing must not require an
+    # account setting page, so the digest carries a signed one-click link.
+    email_digest_enabled = Column(Boolean, server_default=text("TRUE"))
+
     created_at = Column(TIMESTAMP, server_default=text("NOW()"))
     updated_at = Column(TIMESTAMP, server_default=text("NOW()"), onupdate=text("NOW()"))
     

@@ -5,6 +5,7 @@ import { MessagesSquare, WifiOff } from "lucide-react";
 import ConversationList from "./ConversationList";
 import MessageThread from "./MessageThread";
 import useChatSync from "./useChatSync";
+import useCommunitySocket from "./useCommunitySocket";
 import {
   listConversations,
   markConversationRead,
@@ -179,6 +180,31 @@ export default function MessagesView({
     onChange: handleSync,
   });
 
+  const handlePushed = useCallback(
+    (conversationId: string, message: unknown) => {
+      mergeMessages(conversationId, [message as DirectMessage]);
+      if (activeRef.current === conversationId) markRead(conversationId);
+      else poll();
+    },
+    [mergeMessages, markRead, poll],
+  );
+
+  const {
+    online,
+    typingUsers,
+    requestPresence,
+    setTyping,
+  } = useCommunitySocket({ conversationId: activeId, onMessage: handlePushed });
+
+  // Re-ask whenever the set of people in the inbox changes.
+  const peerIds = useMemo(
+    () => conversations.map((c) => c.other?.id).filter((id): id is string => Boolean(id)),
+    [conversations],
+  );
+  useEffect(() => {
+    requestPresence(peerIds);
+  }, [peerIds, requestPresence]);
+
   // --- sending -----------------------------------------------------------
   const send = useCallback(
     async (body: string, attachment: Attachment | null) => {
@@ -268,6 +294,7 @@ export default function MessagesView({
           conversations={conversations}
           activeId={activeId}
           loading={loading}
+          online={online}
           onSelect={(conversation) => setActiveId(conversation.id)}
         />
 
@@ -290,7 +317,13 @@ export default function MessagesView({
             onBack={() => setActiveId(null)}
             onToggleMute={toggleMute}
             onOpenProfile={onOpenProfile}
-            onTyping={noteActivity}
+            onTyping={() => {
+              noteActivity();
+              setTyping(true);
+            }}
+            onStopTyping={() => setTyping(false)}
+            isOnline={active.other ? online[active.other.id] : undefined}
+            isPeerTyping={Boolean(active.other && typingUsers[active.other.id])}
           />
         ) : (
           <div className="community-msg-placeholder">
