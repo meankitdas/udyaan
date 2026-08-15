@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Flag, Loader2, Send, Trash2 } from "lucide-react";
 import Avatar from "./Avatar";
 import ReportDialog from "./ReportDialog";
@@ -135,18 +135,35 @@ export default function CommentThread({
   const [error, setError] = useState<string | null>(null);
   const [reporting, setReporting] = useState<Comment | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const page = await listComments(postId);
-      setComments(page.items);
-      onCountChange(page.total);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not load comments.");
-    } finally {
-      setLoading(false);
-    }
-  }, [postId, onCountChange]);
+  // Held in a ref so callers can pass an inline arrow without retriggering the
+  // fetch effect on every render.
+  const onCountChangeRef = useRef(onCountChange);
+  useEffect(() => {
+    onCountChangeRef.current = onCountChange;
+  });
+
+  // Bumped per request so a slow response can't overwrite a newer one.
+  const requestRef = useRef(0);
+
+  const load = useCallback(
+    async (quiet = false) => {
+      const seq = ++requestRef.current;
+      if (!quiet) setLoading(true);
+      setError(null);
+      try {
+        const page = await listComments(postId);
+        if (seq !== requestRef.current) return;
+        setComments(page.items);
+        onCountChangeRef.current(page.total);
+      } catch (err) {
+        if (seq !== requestRef.current) return;
+        setError(err instanceof Error ? err.message : "Could not load comments.");
+      } finally {
+        if (seq === requestRef.current) setLoading(false);
+      }
+    },
+    [postId],
+  );
 
   useEffect(() => {
     load();
@@ -166,7 +183,7 @@ export default function CommentThread({
       setReplyTo(null);
       // Refetch rather than splice: a reply has to land in the right place in
       // the tree, and the server owns the flattening rule.
-      await load();
+      await load(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not post your comment.");
     } finally {
@@ -177,7 +194,7 @@ export default function CommentThread({
   const remove = async (comment: Comment) => {
     try {
       await deleteComment(comment.id);
-      await load();
+      await load(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not delete the comment.");
     }
@@ -187,9 +204,7 @@ export default function CommentThread({
     <div className="community-comments">
       {loading ? (
         <p className="community-muted">Loading comments…</p>
-      ) : comments.length === 0 ? (
-        <p className="community-muted">No comments yet. Start the conversation.</p>
-      ) : (
+      ) : comments.length > 0 ? (
         <ul className="community-comment-list">
           {comments.map((comment) => (
             <CommentRow
@@ -202,6 +217,8 @@ export default function CommentThread({
             />
           ))}
         </ul>
+      ) : error ? null : (
+        <p className="community-muted">No comments yet. Start the conversation.</p>
       )}
 
       <form className="community-comment-form" onSubmit={submit}>
