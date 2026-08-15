@@ -285,7 +285,13 @@ async def send_message(
                 {
                     "type": "message",
                     "conversation_id": str(conversation.id),
-                    "message": jsonable_encoder(output),
+                    # Rendered for the recipient, not the sender: is_mine and
+                    # can_delete are viewer-relative, so pushing the sender's
+                    # copy makes their message appear as the recipient's own
+                    # until the next sync corrects it.
+                    "message": jsonable_encoder(
+                        crud.build_message_output(message, other_id)
+                    ),
                 }
             ),
         )
