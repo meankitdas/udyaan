@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import Directory from "./Directory";
 import Feed from "./Feed";
+import { CommunitySocketProvider } from "./CommunitySocketContext";
 import SuggestionsView from "./SuggestionsView";
 import MessagesView from "./MessagesView";
 import ModerationPanel from "./ModerationPanel";
@@ -134,6 +135,7 @@ export default function CommunityNetwork({
   ];
 
   return (
+    <CommunitySocketProvider>
     <div className="community-shell">
       <nav className="community-nav" aria-label="Community sections">
         {navItems.map((item) => {
@@ -197,5 +199,6 @@ export default function CommunityNetwork({
         <ModerationPanel onOpenProfile={openProfile} />
       )}
     </div>
+    </CommunitySocketProvider>
   );
 }

@@ -5,7 +5,7 @@ import { MessagesSquare, WifiOff } from "lucide-react";
 import ConversationList from "./ConversationList";
 import MessageThread from "./MessageThread";
 import useChatSync from "./useChatSync";
-import useCommunitySocket from "./useCommunitySocket";
+import { useCommunitySocketContext } from "./CommunitySocketContext";
 import {
   listConversations,
   markConversationRead,
@@ -194,7 +194,21 @@ export default function MessagesView({
     typingUsers,
     requestPresence,
     setTyping,
-  } = useCommunitySocket({ conversationId: activeId, onMessage: handlePushed });
+    watchConversation,
+    setMessageHandler,
+  } = useCommunitySocketContext();
+
+  // Follow the open thread's typing channel, and stop on unmount so the socket
+  // is not left subscribed to a thread nobody is looking at.
+  useEffect(() => {
+    watchConversation(activeId);
+    return () => watchConversation(null);
+  }, [activeId, watchConversation]);
+
+  useEffect(() => {
+    setMessageHandler(handlePushed);
+    return () => setMessageHandler(null);
+  }, [handlePushed, setMessageHandler]);
 
   // Re-ask whenever the set of people in the inbox changes.
   const peerIds = useMemo(

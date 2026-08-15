@@ -20,6 +20,8 @@ const MAX_BACKOFF_MS = 30000;
 // Typing stops being shown if the sender goes quiet without a "stopped" frame,
 // which is what happens when they close the tab mid-sentence.
 const TYPING_TIMEOUT_MS = 6000;
+// One frame per keystroke is pure waste; the receiver's timeout is 6s.
+const TYPING_THROTTLE_MS = 2000;
 
 function socketUrl(): string {
   return `${API_BASE_URL.replace(/^http/, "ws")}/community/ws`;
@@ -59,7 +61,10 @@ export default function useCommunitySocket({
   const reconnect = useRef<ReturnType<typeof setTimeout> | null>(null);
   const typingTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const attempts = useRef(0);
-  const closing = useRef(false);
+  // Who we want presence for. Kept so the request can be replayed on connect:
+  // callers ask before the socket is open, and that first ask is dropped.
+  const watched = useRef<string[]>([]);
+  const lastTypingSentAt = useRef(0);
   // Held in refs so a changing callback identity never tears down the socket.
   const onMessageRef = useRef(onMessage);
   const conversationRef = useRef(conversationId);
@@ -77,7 +82,15 @@ export default function useCommunitySocket({
   useEffect(() => {
     if (!enabled) return;
 
+    // Scoped to this effect run rather than a ref: a ref is shared across
+    // mounts, so a remount resets it and the previous run's socket resurrects
+    // itself on reconnect. It then pushes frames into the unmounted instance's
+    // setters, which is silently discarded — the socket looks alive and nothing
+    // ever updates.
+    let cancelled = false;
+
     const connect = () => {
+      if (cancelled) return;
       const token = getToken();
       if (!token) return;
 
@@ -90,18 +103,31 @@ export default function useCommunitySocket({
       socket.current = ws;
 
       ws.onopen = () => {
+        if (cancelled) {
+          ws.close();
+          return;
+        }
         attempts.current = 0;
         setConnected(true);
         if (conversationRef.current) {
           send({ type: "watch", conversation_id: conversationRef.current });
         }
-        heartbeat.current = setInterval(
-          () => send({ type: "heartbeat" }),
-          HEARTBEAT_MS,
-        );
+        // Replay whatever was asked for while the socket was still connecting.
+        if (watched.current.length) {
+          send({ type: "presence", user_ids: watched.current });
+        }
+        heartbeat.current = setInterval(() => {
+          send({ type: "heartbeat" });
+          // Presence keys expire after 60s server-side and nothing pushes when
+          // someone goes offline, so refresh rather than trusting the last answer.
+          if (watched.current.length) {
+            send({ type: "presence", user_ids: watched.current });
+          }
+        }, HEARTBEAT_MS);
       };
 
       ws.onmessage = (event) => {
+        if (cancelled) return;
         let frame: Record<string, unknown>;
         try {
           frame = JSON.parse(event.data);
@@ -128,9 +154,9 @@ export default function useCommunitySocket({
       };
 
       const scheduleReconnect = () => {
-        setConnected(false);
         if (heartbeat.current) clearInterval(heartbeat.current);
-        if (closing.current) return;
+        if (cancelled) return;
+        setConnected(false);
         attempts.current += 1;
         const delay = Math.min(1000 * 2 ** (attempts.current - 1), MAX_BACKOFF_MS);
         reconnect.current = setTimeout(connect, delay);
@@ -140,11 +166,10 @@ export default function useCommunitySocket({
       ws.onerror = () => ws.close();
     };
 
-    closing.current = false;
     connect();
 
     return () => {
-      closing.current = true;
+      cancelled = true;
       if (heartbeat.current) clearInterval(heartbeat.current);
       if (reconnect.current) clearTimeout(reconnect.current);
       Object.values(typingTimers.current).forEach(clearTimeout);
@@ -162,6 +187,7 @@ export default function useCommunitySocket({
 
   const requestPresence = useCallback(
     (userIds: string[]) => {
+      watched.current = userIds;
       if (userIds.length) send({ type: "presence", user_ids: userIds });
     },
     [send],
@@ -169,13 +195,15 @@ export default function useCommunitySocket({
 
   const setTyping = useCallback(
     (isTyping: boolean) => {
-      if (conversationRef.current) {
-        send({
-          type: "typing",
-          conversation_id: conversationRef.current,
-          is_typing: isTyping,
-        });
-      }
+      if (!conversationRef.current) return;
+      const now = Date.now();
+      if (isTyping && now - lastTypingSentAt.current < TYPING_THROTTLE_MS) return;
+      lastTypingSentAt.current = isTyping ? now : 0;
+      send({
+        type: "typing",
+        conversation_id: conversationRef.current,
+        is_typing: isTyping,
+      });
     },
     [send],
   );

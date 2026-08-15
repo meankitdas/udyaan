@@ -17,10 +17,11 @@ from app.portal.core.redis import get_redis
 
 log = logging.getLogger(__name__)
 
-# Long enough to survive a missed heartbeat, short enough that a closed laptop
-# shows as offline quickly. Clients heartbeat at half this interval.
-PRESENCE_TTL_SECONDS = 60
-HEARTBEAT_SECONDS = PRESENCE_TTL_SECONDS // 2
+# Browsers throttle setInterval in background tabs to roughly once a minute, so
+# a TTL close to the heartbeat interval makes a backgrounded user flicker
+# offline. Keep a wide margin over the client's 25s heartbeat.
+PRESENCE_TTL_SECONDS = 150
+HEARTBEAT_SECONDS = 25
 
 _PRESENCE_KEY = "presence:{user_id}"
 _TYPING_CHANNEL = "community:typing:{conversation_id}"

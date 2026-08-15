@@ -95,12 +95,27 @@ async def community_socket(websocket: WebSocket) -> None:
     subscribed_conversation: Optional[str] = None
 
     async def pump_redis() -> None:
-        """Forward Redis pub/sub messages to this socket."""
-        async for item in pubsub.listen():
-            if item.get("type") != "message":
+        """Forward Redis pub/sub messages to this socket.
+
+        Polls with ``get_message`` rather than iterating ``listen()``: the
+        receive loop subscribes and unsubscribes on this same PubSub object as
+        the user opens threads, and redis-py's async generator does not tolerate
+        another task mutating its subscriptions mid-iteration.
+        """
+        while True:
+            item = await pubsub.get_message(
+                ignore_subscribe_messages=True, timeout=1.0
+            )
+            if item is None:
                 continue
+
             channel = item.get("channel") or ""
             data = item.get("data") or ""
+            if isinstance(channel, bytes):
+                channel = channel.decode()
+            if isinstance(data, bytes):
+                data = data.decode()
+
             if channel.startswith("community:typing:"):
                 conversation_id = channel.rsplit(":", 1)[-1]
                 sender, _, flag = data.partition(":")
@@ -120,7 +135,17 @@ async def community_socket(websocket: WebSocket) -> None:
                 except json.JSONDecodeError:
                     continue
 
-    pump = asyncio.create_task(pump_redis())
+    async def run_pump() -> None:
+        # Without this the task dies silently and the socket looks connected
+        # while never delivering anything.
+        try:
+            await pump_redis()
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            log.exception("presence pump failed for %s", user_id)
+
+    pump = asyncio.create_task(run_pump())
 
     try:
         while True:
