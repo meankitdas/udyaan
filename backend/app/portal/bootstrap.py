@@ -27,6 +27,9 @@ async def ensure_owner(db: AsyncSession) -> str | None:
     email = (settings.OWNER_EMAIL or "").strip().lower()
     password = settings.OWNER_PASSWORD or ""
     if not email or not password:
+        log.warning(
+            "Owner bootstrap skipped: OWNER_EMAIL and OWNER_PASSWORD are not both set"
+        )
         return None
 
     role = (await db.execute(select(Role).where(Role.role_key == OWNER))).scalars().first()
@@ -40,13 +43,28 @@ async def ensure_owner(db: AsyncSession) -> str | None:
         )
     ).scalars().first()
     if existing_owner:
+        # Warn only on a real mismatch: uvicorn drops INFO, so this is the line
+        # that has to explain why a changed OWNER_EMAIL/OWNER_PASSWORD did nothing.
+        if (existing_owner.email or "").lower() != email:
+            log.warning(
+                "Owner bootstrap skipped: owner %s already exists, so configured "
+                "OWNER_EMAIL=%s was not applied",
+                existing_owner.email,
+                email,
+            )
+        else:
+            log.info("Owner already exists (%s); leaving it untouched", existing_owner.email)
         return existing_owner.id
 
     user = (await db.execute(select(User).where(User.email == email))).scalars().first()
     if user:
         # Account already exists under another role: promote it rather than
-        # failing on the unique email constraint.
+        # failing on the unique email constraint. The password is set here too,
+        # because OWNER_PASSWORD is what the operator expects to log in with;
+        # the early return above means this runs at most once per account.
         await db.execute(UserRole.__table__.delete().where(UserRole.user_id == user.id))
+        user.password_hash = get_password_hash(password)
+        action = "promoted"
     else:
         user = User(
             id=generate_user_id(OWNER),
@@ -56,6 +74,7 @@ async def ensure_owner(db: AsyncSession) -> str | None:
         )
         db.add(user)
         await db.flush()
+        action = "created"
 
     user.is_active = True
     user.is_email_verified = True
@@ -63,7 +82,7 @@ async def ensure_owner(db: AsyncSession) -> str | None:
     db.add(UserRole(user_id=user.id, role_id=role.id))
     await db.commit()
 
-    log.info("Owner account provisioned: %s", email)
+    log.info("Owner account %s: %s (%s)", action, email, user.id)
     return user.id
 
 
