@@ -1,7 +1,13 @@
 import type { Metadata } from "next";
 import { InfoPage } from "@/components/InfoPage";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = { title: "Terms and Conditions" };
+export const metadata: Metadata = pageMetadata({
+  title: "Terms and Conditions",
+  description:
+    "The terms governing use of the Udyaan platform, operated by Jain Group of Institutions — covering acceptance, accounts, acceptable use, and intellectual property.",
+  path: "/terms",
+});
 
 export default function TermsPage() {
   return (

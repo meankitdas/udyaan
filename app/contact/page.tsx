@@ -1,8 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeftIcon, ArrowUpRightIcon } from "@/components/Icons";
+import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = { title: "Contact Us" };
+export const metadata: Metadata = pageMetadata({
+  title: "Contact Us",
+  description:
+    "Get in touch with the Udyaan team at JAIN (Deemed-to-be University) about the farmland internship program, partnerships, or applying. Email support@udyaan.org — we typically reply within 1–2 business days.",
+  path: "/contact",
+});
 
 export default function ContactPage() {
   return (
@@ -30,6 +36,12 @@ export default function ContactPage() {
 
         <p className="contact-footnote">JAIN GROUP / UDYAAN / 2026</p>
       </div>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbJsonLd([{ name: "Contact", path: "/contact" }])),
+        }}
+      />
     </main>
   );
 }

@@ -1,7 +1,13 @@
 import type { Metadata } from "next";
 import { InfoPage } from "@/components/InfoPage";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = { title: "Privacy Policy" };
+export const metadata: Metadata = pageMetadata({
+  title: "Privacy Policy",
+  description:
+    "How Jain Group of Institutions collects, uses, discloses, and safeguards your information on the Udyaan platform, including your rights over your data.",
+  path: "/privacy",
+});
 
 export default function PrivacyPage() {
   return (

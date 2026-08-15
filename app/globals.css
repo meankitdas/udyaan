@@ -901,6 +901,39 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .intern-value-band span { color: #566444; font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 .program-note { grid-column: 1 / -1; margin: -68px 0 0; color: #718078; font-size: 10px; text-align: right; }
 
+.faq-section { padding: 132px clamp(24px, 7vw, 112px); color: var(--pine-dark); background: var(--seed); }
+.faq-heading { max-width: 720px; }
+.faq-heading h2 { margin: 0; font-size: 64px; line-height: 1; font-weight: 650; }
+.faq-heading h2 em { color: var(--clay); font-style: normal; font-weight: 400; }
+.faq-heading > p:last-child { margin: 24px 0 0; color: #5f6d63; font-size: 16px; line-height: 1.7; }
+.faq-heading a { color: var(--pine); text-underline-offset: 3px; }
+.faq-list { margin-top: 64px; border-top: 1px solid rgba(23, 63, 44, .22); }
+.faq-item { border-bottom: 1px solid rgba(23, 63, 44, .22); }
+.faq-item summary {
+  padding: 30px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  cursor: pointer;
+  list-style: none;
+}
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary h3 { margin: 0; font-size: 24px; line-height: 1.25; font-weight: 600; }
+.faq-marker { position: relative; flex: 0 0 auto; width: 18px; height: 18px; }
+.faq-marker::before,
+.faq-marker::after {
+  content: "";
+  position: absolute;
+  inset: 50% 0 auto 0;
+  height: 1.5px;
+  background: var(--pine);
+  transition: transform .25s ease;
+}
+.faq-marker::after { transform: rotate(90deg); }
+.faq-item[open] .faq-marker::after { transform: rotate(0deg); }
+.faq-item > p { margin: 0; padding: 0 88px 34px 0; color: #5d6b61; font-size: 16px; line-height: 1.75; }
+
 .final-cta h2 { font-size: 52px; }
 
 @media (max-width: 1100px) {
@@ -911,6 +944,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .projects-heading h2,
   .selection-heading h2,
   .journey-heading h2 { font-size: 62px; }
+  .faq-heading h2 { font-size: 54px; }
   .project-card h3 { font-size: 40px; }
   .integration-copy h2 { font-size: 58px; }
   .lab-stage { height: clamp(480px, 56vh, 600px); }
@@ -947,6 +981,8 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .intern-value-band div:nth-child(2) { border-right: 0; }
   .intern-value-band div:nth-child(-n+2) { border-bottom: 1px solid rgba(23, 63, 44, .2); }
   .program-note { margin-top: -42px; }
+  .faq-item > p { padding-right: 0; }
+  .faq-item summary h3 { font-size: 20px; }
 }
 
 @media (max-width: 720px) {

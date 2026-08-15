@@ -4,6 +4,7 @@ import { Header } from "@/components/Brand";
 import { Footer } from "@/components/Footer";
 import { HeroVideo } from "@/components/HeroVideo";
 import { ArrowDownIcon, ArrowRightIcon } from "@/components/Icons";
+import { FAQS, homepageJsonLd } from "@/lib/seo";
 
 const modelPillars = [
   {
@@ -339,6 +340,28 @@ export default function Home() {
           <p className="program-note">*Subject to project eligibility and current program terms.</p>
         </section>
 
+        <section className="faq-section" id="faq" aria-labelledby="faq-title">
+          <div className="faq-heading">
+            <p className="kicker">Questions, answered</p>
+            <h2 id="faq-title">What people ask <em>before applying.</em></h2>
+            <p>
+              Everything below reflects how the program actually runs. If your question
+              is not here, <Link href="/contact">ask us directly</Link>.
+            </p>
+          </div>
+          <div className="faq-list">
+            {FAQS.map((faq) => (
+              <details className="faq-item" key={faq.question}>
+                <summary>
+                  <h3>{faq.question}</h3>
+                  <span className="faq-marker" aria-hidden="true" />
+                </summary>
+                <p>{faq.answer}</p>
+              </details>
+            ))}
+          </div>
+        </section>
+
         <section className="final-cta">
           <div className="cta-copy">
             <p className="kicker light">Applications are open</p>
@@ -353,6 +376,10 @@ export default function Home() {
         </section>
       </main>
       <Footer />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(homepageJsonLd()) }}
+      />
     </div>
   );
 }

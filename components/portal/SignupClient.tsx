@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Leaf } from "lucide-react";
 import { API_BASE_URL, friendlyError } from "@/lib/portal-api";
+import { trackConversion } from "@/components/Analytics";
 
 type Org = { id: string; name: string };
 
@@ -48,6 +49,7 @@ export default function SignupClient() {
         throw new Error(data.detail || "Signup failed");
       }
 
+      trackConversion("sign_up", { label: process.env.NEXT_PUBLIC_ADS_SIGNUP_LABEL });
       router.push(`/verify-otp?email=${encodeURIComponent(formData.email)}`);
     } catch (err) {
       setError(friendlyError(err));
