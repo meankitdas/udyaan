@@ -13,9 +13,12 @@ on:
 env:
   AWS_REGION: ap-south-1
   ECR_REPOSITORY: udyaan-api
-  SERVICE_ARN: arn:aws:apprunner:ap-south-1:209483892786:service/udyaan-api/dc648f8028ae4128a569f17244d56c77
+  ECS_CLUSTER: udyaan
+  ECS_SERVICE: udyaan-api
+  TASK_FAMILY: udyaan-api
+  API_URL: https://api.udyaan.org
 
-# Two deploys racing would leave App Runner on whichever image finished last
+# Two deploys racing would leave the service on whichever image finished last
 # rather than the newest commit.
 concurrency:
   group: deploy-backend
@@ -56,46 +59,42 @@ jobs:
           docker push "$REGISTRY/$ECR_REPOSITORY:latest"
           echo "uri=$URI" >> "$GITHUB_OUTPUT"
 
-      - name: Deploy to App Runner
+      - name: Deploy to ECS
         env:
           IMAGE: ${{ steps.image.outputs.uri }}
         run: |
           set -euo pipefail
-          # Only the image identifier is sent. Environment variables and secret
-          # bindings are deliberately left alone: update-service replaces any
-          # configuration block it is given, so listing them here would make an
-          # omission silently unset them.
-          aws apprunner update-service \
-            --service-arn "$SERVICE_ARN" \
-            --region "$AWS_REGION" \
-            --source-configuration "ImageRepository={ImageIdentifier=$IMAGE,ImageRepositoryType=ECR}" \
-            >/dev/null
+          # Re-register the existing task definition with only the image swapped,
+          # so environment and secret bindings are carried over untouched rather
+          # than re-declared here and silently drifting.
+          aws ecs describe-task-definition --task-definition "$TASK_FAMILY" \
+            --region "$AWS_REGION" --query taskDefinition > /tmp/td.json
+          python3 - <<'PY'
+          import json, os
+          td = json.load(open('/tmp/td.json'))
+          for key in ('taskDefinitionArn','revision','status','requiresAttributes',
+                      'compatibilities','registeredAt','registeredBy','deregisteredAt'):
+              td.pop(key, None)
+          td['containerDefinitions'][0]['image'] = os.environ['IMAGE']
+          json.dump(td, open('/tmp/td-new.json','w'))
+          PY
+          REVISION="$(aws ecs register-task-definition --cli-input-json file:///tmp/td-new.json \
+            --region "$AWS_REGION" --query 'taskDefinition.taskDefinitionArn' --output text)"
+          echo "registered $REVISION"
+          aws ecs update-service --cluster "$ECS_CLUSTER" --service "$ECS_SERVICE" \
+            --task-definition "$REVISION" --region "$AWS_REGION" >/dev/null
 
       - name: Wait for the new revision to serve
         run: |
           set -euo pipefail
-          for _ in $(seq 1 60); do
-            status="$(aws apprunner describe-service --service-arn "$SERVICE_ARN" \
-              --region "$AWS_REGION" --query 'Service.Status' --output text)"
-            echo "status: $status"
-            case "$status" in
-              RUNNING) exit 0 ;;
-              CREATE_FAILED|DELETE_FAILED) exit 1 ;;
-            esac
-            sleep 15
-          done
-          echo "Timed out waiting for App Runner to reach RUNNING." >&2
-          exit 1
+          aws ecs wait services-stable --cluster "$ECS_CLUSTER" --services "$ECS_SERVICE" \
+            --region "$AWS_REGION"
 
       - name: Verify health
         run: |
           set -euo pipefail
-          URL="https://$(aws apprunner describe-service --service-arn "$SERVICE_ARN" \
-            --region "$AWS_REGION" --query 'Service.ServiceUrl' --output text)"
-          # App Runner reports RUNNING before the new revision necessarily
-          # serves, so this is retried rather than checked once.
           for _ in $(seq 1 10); do
-            if body="$(curl -fsS --max-time 20 "$URL/health")"; then
+            if body="$(curl -fsS --max-time 20 "$API_URL/health")"; then
               echo "$body"
               echo "$body" | grep -q '"status":"ok"' && exit 0
             fi
