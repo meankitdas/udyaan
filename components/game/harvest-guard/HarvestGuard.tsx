@@ -793,7 +793,14 @@ export default function HarvestGuard() {
 
         <div className={styles.controls}>
           {stage === "running" ? (
-            <button type="button" className={styles.controlButton} onClick={launchWeather}>
+            <button
+              type="button"
+              className={styles.controlButton}
+              onClick={() => {
+                sfx.click();
+                retry(false);
+              }}
+            >
               <RotateCcw />
               <span>Reset field</span>
             </button>
