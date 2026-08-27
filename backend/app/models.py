@@ -71,12 +71,29 @@ class Evaluation(BaseModel):
     model: str = ""
 
 
+class ResponseFile(BaseModel):
+    """A file a candidate attached to one question (currently the CV).
+
+    The answer value keeps the filename so the text stays readable to the
+    screening prompt and the answer list; this carries the pointer to the bytes.
+    """
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    name: str
+    size: int = 0
+    content_type: str = Field(default="", alias="contentType")
+    object_key: str = Field(default="", alias="objectKey")
+    uploaded_at: str = Field(default="", alias="uploadedAt")
+
+
 class SurveyResponse(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     id: str
     form_id: str = Field(alias="formId")
     answers: dict[str, Union[str, list[str]]]
+    files: dict[str, ResponseFile] = {}
     timings: list[QuestionTiming] = []
     started_at: str = Field(alias="startedAt")
     submitted_at: str = Field(alias="submittedAt")
@@ -89,6 +106,35 @@ class SurveyResponse(BaseModel):
 class LoginRequest(BaseModel):
     email: str
     password: str
+
+
+class UploadRequest(BaseModel):
+    """A candidate asking for somewhere to put a CV, before the form is submitted."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    filename: str
+    content_type: str = Field(alias="contentType")
+    size: Optional[int] = None
+
+
+class UploadTicket(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    upload_url: str = Field(alias="uploadUrl")
+    fields: dict[str, str] = {}
+    object_key: str = Field(alias="objectKey")
+    file_name: str = Field(alias="fileName")
+    content_type: str = Field(alias="contentType")
+    max_bytes: int = Field(alias="maxBytes")
+
+
+class DownloadTicket(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    url: str
+    file_name: str = Field(alias="fileName")
+    expires_in: int = Field(alias="expiresIn")
 
 
 class TokenResponse(BaseModel):

@@ -1,8 +1,15 @@
 services:
   # Local portal database. Isolated from any deployed instance on purpose:
   # the API runs create_all on boot, so dev must never point at production.
+  #
+  # pgvector build rather than stock postgres: RDS has the `vector` extension,
+  # and without it locally the community ranking silently degrades to tag
+  # overlap (`community_ranking: tags-only` in /health). That leaves the
+  # embedding branch of the suggestion query — a different SQL path, not just a
+  # different score — never exercised in development. Same major version as
+  # postgres:16-alpine, so an existing data volume keeps working.
   db:
-    image: postgres:16-alpine
+    image: pgvector/pgvector:pg16
     environment:
       POSTGRES_USER: udyaan
       POSTGRES_PASSWORD: udyaan_local_dev
@@ -38,6 +45,13 @@ services:
     environment:
       # Overrides the .env value so the local stack never talks to Upstash.
       REDIS_URL: redis://redis:6379/0
+      # S3 credentials come from the host session (`aws login`), not from .env:
+      # `aws login` issues temporary credentials that expire, so writing them to
+      # a file would leave a stale copy behind. In production these are unset and
+      # botocore falls back to the App Runner instance role.
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN:-}
     depends_on:
       db:
         condition: service_healthy

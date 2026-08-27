@@ -3,16 +3,19 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import gsap from "gsap";
-import type { AnswerValue, Question } from "@/lib/survey";
+import type { AnswerValue, Question, ResponseFile } from "@/lib/survey";
+import { uploadCandidateFile } from "@/lib/api";
 import { CheckIcon, UploadIcon } from "./icons";
 
 type FieldProps = {
   question: Question;
   value: AnswerValue | undefined;
   onChange: (value: AnswerValue) => void;
+  file?: ResponseFile;
+  onFileChange?: (file: ResponseFile | null) => void;
 };
 
-export function QuestionField({ question, value, onChange }: FieldProps) {
+export function QuestionField({ question, value, onChange, file, onFileChange }: FieldProps) {
   switch (question.type) {
     case "select":
       return <SelectField question={question} value={value} onChange={onChange} />;
@@ -83,20 +86,7 @@ export function QuestionField({ question, value, onChange }: FieldProps) {
       );
 
     case "file":
-      return (
-        <label className="sv-file">
-          <input
-            type="file"
-            accept=".pdf,.doc,.docx"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              onChange(f ? f.name : "");
-            }}
-          />
-          <UploadIcon />
-          <span>{typeof value === "string" && value ? value : "Add File"}</span>
-        </label>
-      );
+      return <FileField question={question} value={value} onChange={onChange} file={file} onFileChange={onFileChange} />;
 
     case "email":
       return (
@@ -139,6 +129,102 @@ export function isAnswered(question: Question, value: AnswerValue | undefined): 
   if (Array.isArray(value)) return value.length > 0;
   if (question.type === "email") return /.+@.+\..+/.test(value);
   return value.trim().length > 0;
+}
+
+const MAX_FILE_BYTES = 10 * 1024 * 1024;
+const ACCEPTED_EXTENSIONS = ["pdf", "doc", "docx"];
+
+/**
+ * Uploads the file as soon as it is picked, rather than at submit time.
+ *
+ * Doing it here means the candidate sees a failure while they can still act on
+ * it; deferring to submit would make a rejected CV block a survey they have
+ * already finished. The answer value stays the filename so the CV still reads
+ * as an answer everywhere else, and the storage reference travels separately.
+ *
+ * Whether the bytes were stored is read from `file`, never inferred from the
+ * filename: a failed upload deliberately keeps the filename in the answer, and
+ * each screen is unmounted when the candidate navigates away, so local state
+ * would come back claiming success for a CV that was never stored.
+ */
+function FileField({ question, value, onChange, file, onFileChange }: FieldProps) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+  const name = typeof value === "string" ? value : "";
+  const uploaded = Boolean(file);
+  // A filename with nothing stored behind it means the upload did not land.
+  const missing = !busy && !uploaded && name.length > 0;
+
+  async function pick(selected: File | undefined) {
+    if (!selected) return;
+    const extension = selected.name.split(".").pop()?.toLowerCase() ?? "";
+    if (!ACCEPTED_EXTENSIONS.includes(extension)) {
+      onFileChange?.(null);
+      onChange(selected.name);
+      setError("Upload a PDF or Word document.");
+      return;
+    }
+    if (selected.size > MAX_FILE_BYTES) {
+      onFileChange?.(null);
+      onChange(selected.name);
+      setError(`That file is ${(selected.size / 1024 / 1024).toFixed(1)}MB. The limit is 10MB.`);
+      return;
+    }
+
+    setBusy(true);
+    setError("");
+    onChange(selected.name);
+    try {
+      const stored = await uploadCandidateFile(selected);
+      onChange(stored.name);
+      onFileChange?.(stored);
+    } catch (err) {
+      // Keep the filename in the answer: the submission still records that a CV
+      // was offered, and the reviewer can ask for it. Losing the answer as well
+      // would hide the attempt entirely.
+      onFileChange?.(null);
+      setError(err instanceof Error ? err.message : "Upload failed.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function clear() {
+    onChange("");
+    onFileChange?.(null);
+    setError("");
+    if (inputRef.current) inputRef.current.value = "";
+  }
+
+  return (
+    <div className="sv-file-wrap">
+      <label className={`sv-file${missing ? " sv-file-error" : ""}${uploaded ? " sv-file-done" : ""}`}>
+        <input
+          ref={inputRef}
+          type="file"
+          accept=".pdf,.doc,.docx"
+          disabled={busy}
+          onChange={(e) => pick(e.target.files?.[0])}
+        />
+        <UploadIcon />
+        <span>{busy ? `Uploading ${name}\u2026` : name || "Add File"}</span>
+      </label>
+      {uploaded && (
+        <p className="sv-file-note">
+          Uploaded {"\u2713"}
+          <button type="button" onClick={clear}>Remove</button>
+        </p>
+      )}
+      {missing && (
+        <p className="sv-file-note sv-file-note-error">
+          {error || "Not uploaded \u2014 choose the file again to retry."}
+          <button type="button" onClick={clear}>Clear</button>
+        </p>
+      )}
+      {!busy && !uploaded && !missing && <p className="sv-file-note">PDF or Word, up to 10MB.</p>}
+    </div>
+  );
 }
 
 function ChevronIcon() {

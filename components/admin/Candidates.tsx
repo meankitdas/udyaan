@@ -2,10 +2,18 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import type { Evaluation, SurveyForm, SurveyResponse } from "@/lib/survey";
+import type { Evaluation, Question, ResponseFile, SurveyForm, SurveyResponse } from "@/lib/survey";
 import { formatDuration } from "@/lib/survey";
-import { calibrateResponses, evaluateResponse, fetchEngineStatus, listResponses } from "@/lib/api";
+import {
+  calibrateResponses,
+  deleteResponse,
+  evaluateResponse,
+  fetchCandidateFileUrl,
+  fetchEngineStatus,
+  listResponses,
+} from "@/lib/api";
 import type { EngineStatus } from "@/lib/api";
+import { exportCandidatesToExcel } from "@/lib/export";
 
 type VerdictFilter = "all" | Evaluation["verdict"] | "unscreened";
 
@@ -34,6 +42,10 @@ export function Candidates({ form }: { form: SurveyForm }) {
   const [bulkRunning, setBulkRunning] = useState(false);
   const [bulkProgress, setBulkProgress] = useState({ done: 0, total: 0 });
   const [engine, setEngine] = useState<EngineStatus | null>(null);
+  const [exporting, setExporting] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState<string | null>(null);
 
   useEffect(() => {
     fetchEngineStatus().then(setEngine);
@@ -87,10 +99,53 @@ export function Candidates({ form }: { form: SurveyForm }) {
     }
   }
 
+  async function remove(response: SurveyResponse) {
+    setDeletingId(response.id);
+    try {
+      await deleteResponse(response.id);
+      setResponses((all) => all.filter((r) => r.id !== response.id));
+      setOpenId((id) => (id === response.id ? null : id));
+      setConfirmDeleteId(null);
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : "Could not delete this candidate");
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
+  /**
+   * Opens the CV in a new tab. The link is minted per click and expires, so it
+   * cannot be stored in the markup — which is why this is a button, not an href.
+   */
+  async function download(response: SurveyResponse, questionId: string) {
+    const key = `${response.id}:${questionId}`;
+    setDownloading(key);
+    try {
+      const url = await fetchCandidateFileUrl(response.id, questionId);
+      window.open(url, "_blank", "noopener");
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : "Could not fetch the file");
+    } finally {
+      setDownloading(null);
+    }
+  }
+
+  async function exportToExcel() {
+    setExporting(true);
+    try {
+      // Exports what the admin is currently looking at, so a filtered view
+      // ("shortlist only") exports that shortlist rather than the whole cohort.
+      await exportCandidatesToExcel(form, filtered);
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : "Export failed");
+    } finally {
+      setExporting(false);
+    }
+  }
+
   const pendingCount = responses.filter(
     (response) => !response.evaluation || Object.keys(response.evaluation.criteria ?? {}).length === 0,
   ).length;
-
   const filtered = useMemo(() => {
     let list = responses;
     if (filter === "unscreened") list = list.filter((r) => !r.evaluation);
@@ -132,6 +187,19 @@ export function Candidates({ form }: { form: SurveyForm }) {
             Engine: {engine ? `${engine.screening} \u00b7 ${engine.storage}` : "\u2026"}
           </span>
           <motion.button
+            className="sv-btn cd-export"
+            onClick={exportToExcel}
+            disabled={exporting || filtered.length === 0}
+            whileTap={{ scale: 0.97 }}
+            title={
+              filter === "all"
+                ? "Download every candidate as an Excel workbook"
+                : `Download the ${filtered.length} candidate(s) in this filter as an Excel workbook`
+            }
+          >
+            {exporting ? "Building sheet\u2026" : `Export Excel (${filtered.length})`}
+          </motion.button>
+          <motion.button
             className="sv-btn sv-btn-primary cd-screen-all"
             onClick={screenAll}
             disabled={bulkRunning || responses.length === 0}
@@ -163,6 +231,7 @@ export function Candidates({ form }: { form: SurveyForm }) {
               const campus = str(r.answers["campus"]);
               const isOpen = openId === r.id;
               const busy = screening.has(r.id);
+              const cvEntry = firstFile(r);
               return (
                 <motion.li
                   key={r.id}
@@ -172,26 +241,65 @@ export function Candidates({ form }: { form: SurveyForm }) {
                   exit={{ opacity: 0 }}
                   className="cd-card"
                 >
-                  <button className="cd-card-head" onClick={() => setOpenId(isOpen ? null : r.id)}>
-                    <div className="cd-id">
-                      <strong>{name}</strong>
-                      <span>{[email, dept, campus].filter(Boolean).join(" \u00b7 ")}</span>
-                    </div>
-                    <div className="cd-meta">
-                      {typeof r.score === "number" && r.maxScore ? (
-                        <span className="cd-chip">Quiz {r.score}/{r.maxScore}</span>
-                      ) : null}
-                      <span className="cd-chip">{formatDuration(r.totalMs)}</span>
-                      {r.evaluation ? (
-                        <span className={`cd-verdict cd-verdict-${r.evaluation.verdict}`}>
-                          {VERDICT_LABEL[r.evaluation.verdict]} {"\u00b7"} {r.evaluation.score}
+                  <div className="cd-card-top">
+                    <button className="cd-card-head" onClick={() => setOpenId(isOpen ? null : r.id)}>
+                      <div className="cd-id">
+                        <strong>{name}</strong>
+                        <span>{[email, dept, campus].filter(Boolean).join(" \u00b7 ")}</span>
+                      </div>
+                      <div className="cd-meta">
+                        {typeof r.score === "number" && r.maxScore ? (
+                          <span className="cd-chip">Quiz {r.score}/{r.maxScore}</span>
+                        ) : null}
+                        <span className="cd-chip">{formatDuration(r.totalMs)}</span>
+                        {r.evaluation ? (
+                          <span className={`cd-verdict cd-verdict-${r.evaluation.verdict}`}>
+                            {VERDICT_LABEL[r.evaluation.verdict]} {"\u00b7"} {r.evaluation.score}
+                          </span>
+                        ) : (
+                          <span className="cd-chip cd-chip-muted">Unscreened</span>
+                        )}
+                        <span className="cd-caret" aria-hidden>{isOpen ? "\u25b4" : "\u25be"}</span>
+                      </div>
+                    </button>
+
+                    <div className="cd-card-actions">
+                      {cvEntry && (
+                        <button
+                          className="cd-action cd-action-cv"
+                          onClick={() => download(r, cvEntry[0])}
+                          disabled={downloading === `${r.id}:${cvEntry[0]}`}
+                          title={`Download ${cvEntry[1].name}`}
+                        >
+                          <DownloadIcon />
+                          {downloading === `${r.id}:${cvEntry[0]}` ? "Opening\u2026" : "CV"}
+                        </button>
+                      )}
+                      {confirmDeleteId === r.id ? (
+                        <span className="cd-confirm">
+                          <button
+                            className="cd-action cd-action-danger"
+                            onClick={() => remove(r)}
+                            disabled={deletingId === r.id}
+                          >
+                            {deletingId === r.id ? "Deleting\u2026" : "Confirm"}
+                          </button>
+                          <button className="cd-action" onClick={() => setConfirmDeleteId(null)}>
+                            Cancel
+                          </button>
                         </span>
                       ) : (
-                        <span className="cd-chip cd-chip-muted">Unscreened</span>
+                        <button
+                          className="cd-action cd-action-delete"
+                          onClick={() => setConfirmDeleteId(r.id)}
+                          title={`Delete ${name}`}
+                          aria-label={`Delete ${name}`}
+                        >
+                          <TrashIcon />
+                        </button>
                       )}
-                      <span className="cd-caret" aria-hidden>{isOpen ? "\u25b4" : "\u25be"}</span>
                     </div>
-                  </button>
+                  </div>
 
                   <AnimatePresence initial={false}>
                     {isOpen && (
@@ -213,6 +321,18 @@ export function Candidates({ form }: { form: SurveyForm }) {
                                   const v = r.answers[q.id];
                                   const correct = q.correctOption != null && v === q.correctOption;
                                   const wrong = q.correctOption != null && v != null && v !== q.correctOption;
+                                  if (q.type === "file") {
+                                    return (
+                                      <FileAnswerRow
+                                        key={q.id}
+                                        question={q}
+                                        fileName={str(v)}
+                                        stored={r.files?.[q.id]}
+                                        busy={downloading === `${r.id}:${q.id}`}
+                                        onDownload={() => download(r, q.id)}
+                                      />
+                                    );
+                                  }
                                   return (
                                     <div key={q.id} className="cd-answer-row">
                                       <p className="cd-q">{q.label}</p>
@@ -304,4 +424,80 @@ export function Candidates({ form }: { form: SurveyForm }) {
 function str(v: string | string[] | undefined): string {
   if (v == null) return "";
   return Array.isArray(v) ? v.join(", ") : v;
+}
+
+/** The first stored attachment, as a [questionId, file] pair, or null. */
+function firstFile(response: SurveyResponse): [string, ResponseFile] | null {
+  const entries = Object.entries(response.files ?? {});
+  return entries.length ? entries[0] : null;
+}
+
+function formatBytes(bytes: number): string {
+  if (!bytes) return "";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+}
+
+/**
+ * A file answer needs its own row: the value is just a filename, which used to
+ * leave the reviewer with nothing to open. When the bytes were stored this
+ * offers the download; when they were not, it says so rather than pretending the
+ * filename is the document.
+ */
+function FileAnswerRow({
+  question,
+  fileName,
+  stored,
+  busy,
+  onDownload,
+}: {
+  question: Question;
+  fileName: string;
+  stored?: ResponseFile;
+  busy: boolean;
+  onDownload: () => void;
+}) {
+  return (
+    <div className="cd-answer-row">
+      <p className="cd-q">{question.label}</p>
+      {stored ? (
+        <p className="cd-a cd-a-file">
+          <button className="cd-file-btn" onClick={onDownload} disabled={busy}>
+            <DownloadIcon />
+            {busy ? "Opening\u2026" : stored.name}
+          </button>
+          {stored.size > 0 && <span className="cd-timing"> {formatBytes(stored.size)}</span>}
+        </p>
+      ) : fileName ? (
+        <p className="cd-a cd-a-file">
+          {fileName}
+          <span className="cd-timing"> {"\u2014"} not stored; submitted before uploads were enabled</span>
+        </p>
+      ) : (
+        <p className="cd-a">{"\u2014"}</p>
+      )}
+    </div>
+  );
+}
+
+function DownloadIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M12 3v12" />
+      <path d="m7 11 5 5 5-5" />
+      <path d="M5 20h14" />
+    </svg>
+  );
+}
+
+function TrashIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M4 7h16" />
+      <path d="M10 4h4" />
+      <path d="M6 7v13h12V7" />
+      <path d="M10 11v6M14 11v6" />
+    </svg>
+  );
 }

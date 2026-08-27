@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import gsap from "gsap";
-import type { AnswerValue, Question, QuestionTiming, SurveyForm, SurveyResponse } from "@/lib/survey";
+import type { AnswerValue, Question, QuestionTiming, ResponseFile, SurveyForm, SurveyResponse } from "@/lib/survey";
 import { computeQuizScore, formatDuration, uid } from "@/lib/survey";
 import { fetchForm, submitResponse } from "@/lib/api";
 import { SurveySidebar } from "./Sidebar";
@@ -38,6 +38,7 @@ type TimingDraft = Record<string, { activeMs: number; visits: number; changes: n
 
 type SurveyDraft = {
   answers: Record<string, AnswerValue>;
+  files: Record<string, ResponseFile>;
   screenIndex: number;
   maxVisitedSection: number;
   timings: TimingDraft;
@@ -81,6 +82,9 @@ export function SurveyApp() {
   const [screenIndex, setScreenIndex] = useState(0);
   const [direction, setDirection] = useState(1);
   const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
+  // Uploaded files live outside `answers` because the answer value is the
+  // filename the rest of the app reads; this is the pointer to the stored bytes.
+  const [files, setFiles] = useState<Record<string, ResponseFile>>({});
   const [maxVisitedSection, setMaxVisitedSection] = useState(0);
   const [showErrors, setShowErrors] = useState(false);
   const [phase, setPhase] = useState<"loading" | "form" | "submitting" | "done">("loading");
@@ -122,6 +126,7 @@ export function SurveyApp() {
       const draft = loadDraft(f.id);
       if (draft) {
         setAnswers(draft.answers ?? {});
+        setFiles(draft.files ?? {});
         setMaxVisitedSection(draft.maxVisitedSection ?? 0);
         timingsRef.current = draft.timings ?? {};
         startedAtRef.current = draft.startedAt ?? new Date().toISOString();
@@ -152,12 +157,13 @@ export function SurveyApp() {
     if (phase !== "form" || !form) return;
     saveDraft(form.id, {
       answers,
+      files,
       screenIndex,
       maxVisitedSection,
       timings: timingsRef.current,
       startedAt: startedAtRef.current,
     });
-  }, [answers, screenIndex, maxVisitedSection, phase, form]);
+  }, [answers, files, screenIndex, maxVisitedSection, phase, form]);
 
   const commitScreenTime = useCallback(() => {
     if (!screen) return;
@@ -183,6 +189,16 @@ export function SurveyApp() {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
     const t = (timingsRef.current[questionId] ??= { activeMs: 0, visits: 0, changes: 0 });
     t.changes += 1;
+  }, []);
+
+  const setFile = useCallback((questionId: string, file: ResponseFile | null) => {
+    setFiles((prev) => {
+      if (!file) {
+        const { [questionId]: _removed, ...rest } = prev;
+        return rest;
+      }
+      return { ...prev, [questionId]: file };
+    });
   }, []);
 
   const screenValid = screen ? screen.questions.every((q) => isAnswered(q, answers[q.id])) : false;
@@ -250,6 +266,7 @@ export function SurveyApp() {
       id: uid("resp"),
       formId: form.id,
       answers,
+      files,
       timings,
       startedAt: startedAtRef.current,
       submittedAt,
@@ -264,7 +281,7 @@ export function SurveyApp() {
       setResult(response);
       setPhase("done");
     }
-  }, [form, answers, commitScreenTime]);
+  }, [form, answers, files, commitScreenTime]);
 
   useEffect(() => {
     if (phase !== "done" || !doneRef.current) return;
@@ -432,7 +449,13 @@ export function SurveyApp() {
                           <img src={q.image} alt="" loading="lazy" />
                         </div>
                       )}
-                      <QuestionField question={q} value={answers[q.id]} onChange={(v) => setAnswer(q.id, v)} />
+                      <QuestionField
+                        question={q}
+                        value={answers[q.id]}
+                        onChange={(v) => setAnswer(q.id, v)}
+                        file={files[q.id]}
+                        onFileChange={(file) => setFile(q.id, file)}
+                      />
                       {showErrors && !isAnswered(q, answers[q.id]) && (
                         <motion.p
                           className="sv-error"

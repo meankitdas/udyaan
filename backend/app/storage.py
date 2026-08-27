@@ -62,6 +62,9 @@ class Storage(ABC):
     @abstractmethod
     def update_responses(self, responses: list[SurveyResponse]) -> list[SurveyResponse]: ...
 
+    @abstractmethod
+    def delete_response(self, response_id: str) -> bool: ...
+
 
 class PostgresStorage(Storage):
     """Persists forms and responses in Postgres, alongside the portal schema.
@@ -206,6 +209,15 @@ class PostgresStorage(Storage):
                 )
         return responses
 
+    def delete_response(self, response_id: str) -> bool:
+        from sqlalchemy import text
+
+        with self._engine.begin() as conn:
+            result = conn.execute(
+                text(f"DELETE FROM {RESPONSES_TABLE} WHERE id = :id"), {"id": response_id}
+            )
+        return bool(result.rowcount)
+
 
 class LocalStorage(Storage):
     """JSON-file storage for local development and demos."""
@@ -275,6 +287,15 @@ class LocalStorage(Storage):
                 by_id[response.id] = response.model_dump(by_alias=True)
             self._write(self._responses_path, list(by_id.values()))
         return responses
+
+    def delete_response(self, response_id: str) -> bool:
+        with self._lock:
+            rows = self._read(self._responses_path)
+            remaining = [r for r in rows if r.get("id") != response_id]
+            if len(remaining) == len(rows):
+                return False
+            self._write(self._responses_path, remaining)
+        return True
 
 
 _storage: Optional[Storage] = None

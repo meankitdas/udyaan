@@ -1,6 +1,6 @@
 "use client";
 
-import type { Evaluation, SurveyForm, SurveyResponse } from "./survey";
+import type { Evaluation, ResponseFile, SurveyForm, SurveyResponse } from "./survey";
 import { computeQuizScore } from "./survey";
 import { DEFAULT_FORM, withCanonicalReflect } from "./default-form";
 
@@ -26,9 +26,39 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       }
       throw new Error("Your admin session has expired. Please sign in again.");
     }
-    throw new Error(`API ${res.status}: ${detail || res.statusText}`);
+    throw new ApiError(res.status, describe(detail) || res.statusText);
   }
+  // A 204 (used by DELETE) has no body to parse.
+  if (res.status === 204) return undefined as T;
   return res.json() as Promise<T>;
+}
+
+export class ApiError extends Error {
+  constructor(readonly status: number, message: string) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
+/**
+ * FastAPI wraps every error in `{"detail": ...}`. Surfacing the raw body puts
+ * JSON in front of the user, so unwrap it and fall back to the raw text when the
+ * body is not the shape we expect.
+ */
+function describe(body: string): string {
+  if (!body) return "";
+  try {
+    const parsed = JSON.parse(body) as { detail?: unknown };
+    const detail = parsed.detail;
+    if (typeof detail === "string") return detail;
+    if (Array.isArray(detail)) {
+      const first = detail[0] as { msg?: string } | undefined;
+      if (first?.msg) return first.msg;
+    }
+  } catch {
+    /* not JSON — use the raw text */
+  }
+  return body;
 }
 
 function authHeaders(): Record<string, string> {
@@ -141,6 +171,123 @@ export async function listResponses(): Promise<SurveyResponse[]> {
     }
   }
   return readLocal<SurveyResponse[]>(RESPONSES_KEY, []);
+}
+
+export async function deleteResponse(responseId: string): Promise<void> {
+  if (hasBackend) {
+    try {
+      await request<void>(`/responses/${responseId}`, {
+        method: "DELETE",
+        headers: authHeaders(),
+      });
+    } catch (err) {
+      // A candidate that is already gone from the server is still a success
+      // from the admin's point of view; anything else is a real failure.
+      if (!(err instanceof ApiError) || err.status !== 404) throw err;
+    }
+  }
+  // Mirror the removal locally so the demo/offline cache cannot resurrect a
+  // candidate the admin has already deleted.
+  const all = readLocal<SurveyResponse[]>(RESPONSES_KEY, []);
+  writeLocal(RESPONSES_KEY, all.filter((r) => r.id !== responseId));
+}
+
+// ---------- Candidate file uploads ----------
+
+export type UploadTicket = {
+  uploadUrl: string;
+  fields: Record<string, string>;
+  objectKey: string;
+  fileName: string;
+  contentType: string;
+  maxBytes: number;
+};
+
+const CONTENT_TYPE_BY_EXTENSION: Record<string, string> = {
+  pdf: "application/pdf",
+  doc: "application/msword",
+  docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+};
+
+/**
+ * Browsers disagree on the MIME type of .doc/.docx (and give an empty string
+ * often enough), but the backend signs the declared type into the upload policy,
+ * so a wrong guess makes the upload fail at S3. The extension is the more
+ * reliable signal here.
+ */
+function resolveContentType(file: File): string {
+  const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
+  return CONTENT_TYPE_BY_EXTENSION[extension] ?? file.type ?? "";
+}
+
+/**
+ * Upload a candidate file straight to object storage and return the reference
+ * that gets stored on the response.
+ *
+ * The bytes never pass through the API: it only mints a presigned POST that
+ * pins the key, the content type and the size limit.
+ */
+export async function uploadCandidateFile(file: File): Promise<ResponseFile> {
+  if (!hasBackend) {
+    throw new Error("File uploads need the Udyaan API. Your other answers still save normally.");
+  }
+  const contentType = resolveContentType(file);
+  let ticket: UploadTicket;
+  try {
+    ticket = await request<UploadTicket>("/uploads/cv", {
+      method: "POST",
+      body: JSON.stringify({ filename: file.name, contentType, size: file.size }),
+    });
+  } catch (err) {
+    // A deployment without a bucket is not the candidate's problem, and the CV
+    // is optional, so say what actually happens rather than showing a 503.
+    if (err instanceof ApiError && err.status === 503) {
+      throw new Error("File uploads are unavailable right now. Your other answers still save.");
+    }
+    throw err;
+  }
+
+  const body = new FormData();
+  for (const [key, value] of Object.entries(ticket.fields)) body.append(key, value);
+  // The file must be appended last: S3 ignores anything after it in the form.
+  body.append("file", file);
+
+  const res = await fetch(ticket.uploadUrl, { method: "POST", body });
+  if (!res.ok) {
+    throw new Error("Upload failed. Check your connection and try again.");
+  }
+  return {
+    name: ticket.fileName,
+    size: file.size,
+    contentType: ticket.contentType,
+    objectKey: ticket.objectKey,
+    uploadedAt: new Date().toISOString(),
+  };
+}
+
+export async function uploadsEnabled(): Promise<boolean> {
+  if (!hasBackend) return false;
+  try {
+    const status = await request<{ enabled: boolean }>("/uploads/status");
+    return status.enabled;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Mint a short-lived download link for a candidate's uploaded file.
+ * Minted per click rather than stored, so the objects stay private.
+ */
+export async function fetchCandidateFileUrl(responseId: string, questionId: string): Promise<string> {
+  if (!hasBackend) {
+    throw new Error("Downloads need the Udyaan API.");
+  }
+  const ticket = await request<{ url: string; fileName: string; expiresIn: number }>(
+    `/responses/${responseId}/files/${questionId}`,
+    { headers: authHeaders() },
+  );
+  return ticket.url;
 }
 
 // ---------- Screening ----------

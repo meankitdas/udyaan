@@ -43,6 +43,20 @@ export type SurveyForm = {
 
 export type AnswerValue = string | string[];
 
+/**
+ * A file a candidate attached to one question (currently the CV).
+ *
+ * The answer value keeps the filename so the text stays readable in the answer
+ * list and the screening prompt; this carries the pointer to the stored bytes.
+ */
+export type ResponseFile = {
+  name: string;
+  size: number;
+  contentType: string;
+  objectKey: string;
+  uploadedAt: string;
+};
+
 export type QuestionTiming = {
   questionId: string;
   activeMs: number;
@@ -54,6 +68,7 @@ export type SurveyResponse = {
   id: string;
   formId: string;
   answers: Record<string, AnswerValue>;
+  files?: Record<string, ResponseFile>;
   timings: QuestionTiming[];
   startedAt: string;
   submittedAt: string;

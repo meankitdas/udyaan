@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 
 from .config import get_settings
 from .rag.embeddings import get_vector_store
-from .routers import auth, forms, responses, screening
+from .routers import auth, forms, responses, screening, uploads
 
 settings = get_settings()
 
@@ -53,6 +53,7 @@ app.include_router(auth.router)
 app.include_router(forms.router)
 app.include_router(responses.router)
 app.include_router(screening.router)
+app.include_router(uploads.router)
 
 # ---- Portal (role-based platform: orgs, projects, reports) merged from backend_dev ----
 # Mounted under /portal so its /auth/* routes never collide with the survey admin auth.
@@ -155,9 +156,23 @@ def healthz() -> dict:
         "status": "ok",
         "storage": "postgres" if settings.use_postgres else "local",
         "screening": "azure-openai-rag" if settings.use_azure_openai else "heuristic",
+        "uploads": _uploads_mode(),
         "portal": "enabled" if _PORTAL_ENABLED else "disabled",
         "community_ranking": _community_ranking_mode(),
     }
+
+
+def _uploads_mode() -> str:
+    """Report CV upload state, distinguishing "off" from "refused".
+
+    A misconfigured bucket has to be separable from an unconfigured one: both
+    leave uploads unavailable, but one is a deployment that never wanted them and
+    the other is a deployment one env var away from publishing personal data.
+    The bucket name is deliberately not included -- /health is unauthenticated.
+    """
+    if settings.cv_bucket_conflict:
+        return "misconfigured"
+    return "s3" if settings.use_s3_uploads else "disabled"
 
 
 def _community_ranking_mode() -> str:
