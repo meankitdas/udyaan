@@ -52,7 +52,7 @@ jobs:
         run: |
           set -euo pipefail
           URI="$REGISTRY/$ECR_REPOSITORY:$TAG"
-          # App Runner runs on x86; a build from an arm machine would otherwise
+          # The service runs on x86; a build from an arm machine would otherwise
           # produce an image the service cannot start.
           docker build --platform linux/amd64 -t "$URI" -t "$REGISTRY/$ECR_REPOSITORY:latest" .
           docker push "$URI"

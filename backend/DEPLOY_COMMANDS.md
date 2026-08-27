@@ -1,51 +1,83 @@
 # Deploy runbook — AWS
 
-The backend runs on **App Runner** in `ap-south-1` (account `209483892786`),
-from an image in **ECR**, against **RDS Postgres**, with configuration in
-**SSM Parameter Store** under `/udyaan/*`.
+The backend runs on **ECS Fargate** in `ap-south-1` (account `209483892786`),
+behind an ALB at `api.udyaan.org`, from an image in **ECR**, against **RDS
+Postgres**, with configuration in **SSM Parameter Store** under `/udyaan/*`.
 
 ```bash
 export AWS_PROFILE=new-profile-name
 export AWS_REGION=ap-south-1
-export SERVICE_ARN="$(aws apprunner list-services --region "$AWS_REGION" \
-  --query "ServiceSummaryList[?ServiceName=='udyaan-api'].ServiceArn | [0]" --output text)"
-export API_URL="https://$(aws apprunner describe-service --service-arn "$SERVICE_ARN" \
-  --region "$AWS_REGION" --query 'Service.ServiceUrl' --output text)"
+export ECS_CLUSTER=udyaan
+export ECS_SERVICE=udyaan-api
+export API_URL=https://api.udyaan.org
 ```
+
+If `aws login` returns a 400 "Bad Request / outdated link" page, check the
+region: the sign-in has to happen in the account's own region, so a profile
+left on `us-east-1` fails before the browser flow starts.
 
 ## Deploy
 
 Normally you do not. Pushing to `main` with changes under `backend/` runs
 `.github/workflows/deploy-backend.yml`, which assumes `udyaan-github-deploy`
-via GitHub OIDC, builds, pushes to ECR, and updates the service.
+via GitHub OIDC, builds, pushes to ECR, registers a task definition revision
+with the new image, and rolls the service.
 
 To ship from a laptop (uncommitted debug builds, or CI outage):
 
 ```bash
-./deploy/deploy-apprunner.sh
+./deploy/deploy-ecs.sh
 ```
 
-Note the `--platform linux/amd64` in that script. App Runner is x86 only; an
+Note the `--platform linux/amd64` in that script. The service runs on x86; an
 image built natively on an arm Mac pushes without complaint and then fails to
 start.
+
+Both paths re-register the *existing* task definition with only the image
+swapped. Environment variables and secret bindings are therefore never declared
+in the pipeline — change them on the task definition (or in SSM) instead, or
+they will be dropped from the running task.
 
 ## Status and logs
 
 ```bash
-aws apprunner describe-service --service-arn "$SERVICE_ARN" --region "$AWS_REGION" \
-  --query '{status:Service.Status,image:Service.SourceConfiguration.ImageRepository.ImageIdentifier,updated:Service.UpdatedAt}'
+aws ecs describe-services --cluster "$ECS_CLUSTER" --services "$ECS_SERVICE" \
+  --region "$AWS_REGION" \
+  --query 'services[0].{taskDef:taskDefinition,desired:desiredCount,running:runningCount}'
 
-aws apprunner list-operations --service-arn "$SERVICE_ARN" --region "$AWS_REGION" \
-  --max-results 5 --query 'OperationSummaryList[].{type:Type,status:Status,started:StartedAt}'
+aws ecs describe-services --cluster "$ECS_CLUSTER" --services "$ECS_SERVICE" \
+  --region "$AWS_REGION" \
+  --query 'services[0].deployments[].{status:status,taskDef:taskDefinition,running:runningCount,rollout:rolloutState}'
 
 # Application stdout/stderr (uvicorn access logs live here).
-aws logs tail "/aws/apprunner/udyaan-api/${SERVICE_ARN##*/}/application" \
-  --region "$AWS_REGION" --since 30m --follow
+aws logs tail /ecs/udyaan-api --region "$AWS_REGION" --since 30m --follow
 
-# Deployment/health-check machinery, when a rollout fails before the app logs.
-aws logs tail "/aws/apprunner/udyaan-api/${SERVICE_ARN##*/}/service" \
-  --region "$AWS_REGION" --since 30m
+# Why a task died before the app logged anything (image pull, secret binding).
+aws ecs describe-tasks --cluster "$ECS_CLUSTER" --region "$AWS_REGION" \
+  --tasks "$(aws ecs list-tasks --cluster "$ECS_CLUSTER" --service-name "$ECS_SERVICE" \
+    --desired-status STOPPED --region "$AWS_REGION" --query 'taskArns[0]' --output text)" \
+  --query 'tasks[].{stopped:stoppedReason,containers:containers[].reason}'
 ```
+
+## Buckets
+
+Two, and they must not be conflated:
+
+| Bucket | Contents | Access |
+| ------ | -------- | ------ |
+| `udyaan-assets` (`S3_BUCKET`) | logos, community attachments | **public read** |
+| `udyaan-candidate-cvs` (`SURVEY_CV_BUCKET`) | candidate CVs under `survey-cv/` | private, SSE-S3, 365-day expiry |
+
+`SURVEY_CV_BUCKET` is required for CV uploads and has no fallback: unset means
+uploads stay disabled, and setting it equal to `S3_BUCKET` is refused, because a
+bucket that serves community attachments over public URLs would make every CV
+world-readable. `/health` reports `uploads` as `s3`, `disabled`, or
+`misconfigured` so the state is checkable after a deploy.
+
+The task role `udyaan-api-task` grants `s3:PutObject/GetObject/DeleteObject` on
+`udyaan-candidate-cvs/survey-cv/*`. Presigned URLs inherit the signer's
+permissions, so removing that statement makes every upload 403 at S3 rather
+than failing in the API.
 
 ## Smoke checks
 
@@ -59,13 +91,15 @@ curl -i -X OPTIONS "$API_URL/portal/auth/login" \
   -H "Access-Control-Request-Method: POST"
 ```
 
-App Runner services are public by default — there is no per-service IAM
-invoker binding to add, unlike Cloud Run.
+The ALB listener is public — there is no per-service IAM invoker binding to
+add, unlike Cloud Run.
 
 ## Configuration and secrets
 
-Every runtime value is an SSM SecureString under `/udyaan/`, bound to the
-service as a secret environment variable.
+Every *secret* runtime value is an SSM SecureString under `/udyaan/`, bound to
+the task definition as a secret environment variable. Non-secret settings
+(bucket names, CORS origins, deployment names) are plain `environment` entries
+on the task definition instead.
 
 ```bash
 aws ssm get-parameters-by-path --path /udyaan --region "$AWS_REGION" \
@@ -75,19 +109,30 @@ aws ssm get-parameter --name /udyaan/DATABASE_URL --with-decryption \
   --region "$AWS_REGION" --query Parameter.Value --output text
 ```
 
-Rotating a value is just a new version — App Runner reads the parameter at
-instance start, so it takes effect on the next deployment:
+Rotating a value is just a new version — the task reads the parameter at
+container start, so it takes effect on the next deployment:
 
 ```bash
 aws ssm put-parameter --name /udyaan/SOME_KEY --type SecureString \
   --value "$NEW" --overwrite --region "$AWS_REGION"
-aws apprunner start-deployment --service-arn "$SERVICE_ARN" --region "$AWS_REGION"
+aws ecs update-service --cluster "$ECS_CLUSTER" --service "$ECS_SERVICE" \
+  --force-new-deployment --region "$AWS_REGION"
 ```
 
-Adding a *new* variable additionally needs it listed in the service's
-`RuntimeEnvironmentSecrets`. Send the **whole** map when you do:
-`update-service` replaces each configuration block it receives, so omitting an
-existing key unsets it.
+Adding a *new* variable means registering a task definition revision that
+includes it, since the deploy pipeline only swaps the image and carries the
+rest forward. Edit the live definition rather than writing one from scratch,
+so nothing is dropped:
+
+```bash
+aws ecs describe-task-definition --task-definition "$ECS_SERVICE" \
+  --region "$AWS_REGION" --query taskDefinition > /tmp/td.json
+# ...add to .containerDefinitions[0].environment (or .secrets), strip the
+# read-only keys (taskDefinitionArn, revision, status, requiresAttributes,
+# compatibilities, registeredAt, registeredBy), then:
+aws ecs register-task-definition --cli-input-json file:///tmp/td.json \
+  --region "$AWS_REGION" --query 'taskDefinition.taskDefinitionArn' --output text
+```
 
 ## Community embeddings
 
@@ -99,8 +144,8 @@ cannot be read from config:
 curl -fsS "$API_URL/health"   # -> "community_ranking":"embeddings" | "tags-only"
 ```
 
-Embedding writes are best-effort `BackgroundTasks`, and App Runner throttles
-CPU once a response is sent, so some are lost. An **EventBridge** rule
+Embedding writes are best-effort `BackgroundTasks`, and the container can be
+replaced mid-flight during a rollout, so some are lost. An **EventBridge** rule
 (`udyaan-embedding-backfill`, hourly) reconciles them by invoking the
 `udyaan-backfill` API destination. The destination's connection holds the
 service token as an `X-Internal-Token` API key; the service reads the same

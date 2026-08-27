@@ -10,10 +10,11 @@ per-question timing analytics as first-class evidence.
 Next.js frontend (/survey, /admin)
         │  NEXT_PUBLIC_UDYAAN_API
         ▼
-FastAPI on AWS App Runner (this service, Dockerized)
+FastAPI on AWS ECS Fargate (this service, Dockerized, behind an ALB)
  ├── RDS Postgres (AWS)      — forms + responses (JSONB), portal + community data
  ├── SSM Parameter Store     — API keys, JWT secret, admin password
- ├── S3 (AWS)                — community post attachments
+ ├── S3 udyaan-assets        — community post attachments (public read)
+ ├── S3 udyaan-candidate-cvs — candidate CVs (private, signed URLs only)
  └── Azure OpenAI            — chat deployment (verdicts) + embeddings (RAG retrieval)
 ```
 
@@ -57,18 +58,18 @@ cp .env.example .env
 docker compose up --build
 ```
 
-## Deploy to AWS App Runner
+## Deploy to AWS ECS
 
 Pushes to `main` that touch `backend/` deploy automatically via
 `.github/workflows/deploy-backend.yml`, which authenticates to AWS with GitHub
-OIDC (no stored access keys), builds the image, pushes it to ECR, and rolls
-App Runner forward.
+OIDC (no stored access keys), builds the image, pushes it to ECR, registers a
+task definition revision with the new image, and rolls the service.
 
 To deploy by hand:
 
 ```bash
 cd backend
-AWS_PROFILE=... AWS_REGION=ap-south-1 ./deploy/deploy-apprunner.sh
+AWS_PROFILE=... AWS_REGION=ap-south-1 ./deploy/deploy-ecs.sh
 ```
 
 Runtime configuration lives in SSM Parameter Store under `/udyaan/*` and is
@@ -172,4 +173,4 @@ docker compose up -d
 
 `aws login` issues temporary credentials, so they expire; re-run the `eval` and
 `docker compose up -d api` when uploads start returning 403. In production the
-variables are unset and botocore uses the App Runner instance role.
+variables are unset and botocore uses the ECS task role (`udyaan-api-task`).
