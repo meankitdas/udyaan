@@ -160,6 +160,20 @@ def _string_answer(response: SurveyResponse, question_id: str) -> str:
     return value if isinstance(value, str) else " ".join(value)
 
 
+def _selected_options(response: SurveyResponse, question_id: str) -> list[str]:
+    """The options a candidate picked, as a list, whatever the answer shape.
+
+    The reflection questions are multi-select, so an answer is normally a list.
+    Responses collected while the form briefly rendered them as free text hold a
+    single prose string instead; that string matches no option and scores the
+    default, which is the same treatment it got before.
+    """
+    value = response.answers.get(question_id, "")
+    if isinstance(value, str):
+        return [value] if value else []
+    return [item for item in value if item]
+
+
 def _section_accuracy(form: SurveyForm, response: SurveyResponse, section_id: str) -> float:
     section = next((item for item in form.sections if item.id == section_id), None)
     if section is None:
@@ -171,10 +185,18 @@ def _section_accuracy(form: SurveyForm, response: SurveyResponse, section_id: st
     return correct / len(scored)
 
 
-def _choice_points(value: str, points: dict[str, float], default: float = 0.0) -> float:
-    if not value:
+def _multi_choice_points(
+    selected: list[str], points: dict[str, float], default: float = 0.0
+) -> float:
+    """Average the weight of every option a candidate selected.
+
+    Averaged rather than summed because these questions are multi-select and the
+    options are alternative stances, not a checklist: summing would rank someone
+    who ticked all four above someone who committed to the strongest one.
+    """
+    if not selected:
         return 0.0
-    return points.get(value, default)
+    return sum(points.get(option, default) for option in selected) / len(selected)
 
 
 def assessment_parameters(
@@ -189,14 +211,18 @@ def assessment_parameters(
     level2_accuracy = _section_accuracy(form, response, "level2")
     level3_accuracy = _section_accuracy(form, response, "level3")
 
-    resource_answer = _string_answer(response, "reflect_resource")
-    resource_points = _choice_points(
-        resource_answer,
+    # Weights follow the "Recommended" notes in
+    # udyaan-onboarding-questions-3.md. The options are alternative stances
+    # rather than right and wrong answers, so the spread is deliberately narrow:
+    # it separates candidates without turning an honest answer into a penalty.
+    resource_points = _multi_choice_points(
+        _selected_options(response, "reflect_resource"),
         {
-            "Working with scarcity": 4.5,
-            "Substituting what was available": 5.0,
-            "Leveraging people, not just materials": 5.5,
-            "Constraint leading to a better outcome": 6.0,
+            # "the most common gap in first-time founders" is not talking to users
+            "Talk to the people who'd use it first": 6.0,
+            "Use my own direct experience as the first signal": 5.5,
+            "Build the smallest possible version and test it": 5.0,
+            "Look for existing evidence first": 4.5,
         },
         default=4.0,
     )
@@ -207,27 +233,28 @@ def assessment_parameters(
 
     interest = _string_answer(response, "reflect_interest")
     decision = _string_answer(response, "reflect_decision")
-    improve = _string_answer(response, "reflect_improve")
     learning = (4 if interest else 0) + (5 if decision else 0)
-    learning += _choice_points(
-        improve,
+    learning += _multi_choice_points(
+        _selected_options(response, "reflect_improve"),
         {
-            "Better preparation": 3.0,
-            "Slower, clearer problem framing": 5.0,
-            "More self-questioning": 5.0,
-            "Better use of available resources": 5.0,
+            # Stopping deliberately is rated with persistence, not below it:
+            # "knowing when to stop is as important a solopreneur skill".
+            "I paused, reconsidered, and came back differently": 5.0,
+            "I let it end, and that was the right call": 5.0,
+            "I adjusted the approach and kept going": 4.5,
+            "I'm still in it, unresolved": 4.0,
         },
         default=3.0,
     )
 
-    idea = _string_answer(response, "reflect_idea")
-    initiative = (4 if interest else 0) + _choice_points(
-        idea,
+    initiative = (4 if interest else 0) + _multi_choice_points(
+        _selected_options(response, "reflect_idea"),
         {
-            "A clear idea": 6.0,
-            "A direction, not a finished idea": 5.0,
-            "An early, unvalidated idea": 4.0,
-            "Honest, without an idea yet": 3.0,
+            # Concreteness counts for more than ambition at six months.
+            "A tested idea with early signal": 6.0,
+            "A working prototype, even if rough": 5.5,
+            "Evidence I was wrong, and a better direction because of it": 5.0,
+            "Clarity on the problem, even without a product yet": 4.5,
         },
         default=3.0,
     )

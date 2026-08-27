@@ -400,23 +400,31 @@ function heuristicEvaluation(form: SurveyForm, response: SurveyResponse): Evalua
     const scored = form.sections.find((section) => section.id === id)?.questions.filter((q) => q.correctOption) ?? [];
     return scored.length ? scored.filter((q) => response.answers[q.id] === q.correctOption).length / scored.length : 0;
   };
+  // Mirrors the backend weights in app/rag/evaluator.py; keep the two in step.
   const resourcePoints: Record<string, number> = {
-    "Working with scarcity": 4.5,
-    "Substituting what was available": 5,
-    "Leveraging people, not just materials": 5.5,
-    "Constraint leading to a better outcome": 6,
+    "Talk to the people who'd use it first": 6,
+    "Use my own direct experience as the first signal": 5.5,
+    "Build the smallest possible version and test it": 5,
+    "Look for existing evidence first": 4.5,
   };
   const improvePoints: Record<string, number> = {
-    "Better preparation": 3,
-    "Slower, clearer problem framing": 5,
-    "More self-questioning": 5,
-    "Better use of available resources": 5,
+    "I paused, reconsidered, and came back differently": 5,
+    "I let it end, and that was the right call": 5,
+    "I adjusted the approach and kept going": 4.5,
+    "I'm still in it, unresolved": 4,
   };
   const ideaPoints: Record<string, number> = {
-    "A clear idea": 6,
-    "A direction, not a finished idea": 5,
-    "An early, unvalidated idea": 4,
-    "Honest, without an idea yet": 3,
+    "A tested idea with early signal": 6,
+    "A working prototype, even if rough": 5.5,
+    "Evidence I was wrong, and a better direction because of it": 5,
+    "Clarity on the problem, even without a product yet": 4.5,
+  };
+  /** Average across selected options, so ticking every box beats nothing. */
+  const multiPoints = (id: string, points: Record<string, number>, fallback: number) => {
+    const value = response.answers[id];
+    const selected = Array.isArray(value) ? value : value ? [value] : [];
+    if (selected.length === 0) return 0;
+    return selected.reduce((total, option) => total + (points[option] ?? fallback), 0) / selected.length;
   };
   const required = form.sections.flatMap((section) => section.questions).filter((q) => q.required);
   const completionRate = required.length
@@ -424,10 +432,10 @@ function heuristicEvaluation(form: SurveyForm, response: SurveyResponse): Evalua
     : 1;
   const criteria = {
     farm_logic_accuracy: Math.round(accuracy * 30),
-    practical_problem_solving: Math.round(sectionAccuracy("level2") * 14 + (answer("reflect_resource") ? resourcePoints[answer("reflect_resource")] ?? 4 : 0)),
+    practical_problem_solving: Math.round(sectionAccuracy("level2") * 14 + multiPoints("reflect_resource", resourcePoints, 4)),
     strategic_decision_making: Math.round(sectionAccuracy("level3") * 10 + (answer("l3_q3") ? 5 : 0)),
-    learning_mindset: Math.round((answer("reflect_interest") ? 4 : 0) + (answer("reflect_decision") ? 5 : 0) + (answer("reflect_improve") ? improvePoints[answer("reflect_improve")] ?? 3 : 0)),
-    initiative_and_program_fit: Math.round((answer("reflect_interest") ? 4 : 0) + (answer("reflect_idea") ? ideaPoints[answer("reflect_idea")] ?? 3 : 0)),
+    learning_mindset: Math.round((answer("reflect_interest") ? 4 : 0) + (answer("reflect_decision") ? 5 : 0) + multiPoints("reflect_improve", improvePoints, 3)),
+    initiative_and_program_fit: Math.round((answer("reflect_interest") ? 4 : 0) + multiPoints("reflect_idea", ideaPoints, 3)),
     engagement_and_completion: Math.round(completionRate * 3 + (response.timings.some((timing) => timing.changes > 0) ? 2 : response.timings.length ? 1.5 : 1)),
     timing_credibility: response.timings.length === 0 ? 3 : rapidFill ? 0 : rushed || unreadRate >= 0.3 ? 1 : carefulReader && deliberate ? 5 : deliberate ? 4 : 3,
   };
