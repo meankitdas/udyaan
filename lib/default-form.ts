@@ -231,40 +231,65 @@ export const DEFAULT_FORM: SurveyForm = {
       questions: [
         {
           id: "reflect_interest",
-          type: "longtext",
+          type: "multichoice",
           label:
             "What's pulling you toward agriculture specifically, and what are you actually willing to risk to build something in it on your own?",
-          placeholder: "Share the specific connection, opportunity, or curiosity pulling you in, and the commitment you are prepared to make.",
+          options: [
+            "Personal stake, willing to bet time",
+            "A gap I can see clearly, willing to bet skill",
+            "Genuine curiosity, willing to test conviction",
+            "A practical opportunity I want to commit to conditionally",
+          ],
           required: true,
         },
         {
           id: "reflect_decision",
-          type: "longtext",
+          type: "multichoice",
           label: "Describe a time you had to make a call on your own, with no one to check it against. What happened?",
-          placeholder: "Describe the situation, the decision you made, what happened, and what you learned.",
+          options: [
+            "It worked out, and I'd do it again",
+            "It didn't fully work, and I learned from it",
+            "I sought out a proxy for judgment",
+            "I hesitated, and that was the real lesson",
+          ],
           required: true,
         },
         {
           id: "reflect_improve",
-          type: "longtext",
+          type: "multichoice",
           label:
             "Tell us about a setback or rejection in something you were building or pursuing. How did you respond, and did you continue?",
-          placeholder: "Tell us what changed after the setback and why you continued, paused, or stopped.",
+          options: [
+            "I adjusted the approach and kept going",
+            "I paused, reconsidered, and came back differently",
+            "I let it end, and that was the right call",
+            "I'm still in it, unresolved",
+          ],
           required: true,
         },
         {
           id: "reflect_resource",
-          type: "longtext",
+          type: "multichoice",
           label: "How would you find out if an agri idea is actually worth building, before you spend months on it?",
-          placeholder: "Explain the first steps you would take to test the problem and the evidence you would look for.",
+          options: [
+            "Talk to the people who'd use it first",
+            "Build the smallest possible version and test it",
+            "Look for existing evidence first",
+            "Use my own direct experience as the first signal",
+          ],
           required: true,
         },
         {
           id: "reflect_idea",
-          type: "longtext",
+          type: "multichoice",
           label:
-            "Picture yourself six months into building this alone. What have you actually built, and what would convince you it's worth continuing?",
-          placeholder: "Describe the concrete result you want after six months and the signal that would make you continue.",
+            "Picture yourself six months into building this agri idea alone. What have you actually built, and what would convince you it's worth continuing?",
+          options: [
+            "A tested idea with early signal",
+            "A working prototype, even if rough",
+            "Clarity on the problem, even without a product yet",
+            "Evidence I was wrong, and a better direction because of it",
+          ],
           required: true,
         },
       ],
