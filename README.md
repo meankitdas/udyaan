@@ -29,6 +29,13 @@ server-side.
 
 Demo login (no backend): `admin@udyaan.edu` / `udyaan-admin`.
 
+### `/drone-irrigation` - Field Pilot
+
+A fullscreen onboard drone simulator with FPV and stabilized gimbal cameras,
+five irrigation assignments, Rapier flight physics, wind-driven spray, and
+keyboard/two-stick controls. No backend is required. See [the flight guide](docs/field-pilot.md) for
+controls, simulation details, research sources, and validation commands.
+
 ### AI screening (Azure OpenAI + RAG)
 
 The backend grounds an Azure OpenAI chat completion in a retrieval index built

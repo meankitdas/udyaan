@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:drone": "node --test tests/drone-irrigation.test.mjs tests/drone-camera.test.mjs"
   },
   "dependencies": {
     "@react-three/fiber": "^9.6.1",

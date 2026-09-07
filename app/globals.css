@@ -635,141 +635,6 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .model-pillars h3 { margin: 76px 0 18px; font-size: 32px; line-height: 1.08; }
 .model-pillars p { max-width: 350px; margin: 0; color: #aebcb2; font-size: 15px; line-height: 1.65; }
 
-.lab-section {
-  position: relative;
-  padding: 130px 0 0;
-  color: var(--seed);
-  background: #102d21;
-  overflow: hidden;
-}
-.lab-heading {
-  position: relative;
-  z-index: 3;
-  max-width: 1240px;
-  padding: 0 clamp(24px, 7vw, 112px);
-}
-.lab-heading h2 {
-  max-width: 980px;
-  margin: 0;
-  font-size: 74px;
-  line-height: 1;
-  font-weight: 650;
-}
-.lab-heading h2 em { color: var(--lime); font-style: normal; font-weight: 400; }
-.lab-heading > p:last-child {
-  max-width: 600px;
-  margin: 30px 0 0 auto;
-  color: #afbeb4;
-  font-size: 16px;
-  line-height: 1.7;
-}
-.lab-stage {
-  position: relative;
-  height: clamp(500px, 62vh, 640px);
-  margin-top: 34px;
-  overflow: hidden;
-  border-top: 1px solid rgba(242, 240, 228, .1);
-  border-bottom: 1px solid rgba(242, 240, 228, .1);
-  background:
-    radial-gradient(52% 58% at 50% 50%, rgba(219, 231, 110, .08), transparent 72%),
-    repeating-linear-gradient(0deg, rgba(242, 240, 228, .035) 0 1px, transparent 1px 56px),
-    repeating-linear-gradient(90deg, rgba(242, 240, 228, .035) 0 1px, transparent 1px 56px),
-    #102d21;
-}
-.lab-flow {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  width: 100%;
-  height: 100%;
-}
-.lab-flow path {
-  fill: none;
-  stroke: rgba(219, 231, 110, .42);
-  stroke-width: 1.6;
-  stroke-dasharray: 5 9;
-  animation: lab-flow-dash 1.5s linear infinite;
-}
-@keyframes lab-flow-dash {
-  to { stroke-dashoffset: -28; }
-}
-.lab-hub {
-  position: absolute;
-  z-index: 2;
-  top: 50%;
-  left: 50%;
-  width: 224px;
-  height: 224px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  padding: 0 26px;
-  text-align: center;
-  transform: translate(-50%, -50%);
-  color: var(--seed);
-  background: radial-gradient(circle at 50% 38%, #16402c, #0b2318 78%);
-  border: 1px solid rgba(219, 231, 110, .5);
-  border-radius: 50%;
-  box-shadow: 0 24px 60px rgba(4, 18, 11, .55);
-}
-.lab-hub::before {
-  content: "";
-  position: absolute;
-  inset: -16px;
-  border: 1px solid rgba(219, 231, 110, .4);
-  border-radius: 50%;
-  animation: lab-ping 3.2s ease-out infinite;
-}
-@keyframes lab-ping {
-  0% { transform: scale(1); opacity: .8; }
-  70%, 100% { transform: scale(1.45); opacity: 0; }
-}
-.lab-hub-kicker {
-  color: var(--lime);
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: .17em;
-  text-transform: uppercase;
-}
-.lab-hub strong { font-size: 20px; line-height: 1.15; font-weight: 650; }
-.lab-hub small { color: #aebcb2; font-size: 10.5px; }
-.lab-nodes {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.lab-node {
-  position: absolute;
-  width: min(302px, 27vw);
-  padding: 19px 21px 21px;
-  transform: translate(-50%, -50%);
-  color: var(--seed);
-  background: rgba(9, 31, 20, .86);
-  border: 1px solid rgba(242, 240, 228, .16);
-  border-left: 2px solid var(--lime);
-  backdrop-filter: blur(6px);
-  transition: border-color .25s, background .25s, transform .25s;
-}
-.lab-node:hover {
-  background: rgba(13, 41, 27, .94);
-  border-color: rgba(219, 231, 110, .55);
-  transform: translate(-50%, calc(-50% - 3px));
-}
-.lab-node-num {
-  color: var(--lime);
-  font-size: 9.5px;
-  font-weight: 800;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-}
-.lab-node strong { display: block; margin-top: 9px; font-size: 19px; font-weight: 650; }
-.lab-node p { margin: 8px 0 0; color: #aebcb2; font-size: 12.5px; line-height: 1.55; }
-
 .projects-section {
   padding: 136px clamp(24px, 6vw, 96px);
   color: var(--pine-dark);
@@ -940,15 +805,12 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .home-page .jgi-logo { width: 112px; }
   .new-hero h1 { font-size: 72px; }
   .venture-model-heading h2,
-  .lab-heading h2,
   .projects-heading h2,
   .selection-heading h2,
   .journey-heading h2 { font-size: 62px; }
   .faq-heading h2 { font-size: 54px; }
   .project-card h3 { font-size: 40px; }
   .integration-copy h2 { font-size: 58px; }
-  .lab-stage { height: clamp(480px, 56vh, 600px); }
-  .lab-node { width: min(280px, 30vw); }
 }
 
 @media (max-width: 900px) {
@@ -1002,39 +864,11 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .journey-section,
   .integration-section { padding: 92px 18px; }
   .venture-model-heading h2,
-  .lab-heading h2,
   .projects-heading h2,
   .selection-heading h2,
   .journey-heading h2,
   .integration-copy h2 { font-size: 47px; }
   .model-pillars { margin-top: 64px; }
-  .lab-section { padding-top: 92px; }
-  .lab-heading { padding: 0 18px; }
-  .lab-heading > p:last-child { margin-left: 0; }
-  .lab-stage { height: auto; margin-top: 26px; padding: 30px 18px 34px; }
-  .lab-flow { display: none; }
-  .lab-hub {
-    position: static;
-    width: auto;
-    height: auto;
-    margin: 0 auto;
-    padding: 22px 24px;
-    transform: none;
-    border-radius: 18px;
-  }
-  .lab-hub::before { display: none; }
-  .lab-nodes {
-    position: static;
-    margin-top: 14px;
-    display: grid;
-    gap: 12px;
-  }
-  .lab-node {
-    position: static;
-    width: auto;
-    transform: none;
-  }
-  .lab-node:hover { transform: none; }
   .projects-heading { margin-bottom: 50px; }
   .project-card { min-height: 400px; padding: 25px 24px; }
   .project-card-body { margin-top: 66px; }
@@ -1054,12 +888,6 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .intern-value-band div:last-child { border-bottom: 0; }
   .program-note { margin: -34px 0 0; line-height: 1.4; text-align: left; }
   .final-cta h2 { font-size: 40px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .lab-loader span { animation: none; }
-  .lab-flow path,
-  .lab-hub::before { animation: none; }
 }
 
 /* Student-first landing experience */

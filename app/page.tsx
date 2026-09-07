@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Header } from "@/components/Brand";
 import { Footer } from "@/components/Footer";
 import { HeroVideo } from "@/components/HeroVideo";
+import LivingLabExplorer from "@/components/LivingLabExplorer";
 import { ArrowDownIcon, ArrowRightIcon } from "@/components/Icons";
 import { FAQS, homepageJsonLd } from "@/lib/seo";
 
@@ -198,51 +199,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="lab-section" id="lab" aria-labelledby="lab-title">
-          <div className="lab-heading">
-            <p className="kicker light">One campus. Connected systems.</p>
-            <h2 id="lab-title">A living lab you can <em>walk through.</em></h2>
-            <p>
-              Every zone produces more than crops. It produces operational data, research
-              questions, prototypes, business cases, and work students can put in a portfolio.
-            </p>
-          </div>
-          <div className="lab-stage">
-            <svg className="lab-flow" viewBox="0 0 1200 560" preserveAspectRatio="none" aria-hidden="true">
-              <path d="M192 145 C 430 145, 400 280, 600 280" />
-              <path d="M192 426 C 430 426, 400 280, 600 280" />
-              <path d="M1008 145 C 770 145, 800 280, 600 280" />
-              <path d="M1008 426 C 770 426, 800 280, 600 280" />
-            </svg>
-            <div className="lab-hub" aria-hidden="true">
-              <span className="lab-hub-kicker">Udyaan campus</span>
-              <strong>One living system</strong>
-              <small>1,000 acres · real stakes</small>
-            </div>
-            <ul className="lab-nodes" aria-label="Living lab systems">
-              <li className="lab-node" style={{ top: "26%", left: "16%" }}>
-                <span className="lab-node-num">01 / Sense</span>
-                <strong>Precision sensing</strong>
-                <p>Field sensors and drone telemetry stream live crop, soil, and water data.</p>
-              </li>
-              <li className="lab-node" style={{ top: "76%", left: "16%" }}>
-                <span className="lab-node-num">02 / Grow</span>
-                <strong>Controlled cultivation</strong>
-                <p>Greenhouse and hydroponic systems run year-round crop experiments.</p>
-              </li>
-              <li className="lab-node" style={{ top: "26%", left: "84%" }}>
-                <span className="lab-node-num">03 / Power</span>
-                <strong>Renewable operations</strong>
-                <p>Solar arrays and bio-energy keep the campus loops running.</p>
-              </li>
-              <li className="lab-node" style={{ top: "76%", left: "84%" }}>
-                <span className="lab-node-num">04 / Return</span>
-                <strong>Circular bioeconomy</strong>
-                <p>Waste streams come back as feed, fuel, and fertilizer.</p>
-              </li>
-            </ul>
-          </div>
-        </section>
+        <LivingLabExplorer />
 
         <section className="projects-section" id="projects">
           <div className="projects-heading">

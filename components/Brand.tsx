@@ -29,6 +29,7 @@ export function Header() {
         <Link href="/#model">The model</Link>
         <Link href="/#projects">Projects</Link>
         <Link href="/#journey">Journey</Link>
+        <Link href="/drone-irrigation">Drone simulator</Link>
       </nav>
       <details className="mobile-nav">
         <summary aria-label="Open navigation"><span /><span /></summary>
@@ -36,6 +37,7 @@ export function Header() {
           <Link href="/#model">The model</Link>
           <Link href="/#projects">Projects</Link>
           <Link href="/#journey">Journey</Link>
+          <Link href="/drone-irrigation">Drone simulator</Link>
           <Link href="/contact">Contact</Link>
           <Link href="/login">Sign in</Link>
         </nav>
