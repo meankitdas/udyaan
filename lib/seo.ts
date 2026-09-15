@@ -28,20 +28,18 @@ export const PARENT_ORG = {
 } as const;
 
 export const DEFAULT_DESCRIPTION =
-  "Udyaan is a 1,000-acre living lab and paid farmland internship from JAIN (Deemed-to-be University). Students across engineering, sciences, design, business and policy build real prototypes in agritech, food, water, energy and waste — and leave with proof their idea works.";
+  "Udyaan is a university-powered venture-building platform from JAIN (Deemed-to-be University). Real problems meet student builders, expert mentors and a structured path through building, validation, adoption, research and possible ventures.";
 
 export const KEYWORDS = [
   "Udyaan",
   "Udyaan JAIN University",
-  "farmland internship India",
-  "agritech internship Bangalore",
-  "paid internship for students India",
-  "living lab agriculture",
-  "precision agriculture internship",
-  "hydroponics internship",
-  "sustainability internship India",
-  "interdisciplinary student research program",
-  "JAIN Deemed-to-be University internship",
+  "university venture building",
+  "student builders India",
+  "industry problem solving",
+  "applied student research",
+  "cross-disciplinary innovation",
+  "JAIN Deemed-to-be University innovation",
+  "problem to venture platform",
   "student incubation India",
 ];
 
@@ -50,10 +48,10 @@ export function absoluteUrl(path = "/"): string {
 }
 
 export const OG_IMAGE = {
-  url: absoluteUrl("/udyaan-aerial-poster.jpg"),
-  width: 1920,
-  height: 1080,
-  alt: "Aerial view of the Udyaan living lab farmland campus",
+  url: absoluteUrl("/udyaan-greenhouse.jpg"),
+  width: 1800,
+  height: 1200,
+  alt: "A working greenhouse representing real-world systems student builders can investigate",
 };
 
 type PageMetaInput = {
@@ -93,42 +91,37 @@ export const FAQS: { question: string; answer: string }[] = [
   {
     question: "What is Udyaan?",
     answer:
-      "Udyaan is a 1,000-acre living lab run by JAIN (Deemed-to-be University), where students take on real problems in food, water, energy and waste. Instead of passive assignments, you spend a semester on field projects that produce measurable results — and the farm doubles as shared infrastructure for teaching, research, prototyping and enterprise.",
+      "Udyaan is a university-led venture-building platform where real problems are matched with student builders, supported by mentors and taken through a structured build-and-validation process. Work can continue toward company adoption, research, intellectual property or a student-led venture.",
   },
   {
-    question: "Who can apply to the Udyaan internship?",
+    question: "Do I need my own startup idea to join?",
     answer:
-      "Udyaan is deliberately cross-disciplinary. Students from engineering and automation, life sciences, food technology, design and creative arts, business and commerce, humanities and policy, data and AI, and sustainability all have a place in the field. Teams are built across majors on purpose.",
+      "No. You can start by exploring a problem from Udyaan. Different challenges need technical, design, data, business, research, operations and domain capabilities. Team composition is driven by the problem, not a single discipline.",
   },
   {
-    question: "How does the Udyaan selection process work?",
+    question: "How are students selected and teams formed?",
     answer:
-      "Selection runs in three phases. Phase one is an initial filter using a pitch-deck resume and a cognitive assessment. Phase two is 'the mud test' — a one-day field boot camp that measures resilience, observation and collaboration through work you cannot do from a desk. Phase three is the boardroom, where you turn field insight into a commercial story and defend it before a cross-functional panel.",
+      "Selection focuses on reasoning, curiosity, ownership, practical judgement, collaboration and the ability to work through uncertainty. Selected students are matched to the problem and team where their capabilities fit. The team confirms the applicable assessment stages and availability for each intake.",
   },
   {
-    question: "Is the Udyaan internship paid?",
+    question: "Can a company bring a problem?",
     answer:
-      "Yes. Udyaan offers a monthly stipend pathway of INR 15,000, subject to project eligibility and current program terms. Interns also get faculty and industry mentorship, and access to incubation and investor-readiness support through the technology business incubator.",
+      "Yes. Companies and other problem owners can share a non-confidential brief with the team. Udyaan reviews fit, frames the challenge and agrees scope, feedback points and project terms before a build begins.",
   },
   {
-    question: "How long is the program and what does it involve?",
+    question: "What happens after a solution is validated?",
     answer:
-      "The core is a four-week interdisciplinary sprint. Week one is research and strategy, turning a broad challenge into a testable brief. Week two is prototyping and field testing. Week three covers production, financial viability, safety, compliance and intellectual-property pathways. Week four is the exhibit and launch, where you present the proof and publish what you learned.",
+      "The next step can be a company pilot or adoption, further research or IP development, iteration, or a student-led venture. Not every project becomes a company. The evidence and relevant agreements determine the route forward.",
   },
   {
-    question: "Do students earn academic credit at Udyaan?",
+    question: "Who owns the solution or intellectual property?",
     answer:
-      "Yes. Semester-long field projects replace passive assignments, and students earn academic credit by solving measurable, real-world problems. Strong work can continue further into research, patents and publications, incubation, or a market pilot.",
+      "Ownership depends on the project, contributor roles, agreements and applicable university or partner terms. The relevant arrangements should be established before substantial build activity begins. Continuing a student venture is subject to those arrangements.",
   },
   {
-    question: "What kinds of projects run at Udyaan?",
+    question: "What support is available during and after the build?",
     answer:
-      "Current project tracks include drone and robot precision farming for multispectral scouting and precision spraying, vertical microgreens in controlled environments, hydro-aeroponic systems targeting large reductions in water use, and a circular bioeconomy Bio-CNG living lab covering feedstock logistics, process biology and compliance.",
-  },
-  {
-    question: "What do students leave Udyaan with?",
-    answer:
-      "A tested prototype, evidence collected in the field, and a portfolio you can defend. You also leave with teammates from other disciplines, faculty and industry mentors, and a route forward — research, intellectual property, incubation or a market pilot.",
+      "Support can include faculty and domain mentors, technical and product guidance, research, business and market input, IP pathways and incubation support. Academic integration, stipend eligibility, facilities and any capital introductions are confirmed for the project, not guaranteed for every participant.",
   },
 ];
 
@@ -160,6 +153,9 @@ export function organizationJsonLd() {
         },
         areaServed: { "@type": "Country", name: "India" },
         knowsAbout: [
+          "Student venture building",
+          "Problem validation",
+          "Company adoption and applied research",
           "Precision agriculture",
           "Hydroponics and aeroponics",
           "Vertical farming",
@@ -189,41 +185,20 @@ export function organizationJsonLd() {
   };
 }
 
-/** Program + FAQ graph for the homepage. */
+/** Platform + FAQ graph for the homepage. */
 export function homepageJsonLd() {
   return {
     "@context": "https://schema.org",
     "@graph": [
       {
-        "@type": "EducationalOccupationalProgram",
-        "@id": absoluteUrl("/#program"),
-        name: "Udyaan Farmland Internship Program",
-        description:
-          "An immersive, cross-disciplinary farmland internship where students build and field-test prototypes in food, water, energy and waste systems across a 1,000-acre living lab.",
+        "@type": "Service",
+        "@id": absoluteUrl("/#platform"),
+        name: "Udyaan Venture-Building Platform",
+        description: DEFAULT_DESCRIPTION,
         url: SITE_URL,
         provider: { "@id": absoluteUrl("/#organization") },
-        programType: "Internship",
-        educationalProgramMode: "full-time",
-        timeToComplete: "P4W",
-        occupationalCategory: [
-          "Agricultural engineering",
-          "Sustainability",
-          "Food technology",
-          "Research and development",
-        ],
-        offers: {
-          "@type": "Offer",
-          category: "Paid internship",
-          availability: "https://schema.org/InStock",
-          url: absoluteUrl("/signup"),
-        },
-        salaryUponCompletion: {
-          "@type": "MonetaryAmountDistribution",
-          name: "Monthly stipend pathway",
-          currency: "INR",
-          duration: "P1M",
-          median: 15000,
-        },
+        serviceType: "Problem solving, applied learning and venture building",
+        areaServed: { "@type": "Country", name: "India" },
       },
       {
         "@type": "FAQPage",

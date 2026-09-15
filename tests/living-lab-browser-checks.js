@@ -8,7 +8,7 @@ async (page) => {
   const labels = ["01 Sense", "02 Grow", "03 Power", "04 Return"];
   const titles = ["Precision sensing", "Controlled cultivation", "Renewable operations", "Circular bioeconomy"];
   try {
-    await page.goto(`${origin}/#lab`);
+    await page.goto(`${origin}/living-lab#lab`);
     await page.bringToFront();
     const section = page.locator("#lab");
     const tabs = page.getByRole("tablist", { name: "Living lab systems" });
@@ -51,9 +51,9 @@ async (page) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.getByRole("tab", { name: labels[2], exact: true }).click();
     assert(await page.getByRole("tabpanel").evaluate((element) => getComputedStyle(element).animationName === "none"), "Reduced motion must disable panel animation");
-    await page.getByRole("link", { name: "Explore energy projects", exact: true }).click();
-    await page.waitForURL("**/#projects");
-    assert(await page.evaluate(() => location.hash === "#projects"), "Project links must navigate to the project section");
+    await page.getByRole("link", { name: "Explore current problems", exact: true }).click();
+    await page.waitForURL("**/problems");
+    assert(await page.evaluate(() => location.pathname === "/problems"), "Lab links must navigate to problem discovery");
     assert(errors.length === 0, `Runtime errors: ${errors.join("; ")}`);
     return { results, keyboard: true, reducedMotion: true, links: true, noHomepage3D: true, runtimeErrors: errors };
   } finally {

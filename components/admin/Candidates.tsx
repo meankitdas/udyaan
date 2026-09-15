@@ -313,6 +313,7 @@ export function Candidates({ form }: { form: SurveyForm }) {
                         <div className="cd-detail-grid">
                           <div className="cd-answers">
                             <h3>Answers</h3>
+                            {r.answers.problem_interest && <div className="cd-answer-group"><h4>Problem preference</h4><div className="cd-answer-row"><p>{str(r.answers.problem_interest)}</p></div></div>}
                             {form.sections.filter((s) => s.questions.length > 0).map((s) => (
                               <div key={s.id} className="cd-answer-group">
                                 <h4>{s.title}</h4>

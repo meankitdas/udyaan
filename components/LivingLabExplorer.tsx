@@ -25,7 +25,7 @@ const systems = [
     caption: "Small experiments. Tangible outcomes.", credit: "Mark Stebnicki / Pexels",
     activities: ["Greenhouse + hydroponic trials", "Water and nutrient management", "Crop performance + harvest records"],
     connection: "Cultivation turns field insight into measurable results.",
-    link: "#projects", action: "Explore growing projects",
+    link: "/problems", action: "Explore growing problems",
   },
   {
     id: "power", number: "03", label: "Power", icon: Sun, color: "#e8c982",
@@ -35,7 +35,7 @@ const systems = [
     caption: "Energy that keeps the work moving.", credit: "Unsplash",
     activities: ["Solar + bio-energy systems", "Energy use and operating efficiency", "Performance + commercial viability"],
     connection: "Renewable energy supports the campus's working systems.",
-    link: "#projects", action: "Explore energy projects",
+    link: "/problems", action: "Explore current problems",
   },
   {
     id: "return", number: "04", label: "Return", icon: Recycle, color: "#dfb19a",
@@ -45,7 +45,7 @@ const systems = [
     caption: "The next cycle starts here.", credit: "Unsplash",
     activities: ["Organic material + feedstock flows", "Bio-CNG and nutrient recovery", "Resource loops + business cases"],
     connection: "Recovered resources return value to the next growing cycle.",
-    link: "#projects", action: "Explore circular projects",
+    link: "/problems", action: "Explore circular problems",
   },
 ] as const;
 
@@ -113,7 +113,7 @@ export default function LivingLabExplorer() {
           </div>
         ))}
 
-        <div className={styles.closing}><p>Shared land. Shared learning.<strong>Connected by the work.</strong></p><Link href="#projects">Find your project<ArrowRight size={18} /></Link></div>
+        <div className={styles.closing}><p>Shared land. Shared learning.<strong>Connected by the work.</strong></p><Link href="/problems">Find your problem<ArrowRight size={18} /></Link></div>
       </div>
     </section>
   );

@@ -12,7 +12,7 @@ import {
   organizationJsonLd,
 } from "@/lib/seo";
 
-const DEFAULT_TITLE = "Udyaan | Farmland Internship & Living Lab by JAIN University";
+const DEFAULT_TITLE = "Udyaan | Real Problems. Student Builders. Possible Ventures.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

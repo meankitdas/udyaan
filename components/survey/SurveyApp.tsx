@@ -77,7 +77,7 @@ function clearDraft(formId: string) {
   }
 }
 
-export function SurveyApp() {
+export function SurveyApp({ problemInterest }: { problemInterest?: { id: string; title: string } } = {}) {
   const [form, setForm] = useState<SurveyForm | null>(null);
   const [screenIndex, setScreenIndex] = useState(0);
   const [direction, setDirection] = useState(1);
@@ -265,7 +265,7 @@ export function SurveyApp() {
     const response: SurveyResponse = {
       id: uid("resp"),
       formId: form.id,
-      answers,
+      answers: problemInterest ? { ...answers, problem_interest: `${problemInterest.id}: ${problemInterest.title}` } : answers,
       files,
       timings,
       startedAt: startedAtRef.current,
@@ -281,7 +281,7 @@ export function SurveyApp() {
       setResult(response);
       setPhase("done");
     }
-  }, [form, answers, files, commitScreenTime]);
+  }, [form, answers, files, commitScreenTime, problemInterest]);
 
   useEffect(() => {
     if (phase !== "done" || !doneRef.current) return;
@@ -380,6 +380,7 @@ export function SurveyApp() {
       />
 
       <main className="sv-canvas">
+        {problemInterest && <p className="sv-kicker" style={{ padding: "16px 24px", margin: 0 }}>Problem preference: {problemInterest.id} / {problemInterest.title}</p>}
         <div className="sv-progressbar" aria-hidden>
           <motion.div
             className="sv-progressbar-fill"

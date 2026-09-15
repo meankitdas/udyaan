@@ -1,342 +1,67 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Header } from "@/components/Brand";
-import { Footer } from "@/components/Footer";
-import { HeroVideo } from "@/components/HeroVideo";
-import LivingLabExplorer from "@/components/LivingLabExplorer";
-import { ArrowDownIcon, ArrowRightIcon } from "@/components/Icons";
+import { ArrowDown, ArrowUpRight, BadgeCheck, ChartNoAxesCombined, Check, CircleCheck, Cpu, GitBranch, GraduationCap, Handshake, Users, UserRound } from "lucide-react";
+import { Action, Closing, Engine, FaqList, Outcomes, ProblemCard, PublicShell, ReferencePhoto, SectionHeading, TextLink } from "@/components/public/Site";
+import styles from "@/components/public/PublicSite.module.css";
+import { problems } from "@/lib/problems";
 import { FAQS, homepageJsonLd } from "@/lib/seo";
 
-const modelPillars = [
-  {
-    number: "01",
-    title: "Applied immersion",
-    text: "Semester-long field projects replace passive assignments. Students earn academic credit by solving measurable, real-world problems.",
-  },
-  {
-    number: "02",
-    title: "IP pipeline",
-    text: "The campus becomes a data-rich research environment where evidence can lead to patents, publications, and validated processes.",
-  },
-  {
-    number: "03",
-    title: "Venture studio",
-    text: "Promising work moves from prototype to market pilot, with compliance, business modeling, incubation, and investor readiness built in.",
-  },
-];
-
-const projects = [
-  {
-    number: "01",
-    category: "Precision agriculture",
-    title: "Drone + robot farming",
-    text: "A connected field system for multispectral scouting, soil sensing, precision spraying, and autonomous crop monitoring.",
-    stat: "20-35%",
-    statLabel: "target chemical savings",
-    tone: "mint",
-  },
-  {
-    number: "02",
-    category: "Urban food systems",
-    title: "Vertical microgreens",
-    text: "A compact high-intensity production model combining controlled environments, fast harvest cycles, and direct market channels.",
-    stat: "180 sq ft",
-    statLabel: "reference footprint",
-    tone: "sun",
-  },
-  {
-    number: "03",
-    category: "Hydro-aeroponics",
-    title: "More crop. Less water.",
-    text: "Integrated towers and nutrient-film channels turn limited urban space into a measurable, climate-aware growing system.",
-    stat: "92%",
-    statLabel: "water reduction target",
-    tone: "clay",
-  },
-  {
-    number: "04",
-    category: "Circular bioeconomy",
-    title: "Waste to wealth",
-    text: "A Bio-CNG living lab where feedstock logistics, process biology, compliance, and commercial viability meet in one project.",
-    stat: "100 TPD",
-    statLabel: "model processing capacity",
-    tone: "forest",
-  },
-];
-
-const selectionSteps = [
-  {
-    phase: "Phase 01",
-    title: "The initial filter",
-    text: "A pitch-deck resume and cognitive assessment surface curiosity, reasoning, and the ability to frame a useful problem.",
-  },
-  {
-    phase: "Phase 02",
-    title: "The mud test",
-    text: "A one-day field boot camp tests resilience, observation, collaboration, and grit through work that cannot be solved from a desk.",
-  },
-  {
-    phase: "Phase 03",
-    title: "The boardroom",
-    text: "Candidates translate field insight into a commercial story and defend it before a cross-functional evaluation panel.",
-  },
-];
-
-const journey = [
-  { week: "Week 01", title: "Research + strategy", text: "Map the system, define the stakeholder, and turn a broad challenge into a testable brief." },
-  { week: "Week 02", title: "Prototype + testing", text: "Build the first working model and collect evidence from the field, lab, or customer." },
-  { week: "Week 03", title: "Production + policy", text: "Design operations, financial viability, safety, compliance, and intellectual-property pathways." },
-  { week: "Week 04", title: "Exhibit + launch", text: "Present the proof, publish the learning, and move viable ideas toward incubation or market pilots." },
-];
-
-const disciplines = [
-  "Engineering + automation",
-  "Life sciences",
-  "Food technology",
-  "Design + creative arts",
-  "Business + commerce",
-  "Humanities + policy",
-  "Data + AI",
-  "Sustainability",
-];
-
 export default function Home() {
-  return (
-    <div className="home-page">
-      <Header />
-      <main>
-        <section className="cinematic-hero" aria-labelledby="hero-title">
-          <HeroVideo />
-          <div className="cinematic-shade" aria-hidden="true" />
-
-          <div className="cinematic-copy">
-            <p className="cinematic-kicker">1,000 acres / every discipline / real stakes</p>
-            <h1 id="hero-title">Udyaan is a<br />living lab for<br /><em>ideas that matter.</em></h1>
-            <p className="cinematic-description">
-              Choose a problem in food, water, energy, or waste. Build with people
-              outside your major. Leave with proof that your idea works.
-            </p>
-            <div className="cinematic-actions">
-              <Link className="cinematic-primary" href="/survey">Apply for 2026 <ArrowRightIcon /></Link>
-              <Link className="cinematic-secondary" href="#projects">Explore the work <ArrowDownIcon /></Link>
-            </div>
-          </div>
-
-          <div className="challenge-rail" aria-label="Choose a challenge area">
-            <div className="challenge-intro">
-              <span>Start with a problem</span>
-              <strong>Where will you begin?</strong>
-            </div>
-            <Link href="#projects"><span>01</span><strong>Food</strong><small>Grow more with less</small></Link>
-            <Link href="#projects"><span>02</span><strong>Water</strong><small>Make every drop count</small></Link>
-            <Link href="#projects"><span>03</span><strong>Energy</strong><small>Power the living lab</small></Link>
-            <Link href="#projects"><span>04</span><strong>Waste</strong><small>Design the next use</small></Link>
-          </div>
-
-          <a className="cinematic-scroll" href="#projects" aria-label="Scroll to explore">
-            <span>Scroll</span>
-            <ArrowDownIcon />
-          </a>
-
-          <p className="cinematic-credit">Film: Serg Alesenko / Pexels</p>
-        </section>
-
-        <section className="student-promise" aria-labelledby="student-promise-title">
-          <div className="promise-media">
-            <Image
-              src="/udyaan-greenhouse.jpg"
-              alt="Rows of crops growing inside a working greenhouse"
-              fill
-              sizes="(max-width: 900px) 100vw, 48vw"
-            />
-            <div className="promise-caption">
-              <span>Field note / 01</span>
-              <strong>Real conditions.<br />Real consequences.</strong>
-            </div>
-            <small className="promise-credit">Photo: Mark Stebnicki / Pexels</small>
-          </div>
-          <div className="promise-copy">
-            <p className="kicker">Not another classroom exercise</p>
-            <h2 id="student-promise-title">Leave with more<br />than a <em>grade.</em></h2>
-            <p className="promise-lead">
-              The work is physical, technical, collaborative, and visible. You will make
-              decisions with real constraints, collect evidence, and defend what you built.
-            </p>
-            <div className="promise-outcomes">
-              <article>
-                <span>01</span>
-                <div><h3>Work worth showing</h3><p>A tested prototype, field evidence, and a story your portfolio can prove.</p></div>
-              </article>
-              <article>
-                <span>02</span>
-                <div><h3>People worth building with</h3><p>Teammates across disciplines, with faculty and industry mentors in the loop.</p></div>
-              </article>
-              <article>
-                <span>03</span>
-                <div><h3>A real next move</h3><p>Strong work can continue toward research, IP, incubation, or a market pilot.</p></div>
-              </article>
-            </div>
-          </div>
-        </section>
-
-        <section className="venture-model" id="model">
-          <div className="venture-model-heading">
-            <p className="kicker light">The Udyaan model</p>
-            <h2>Academic rigor.<br />Research depth.<br /><em>Venture traction.</em></h2>
-            <p>
-              The farm is not a field trip. It is shared infrastructure for teaching,
-              research, prototyping, and enterprise across the JAIN Group ecosystem.
-            </p>
-          </div>
-          <div className="model-pillars">
-            {modelPillars.map((pillar) => (
-              <article key={pillar.number}>
-                <span>{pillar.number}</span>
-                <h3>{pillar.title}</h3>
-                <p>{pillar.text}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <LivingLabExplorer />
-
-        <section className="projects-section" id="projects">
-          <div className="projects-heading">
-            <div>
-              <p className="kicker">Projects with a market on the other side</p>
-              <h2>Build the system.<br /><em>Prove the value.</em></h2>
-            </div>
-            <p>
-              Udyaan projects connect technical performance to financial and social outcomes.
-              Students learn to test both the machine and the model around it.
-            </p>
-          </div>
-          <div className="project-grid">
-            {projects.map((project) => (
-              <article className={`project-card ${project.tone}`} key={project.number}>
-                <div className="project-card-top">
-                  <span>{project.number}</span>
-                  <small>{project.category}</small>
-                </div>
-                <div className="project-card-body">
-                  <h3>{project.title}</h3>
-                  <p>{project.text}</p>
-                </div>
-                <div className="project-stat">
-                  <strong>{project.stat}</strong>
-                  <span>{project.statLabel}</span>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="selection-section" id="selection">
-          <div className="selection-heading">
-            <p className="kicker">Student selection</p>
-            <h2>Less resume.<br /><em>More readiness.</em></h2>
-            <p>
-              The selection process looks for resilience, practical intelligence, ethical
-              judgment, and the ability to turn an uncertain field problem into action.
-            </p>
-          </div>
-          <div className="selection-steps">
-            {selectionSteps.map((step, index) => (
-              <article key={step.phase}>
-                <div className="selection-step-index">{String(index + 1).padStart(2, "0")}</div>
-                <p>{step.phase}</p>
-                <h3>{step.title}</h3>
-                <span>{step.text}</span>
-              </article>
-            ))}
-          </div>
-          <div className="selection-values" aria-label="Selection qualities">
-            <span>Resilience + pivot logic</span>
-            <span>Innovation under constraint</span>
-            <span>Ethical integrity</span>
-          </div>
-        </section>
-
-        <section className="journey-section" id="journey">
-          <div className="journey-heading">
-            <p className="kicker light">The interdisciplinary sprint</p>
-            <h2>Four weeks from question to <em>proof.</em></h2>
-          </div>
-          <div className="journey-track">
-            {journey.map((item) => (
-              <article key={item.week}>
-                <span>{item.week}</span>
-                <h3>{item.title}</h3>
-                <p>{item.text}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="integration-section">
-          <div className="integration-copy">
-            <p className="kicker">Cross-campus integration</p>
-            <h2>Every discipline has a place <em>in the field.</em></h2>
-            <p>
-              Engineers build the system. Scientists validate it. Designers make it usable.
-              Business teams find the market. Policy and humanities teams ask who benefits.
-            </p>
-          </div>
-          <div className="discipline-list" aria-label="Participating disciplines">
-            {disciplines.map((discipline, index) => (
-              <div key={discipline}><span>{String(index + 1).padStart(2, "0")}</span>{discipline}</div>
-            ))}
-          </div>
-          <div className="intern-value-band">
-            <div><strong>INR 15,000*</strong><span>monthly stipend pathway</span></div>
-            <div><strong>Expert mentors</strong><span>faculty + industry guidance</span></div>
-            <div><strong>Working MVPs</strong><span>portfolio-ready outcomes</span></div>
-            <div><strong>TBI access</strong><span>incubation + investor readiness</span></div>
-          </div>
-          <p className="program-note">*Subject to project eligibility and current program terms.</p>
-        </section>
-
-        <section className="faq-section" id="faq" aria-labelledby="faq-title">
-          <div className="faq-heading">
-            <p className="kicker">Questions, answered</p>
-            <h2 id="faq-title">What people ask <em>before applying.</em></h2>
-            <p>
-              Everything below reflects how the program actually runs. If your question
-              is not here, <Link href="/contact">ask us directly</Link>.
-            </p>
-          </div>
-          <div className="faq-list">
-            {FAQS.map((faq) => (
-              <details className="faq-item" key={faq.question}>
-                <summary>
-                  <h3>{faq.question}</h3>
-                  <span className="faq-marker" aria-hidden="true" />
-                </summary>
-                <p>{faq.answer}</p>
-              </details>
-            ))}
-          </div>
-        </section>
-
-        <section className="final-cta">
-          <div className="cta-copy">
-            <p className="kicker light">Applications are open</p>
-            <h2>Build something<br />the world can <em>use.</em></h2>
-            <p>Bring your discipline. Leave with proof that it works.</p>
-            <Link className="round-button cream" href="/signup">Apply to Udyaan <ArrowRightIcon /></Link>
-          </div>
-          <div className="cta-plant" aria-hidden="true">
-            <Image src="/udyaan-greenhouse.jpg" alt="" fill sizes="40vw" />
-          </div>
-          <span className="cta-index">JAIN GROUP / UDYAAN / 2026</span>
-        </section>
-      </main>
-      <Footer />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(homepageJsonLd()) }}
-      />
-    </div>
-  );
+  return <PublicShell className={styles.home}>
+    <section className={styles.hero} aria-labelledby="hero-title">
+      <Image className={styles.heroImage} src="/udyaan-landscape.jpg" alt="Cultivated fields and a distant treeline under an open sky, a reference landscape for real-world problem solving" fill priority sizes="max(100vw, 178dvh)" />
+      <div className={`${styles.container} ${styles.heroInner}`}>
+        <div className={styles.heroMasthead}><p>A JAIN university initiative</p><span>Learning meets real-world enterprise</span></div>
+        <div className={styles.heroCopy}>
+          <p className={styles.eyebrow}>Students. Industry. Possibility.</p>
+          <h1 id="hero-title"><span className={styles.heroBrand}>Udyaan.</span>A launchpad for<br />real-world solutions.</h1>
+          <p className={styles.heroDescription}>Start with a real problem. Build with the right people.<br className={styles.desktopBreak} /> Turn evidence into adoption, research, or a venture.</p>
+          <div className={styles.actions}><Action href="/problems">Explore problems</Action><Action href="/join" secondary>Join Udyaan</Action></div>
+        </div>
+        <div className={styles.heroBottom}>
+          <Link href="#model" className={styles.heroNext}><span><small>01 / Inside Udyaan</small>From problem to possibility</span><ArrowDown size={22} aria-hidden="true" /></Link>
+          <Link href="/for-companies" className={styles.heroPartner}><span><small>For industry & partners</small>Bring a problem. Build a partnership.</span><ArrowUpRight size={22} aria-hidden="true" /></Link>
+          <p className={styles.heroCredit}>Reference landscape photography<br /> Unsplash</p>
+        </div>
+      </div>
+    </section>
+    <div className={styles.trustStrip}><div className={styles.container}>
+      <div className={styles.trustBrand}><span>A JAIN university initiative</span><Image src="/jain-group-logo.png" alt="JAIN Group" width={164} height={36} /></div>
+      <div className={styles.trustWords}><span><Users size={15} />Cross-disciplinary teams</span><span><CircleCheck size={15} />Evidence-led building</span><span><GitBranch size={15} />Multiple paths forward</span></div>
+    </div></div>
+    <section className={styles.section}><div className={styles.container}><div className={styles.thesis}>
+      <div><p className={styles.eyebrow}>The opportunity</p><h2>Good problems deserve<br />great builders.</h2></div>
+      <div className={styles.thesisCopy}><p>Real problems and capable builders are often separated. Companies have challenges worth solving. Students have the knowledge, curiosity and energy to take them on.</p><p><strong>Udyaan creates the path between them.</strong> A problem finds a team. The team builds with support. Evidence decides where the solution goes next.</p><TextLink href="/about">Why Udyaan exists</TextLink></div>
+    </div></div></section>
+    <section className={`${styles.section} ${styles.dark}`} id="model"><div className={styles.container}>
+      <SectionHeading label="01 / The Udyaan engine" title="A clear path from problem to proof."><TextLink href="/how-it-works">How it works</TextLink></SectionHeading><Engine />
+    </div></section>
+    <section className={styles.section} id="projects"><div className={styles.container}>
+      <SectionHeading label="02 / The problem board" title="Real questions. Worth your time." text="Explore challenge directions from the Udyaan living lab. Find a problem that matches how you think, not just what you study."><TextLink href="/problems">All problems</TextLink></SectionHeading>
+      <div className={styles.problemGrid}>{[problems[0], problems[2], problems[3]].map(problem => <ProblemCard key={problem.slug} problem={problem} />)}</div>
+      <p className={styles.sectionNote}>Proposed briefs based on existing Udyaan tracks. Scope, access and availability are confirmed with the team before a build begins.</p>
+    </div></section>
+    <section className={`${styles.section} ${styles.blue}`} id="journey"><div className={`${styles.container} ${styles.validation}`}>
+      <div className={styles.validationIntro}><p className={styles.eyebrow}>03 / Build against reality</p><h2>Proof before<br />promises.</h2><p>A good presentation is not the finish line. Build, get feedback, improve, and test again. A solution earns its next step through evidence.</p><TextLink href="/how-it-works#validation">Inside the validation process</TextLink><ReferencePhoto subject="electronics" /></div>
+      <ol className={styles.gates}>{[
+        { icon: Cpu, title: "Technical", text: "Can it work reliably within the constraints?" },
+        { icon: UserRound, title: "User", text: "Does it solve a real need for the people using it?" },
+        { icon: ChartNoAxesCombined, title: "Market", text: "Is there a credible customer or adoption pathway?" },
+        { icon: BadgeCheck, title: "Commercial", text: "Does the value justify continued development?" },
+      ].map(({ icon: Icon, title, text }) => <li key={title}><span className={styles.gateIcon}><Icon size={22} strokeWidth={1.5} aria-hidden="true" /></span><div><h3>{title}</h3><p>{text}</p></div><Check size={18} aria-hidden="true" /></li>)}</ol>
+    </div></section>
+    <section className={styles.section}><div className={styles.container}>
+      <SectionHeading label="04 / What comes next" title="The work decides the way forward." text="Not every project needs to become a startup. The right outcome is the one the evidence supports." /><Outcomes />
+      <div className={styles.actions}><TextLink href="/ventures">The venture pathway</TextLink></div>
+    </div></section>
+    <section className={styles.audiences} aria-label="Find your route">
+      <article><ReferencePhoto subject="team" /><p className={styles.eyebrow}><GraduationCap size={20} aria-hidden="true" />For students / The builder side</p><h2>Leave with more<br />than a grade.</h2><p>Work beyond your discipline. Build something you can show. Leave with evidence, experience and a clearer idea of what you can do next.</p><TextLink href="/for-students">Find your place</TextLink></article>
+      <article><ReferencePhoto subject="design" /><p className={styles.eyebrow}><Handshake size={20} aria-hidden="true" />For companies / The problem side</p><h2>Bring the challenge.<br />Meet the builders.</h2><p>Put a meaningful problem into a structured build-and-validation environment, with mentors involved and your operating context at the centre.</p><TextLink href="/for-companies">Work with Udyaan</TextLink></article>
+    </section>
+    <section className={styles.section} id="faq"><div className={`${styles.container} ${styles.faqSection}`}>
+      <div><p className={styles.eyebrow}>A few things worth knowing</p><h2>Before you<br />step in.</h2><TextLink href="/contact">Talk to the team</TextLink></div><FaqList items={FAQS} />
+    </div></section>
+    <Closing />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(homepageJsonLd()) }} />
+  </PublicShell>;
 }

@@ -1,0 +1,21 @@
+.header { position: sticky; top: 0; z-index: 1000; display: flex; align-items: center; justify-content: space-between; gap: 24px; min-height: 84px; padding: 18px 4%; color: #202722; background: #fff; border-bottom: 1px solid #e4e8e2; font-family: "Outfit", sans-serif; letter-spacing: 0; }
+.brand { display: flex; align-items: center; gap: 8px; flex-shrink: 0; font-size: 31px; font-weight: 650; line-height: 1; }
+.brand img { object-fit: contain; }
+.brandDot { color: #44764b; }
+.desktopNav { display: flex; align-items: center; gap: 24px; font-size: 13px; }
+.desktopNav a { padding: 8px 0; border-bottom: 1px solid transparent; }
+.desktopNav a:hover, .desktopNav a[aria-current] { color: #376442; border-color: #376442; }
+.actions { display: flex; align-items: center; gap: 22px; font-size: 13px; }
+.join { display: inline-flex; align-items: center; justify-content: center; gap: 18px; padding: 13px 17px; background: #263f30; color: #fff; border-radius: 3px; white-space: nowrap; }
+.join:hover { background: #3b5e46; }
+.menuButton { display: none; align-items: center; justify-content: center; width: 42px; height: 42px; border: 1px solid #dce1db; border-radius: 3px; background: white; color: inherit; cursor: pointer; }
+.mobileNav { position: absolute; top: 100%; left: 0; right: 0; padding: 12px 5% 24px; background: white; border-bottom: 1px solid #dce1db; max-height: calc(100dvh - 80px); overflow-y: auto; box-shadow: 0 20px 24px #17271b12; }
+.mobileNav a { display: flex; align-items: center; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid #e4e8e2; font-size: 16px; }
+.mobileNav[hidden] { display: none; }
+.skip { position: absolute; left: 12px; top: -100px; padding: 12px; background: white; color: #202722; }
+.skip:focus { top: 8px; z-index: 2; }
+.header :focus-visible { outline: 2px solid #44764b; outline-offset: 5px; }
+@media (min-width: 1151px) { .mobileNav { display: none; } }
+@media (max-width: 1150px) { .desktopNav { display: none; } .menuButton { display: flex; } }
+@media (max-width: 520px) { .header { min-height: 74px; gap: 12px; padding: 15px 5%; } .brand { font-size: 26px; gap: 5px; } .brand img { width: 33px; height: 30px; } .actions { gap: 10px; } .signin { display: none; } .join { font-size: 12px; padding: 12px; gap: 8px; } }
+@media (max-width: 360px) { .brand { font-size: 24px; } .join svg { display: none; } }

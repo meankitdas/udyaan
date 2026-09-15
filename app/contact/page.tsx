@@ -1,47 +1,19 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowLeftIcon, ArrowUpRightIcon } from "@/components/Icons";
-import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
+import { ArrowUpRight } from "lucide-react";
+import { Action, PageIntro, PublicShell } from "@/components/public/Site";
+import styles from "@/components/public/PublicSite.module.css";
+import { CONTACT_EMAIL, pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
   title: "Contact Us",
   description:
-    "Get in touch with the Udyaan team at JAIN (Deemed-to-be University) about the farmland internship program, partnerships, or applying. Email support@udyaan.org — we typically reply within 1–2 business days.",
+    "Talk to Udyaan about student building, company problems, mentorship, research and venture pathways. Contact support@udyaan.org.",
   path: "/contact",
 });
 
 export default function ContactPage() {
-  return (
-    <main className="contact-page">
-      <div className="contact-container">
-        <Link className="back-link" href="/"><ArrowLeftIcon /> Back to Home</Link>
-
-        <header className="contact-header">
-          <p className="contact-kicker">Get in touch</p>
-          <h1>Let&apos;s build something<br />worth talking about.</h1>
-          <p className="contact-lead">
-            Questions about the program, partnerships, or applying to Udyaan?
-            Reach out and the team will get back to you.
-          </p>
-        </header>
-
-        <a className="contact-card" href="mailto:support@udyaan.org">
-          <div className="contact-card-body">
-            <span className="contact-card-label">Email us</span>
-            <span className="contact-card-value">support@udyaan.org</span>
-            <span className="contact-card-note">We typically reply within 1&ndash;2 business days.</span>
-          </div>
-          <span className="contact-card-icon"><ArrowUpRightIcon /></span>
-        </a>
-
-        <p className="contact-footnote">JAIN GROUP / UDYAAN / 2026</p>
-      </div>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(breadcrumbJsonLd([{ name: "Contact", path: "/contact" }])),
-        }}
-      />
-    </main>
-  );
+  return <PublicShell crumbs={[{ name: "Contact", path: "/contact" }]}>
+    <PageIntro label="Get in touch" title="A good conversation can be the start." text="Questions about joining, bringing a problem, mentoring a team or taking a solution further? Talk to the Udyaan team." />
+    <section className={styles.section}><div className={`${styles.container} ${styles.split}`}><div><p className={styles.eyebrow}>Email the team</p><a className={styles.contactEmail} href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}<ArrowUpRight size={24} /></a><p className={styles.sectionNote}>JAIN (Deemed-to-be University) / Udyaan</p></div><div><h2>Already know<br />where to begin?</h2><p>Student builders and company problem owners have their own starting points.</p><div className={styles.actions}><Action href="/join">Join Udyaan</Action><Action href="/submit-problem" secondary>Bring a problem</Action></div></div></div></section>
+  </PublicShell>;
 }

@@ -1,7 +1,36 @@
 # Udyaan
 
-Immersive farmland internship program site with a Typeform-style application
-survey and an AI-powered admissions console.
+University-powered problem-to-venture platform with a public challenge board,
+student and company journeys, an application assessment and an admissions console.
+
+## Public Website
+
+The public flow follows the two content documents in the repository:
+problem discovery, team formation, building, validation and branching outcomes.
+
+- `/problems` provides text, category and capability filters. Each brief has a
+  detail route at `/problems/[slug]`.
+- `/how-it-works`, `/for-students` and `/for-companies` explain the method and
+  role-specific journeys; `/join` routes visitors by intent.
+- Selecting a problem carries its ID and title into `/survey?problem=...`.
+  The assessment saves it as `answers.problem_interest`, visible to reviewers.
+- `/submit-problem` prepares an email draft for `support@udyaan.org`. It does
+  not send or persist a company submission. Copy and download are available
+  when a mail client cannot handle the draft.
+- `/ventures` deliberately has no invented results or case studies. Publish
+  verified records before introducing outcome metrics or venture detail pages.
+- The existing lab explorer lives at `/living-lab`; games and portal routes
+  remain separate from public discovery.
+
+Problem content is maintained in `lib/problems.ts`. The four proposed briefs
+are based on existing Udyaan tracks, not confirmed open placements. Confirm
+scope, status, resources and ownership arrangements before marking any brief open.
+Public styling is isolated in `components/public/PublicSite.module.css` and
+`components/Brand.module.css` so portal and survey styles remain independent.
+
+Validation: `npm run typecheck`, `npm run build`, then browser journeys in
+`tests/public-site-browser-checks.js` and `tests/living-lab-browser-checks.js`
+(async Playwright functions, run against a local page using the browser tool).
 
 ## What's inside
 
