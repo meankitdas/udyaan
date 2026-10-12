@@ -20,7 +20,7 @@ bash deploy/lightsail/teardown-aws.sh       # deletes ALB, ECS, ElastiCache, RDS
 Afterwards, pushes to `main` under `backend/` deploy via
 `.github/workflows/deploy-backend.yml`, which needs repo secrets
 `LIGHTSAIL_HOST` (static IP) and `LIGHTSAIL_SSH_KEY` (contents of
-`~/.ssh/udyaan-lightsail.pem`). Config changes: update the SSM parameter under
+`~/.ssh/udyaan-lightsail-ed25519`). Config changes: update the SSM parameter under
 `/udyaan/lightsail/` and re-run `deploy.sh`.
 
 The sections below describe the previous ECS stack.

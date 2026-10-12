@@ -37,7 +37,9 @@ for lb in $(aws elbv2 describe-load-balancers --query 'LoadBalancers[].LoadBalan
     tgs="$(aws elbv2 describe-target-groups --load-balancer-arn "$lb" --query 'TargetGroups[].TargetGroupArn' --output text)"
     aws elbv2 delete-load-balancer --load-balancer-arn "$lb"
     aws elbv2 wait load-balancers-deleted --load-balancer-arns "$lb"
-    for tg in $tgs; do aws elbv2 delete-target-group --target-group-arn "$tg" || true; done
+    for tg in $tgs; do
+      for _ in 1 2 3 4 5 6; do aws elbv2 delete-target-group --target-group-arn "$tg" 2>/dev/null && break; sleep 10; done
+    done
   fi
 done
 aws wafv2 list-web-acls --scope REGIONAL --query 'WebACLs[].[Name,Id,LockToken]' --output text | while read -r name id token; do
@@ -81,7 +83,8 @@ for ep in $(aws ec2 describe-vpc-endpoints --filters Name=vpc-endpoint-type,Valu
   confirm "Delete interface VPC endpoint $ep?" && aws ec2 delete-vpc-endpoints --vpc-endpoint-ids "$ep" >/dev/null
 done
 for alloc in $(aws ec2 describe-addresses --query 'Addresses[?AssociationId==`null`].AllocationId' --output text); do
-  confirm "Release unattached Elastic IP $alloc?" && aws ec2 release-address --allocation-id "$alloc"
+  # Load balancer IPs are released by AWS itself and may already be gone.
+  confirm "Release unattached Elastic IP $alloc?" && { aws ec2 release-address --allocation-id "$alloc" || true; }
 done
 
 # --- EventBridge backfill (now a cron on the host) -------------------------
@@ -92,7 +95,7 @@ if aws events describe-rule --name udyaan-embedding-backfill >/dev/null 2>&1 \
   aws events delete-rule --name udyaan-embedding-backfill
   conn="$(aws events describe-api-destination --name udyaan-backfill --query ConnectionArn --output text 2>/dev/null || true)"
   aws events delete-api-destination --name udyaan-backfill 2>/dev/null || true
-  [[ -n "$conn" ]] && aws events delete-connection --name "${conn##*/}" >/dev/null 2>&1 || true
+  [[ -n "$conn" ]] && aws events delete-connection --name "$(awk -F/ '{print $(NF-1)}' <<<"$conn")" >/dev/null 2>&1 || true
 fi
 
 # --- ECR + logs ------------------------------------------------------------
