@@ -14,3 +14,4 @@ backend/secrets/
 # Local tooling artifacts (VS Code Local History, Playwright MCP captures)
 .history/
 .playwright-mcp/
+.vercel

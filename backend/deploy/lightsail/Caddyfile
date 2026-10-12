@@ -1,0 +1,10 @@
+{$API_DOMAIN} {
+	encode zstd gzip
+	# Long-lived community websockets go through reverse_proxy unchanged.
+	reverse_proxy api:8080 {
+		header_up X-Forwarded-Proto {scheme}
+	}
+	request_body {
+		max_size 30MB
+	}
+}

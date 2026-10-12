@@ -84,6 +84,10 @@ for the full runbook, including how to rotate a secret or add a new one.
 | GET    | `/forms/active`                 | —     | Active (published) survey form          |
 | PUT    | `/forms/{id}`                   | admin | Save form (questions, sections, publish)|
 | POST   | `/responses`                    | —     | Submit a candidate response             |
+| POST   | `/problem-submissions`          | —     | Save a private company brief; return receipt |
+| GET    | `/problem-submissions`          | admin | Search and paginate private briefs      |
+| GET    | `/problem-submissions/{id}`     | admin | View one private brief                  |
+| PATCH  | `/problem-submissions/{id}`     | admin | Update review status and private notes  |
 | GET    | `/responses`                    | admin | List responses                          |
 | DELETE | `/responses/{id}`               | admin | Delete a candidate and their CV object  |
 | GET    | `/responses/{id}/files/{qid}`   | admin | Short-lived signed CV download URL      |
@@ -92,6 +96,70 @@ for the full runbook, including how to rotate a secret or add a new one.
 | POST   | `/screening/evaluate/{id}`      | admin | RAG-screen one candidate                |
 | POST   | `/screening/evaluate-all`       | admin | Screen all unscreened candidates        |
 | GET    | `/health` (alias `/healthz`)    | —     | Liveness + active integrations          |
+
+## Problem Submissions
+
+The public form now saves to `udyaan_problem_submissions` in the existing
+**AWS RDS PostgreSQL** database via the **ECS Fargate** API. It does not send
+email, write to public S3, or publish problem-board entries. Administrators
+sign in at `/admin` and open **Problems** to review the briefs.
+
+- Uses the existing `DATABASE_URL` supplied through **SSM Parameter Store**.
+   No new AWS resources or IAM permissions are required for this text-only intake.
+- Creates two namespaced tables and their indexes on first access, using the
+   same database schema ownership convention as survey storage. PostgreSQL
+   advisory locking serializes first-access DDL across ECS tasks.
+- `POST` accepts JSON up to 16 KiB. Field limits, valid email and consent are
+   enforced on the server. Extra fields, such as a client-provided status, are rejected.
+- The client supplies a UUID `requestId`; identical retries return the original
+   receipt. A changed brief with the same key returns 409. Server IDs and timestamps
+   are authoritative. Keys survive retries within the current page, not a reload.
+- The anonymous response contains only `id` and `submittedAt`. Listing, detail
+   and updates require the existing admin JWT. Responses use `Cache-Control: no-store`.
+- Shared database quotas allow 5 new briefs per email and 200 globally per UTC
+   hour. Quota keys hash the email with the JWT secret; retries do not consume quota.
+   These are basic abuse bounds, not identity verification: add an AWS WAF rate
+   rule for `/problem-submissions` at the ALB before broad promotion. A caller can
+   vary email addresses; the global limit can also be exhausted by an attacker.
+- Statuses are `new`, `reviewing`, `contacted`, `accepted`, `declined`.
+   `PATCH` requires the current `version`; stale updates return 409. The last
+   reviewer and timestamp are recorded. Status updates do not email or publish.
+- Missing storage or a failed transaction returns 503. There is deliberately
+   no ephemeral JSON or browser-local success fallback in production.
+
+For offline development only, set `PROBLEM_SUBMISSIONS_SQLITE_PATH` to a local
+file with `DATABASE_URL` unset. This opt-in fallback is refused inside ECS/AWS
+runtimes. Production must use RDS. Unsubmitted form data stays in browser memory;
+administrators should follow the organisation's retention/deletion policy for
+the stored contact information and respond to privacy requests.
+
+### Verification
+
+```bash
+python -m unittest discover -s tests -p test_problem_submissions.py -v
+```
+
+The suite uses isolated SQLite files by default. For the same PostgreSQL driver
+and SQL path used by RDS, run a local PostgreSQL 16 container with a database named
+`udyaan_problem_test`, then set:
+
+```bash
+TEST_PROBLEM_DATABASE_URL=postgresql+psycopg://postgres@127.0.0.1:55439/udyaan_problem_test \
+   python -m unittest discover -s tests -p test_problem_submissions.py -v
+```
+
+Each test creates and drops its own schema. The suite refuses non-local hosts
+or a database name other than `udyaan_problem_test`. The AWS deployment workflow
+runs this suite against PostgreSQL before pushing the image.
+
+`tests/problem-submissions-browser-checks.js` at the repo root is an async
+Playwright page function. It requires a local frontend and actual local API at
+`127.0.0.1:8093` with `ADMIN_EMAIL=intake-admin@example.com`,
+`ADMIN_PASSWORD=intake-local-test`, and a local PostgreSQL test database. It
+proxies only the form/auth API requests to that local API, never production.
+It verifies network failure, lost-response retries, admin login/search/review,
+and mobile layout. All data is disposable test data; remove the test container
+afterward. The broader public-site test only prepares a brief and never submits it.
 
 ## Candidate CV uploads
 

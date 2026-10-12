@@ -14,9 +14,12 @@ problem discovery, team formation, building, validation and branching outcomes.
   role-specific journeys; `/join` routes visitors by intent.
 - Selecting a problem carries its ID and title into `/survey?problem=...`.
   The assessment saves it as `answers.problem_interest`, visible to reviewers.
-- `/submit-problem` prepares an email draft for `support@udyaan.org`. It does
-  not send or persist a company submission. Copy and download are available
-  when a mail client cannot handle the draft.
+- `/submit-problem` reviews and submits a private brief to the backend. A
+  server-issued reference confirms that it was saved. Copy and download are
+  available; API failures preserve the brief and never report false success.
+- `/admin` has a **Problems** tab for searching, filtering and reviewing these
+  submissions. Statuses and private notes are saved in AWS RDS PostgreSQL.
+  Accepting a brief does not publish it to the public problem board.
 - `/ventures` deliberately has no invented results or case studies. Publish
   verified records before introducing outcome metrics or venture detail pages.
 - The existing lab explorer lives at `/living-lab`; games and portal routes
@@ -39,7 +42,7 @@ Validation: `npm run typecheck`, `npm run build`, then browser journeys in
 | `app/`       | Next.js site (marketing pages, `/survey`, `/admin`)                     |
 | `components/`| UI components (survey flow, admin console, shared site chrome)          |
 | `lib/`       | Survey types, default form, API client with offline fallback            |
-| `backend/`   | FastAPI service — Firestore storage, Azure OpenAI RAG screening, Docker |
+| `backend/`   | FastAPI on AWS ECS, RDS PostgreSQL storage, Azure OpenAI RAG screening |
 
 ### `/survey` — Farm Logic Test
 
@@ -55,6 +58,9 @@ server-side.
 - **Candidates tab** — every submission with quiz score, duration, per-answer
   correctness and dwell time; run **AI screening** per candidate or in bulk,
   then filter by verdict (shortlist / review / reject).
+- **Problems tab** — private company briefs, submitter contacts, search,
+  pagination, review status, notes, and last reviewer/time. Requires the real
+  backend; there is no browser-local submission fallback.
 
 Demo login (no backend): `admin@udyaan.edu` / `udyaan-admin`.
 
@@ -93,8 +99,11 @@ NEXT_PUBLIC_UDYAAN_API=http://localhost:8080 npm run dev
 
 ## Deploy
 
-- **Backend → Google Cloud Run** (Dockerized): `backend/deploy/deploy-cloudrun.sh`
-  provisions Artifact Registry, Firestore, Secret Manager and deploys via
-  Cloud Build. See `backend/README.md`.
-- **Frontend**: any Next.js host; set `NEXT_PUBLIC_UDYAAN_API` to the Cloud
-  Run URL and add your domain to the backend's `CORS_ORIGINS`.
+- **Backend → AWS ECS Fargate** (Dockerized): `backend/deploy/deploy-ecs.sh`,
+  or the existing GitHub Actions deployment workflow. Uses RDS PostgreSQL,
+  ECR and SSM Parameter Store. See `backend/DEPLOY_COMMANDS.md`.
+- **Frontend**: any Next.js host; set `NEXT_PUBLIC_UDYAAN_API` to
+  `https://api.udyaan.org` and add your domain to `CORS_ORIGINS`.
+
+For the submission workflow, deploy the backend before the frontend. See
+`backend/README.md` for configuration, security requirements and tests.

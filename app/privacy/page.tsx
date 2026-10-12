@@ -13,10 +13,11 @@ export default function PrivacyPage() {
   return (
     <InfoPage
       title="Privacy Policy"
-      updated="15/7/2026"
+      updated="15/9/2026"
       sections={[
         { heading: "Introduction", content: <p>Jain Group of Institutions operates the Udyaan platform. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our Platform.</p> },
         { heading: "Information We Collect", content: <ul><li>Account information, including your name, email, phone, organization, and role.</li><li>Usage data about how you interact with the Platform.</li><li>Device and log data, such as IP address, browser type, and access times.</li></ul> },
+        { heading: "Problem Submissions", content: <><p>When you submit a problem, we collect your name, work email, organisation, brief, intended outcome, constraints and acknowledgement of this policy. We store this information in our AWS-hosted database so authorised Udyaan administrators can assess the enquiry and follow up.</p><p>Submissions and internal review notes are private. Submitting or accepting a brief does not automatically publish it on the problem board. Please do not include confidential information or unpublished intellectual property. Contact support@udyaan.org with your submission reference to request access, correction or deletion.</p></> },
         { heading: "How We Use Your Information", content: <ul><li>Provide, operate, and improve the Platform.</li><li>Authenticate users and maintain account security.</li><li>Send transactional and service-related emails.</li><li>Comply with legal obligations and produce aggregate analytics.</li></ul> },
         { heading: "Sharing of Information", content: <><p>We may share information with your institution and authorized mentors, confidential service providers, and legal authorities when required.</p><p>We do not sell your personal information.</p></> },
         { heading: "Data Security", content: <p>We use appropriate measures, including encryption and access controls, to protect your information. You are responsible for keeping your password confidential.</p> },

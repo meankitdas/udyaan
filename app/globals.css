@@ -2240,3 +2240,8 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .cd-detail-grid { grid-template-columns: 1fr; }
   .ad-topbar { flex-wrap: wrap; }
 }
+
+@media (max-width: 560px) {
+  .ad-tabs { width: 100%; min-width: 0; border-radius: 6px; gap: 3px; }
+  .ad-tabs button { flex: 1; min-width: 0; padding: 9px 4px; font-size: 12px; border-radius: 4px; }
+}

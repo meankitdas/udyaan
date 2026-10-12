@@ -23,7 +23,7 @@ API_URL="${API_URL:-https://api.udyaan.org}"
 
 REGISTRY="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
 TAG="${TAG:-manual-$(date -u +%Y%m%d-%H%M%S)}"
-IMAGE="${REGISTRY}/${ECR_REPOSITORY}:${TAG}"
+export IMAGE="${REGISTRY}/${ECR_REPOSITORY}:${TAG}"
 
 cd "$(dirname "$0")/.."
 

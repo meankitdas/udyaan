@@ -3,6 +3,7 @@
 import type { Evaluation, ResponseFile, SurveyForm, SurveyResponse } from "./survey";
 import { computeQuizScore } from "./survey";
 import { DEFAULT_FORM, withCanonicalReflect } from "./default-form";
+import type { ProblemBrief, ProblemPage, ProblemReceipt, ProblemReview, ProblemStatus, ProblemSubmission } from "./problem-submissions";
 
 const API_BASE = (process.env.NEXT_PUBLIC_UDYAAN_API ?? "").replace(/\/$/, "");
 const FORM_KEY = "udyaan_form_v1";
@@ -110,6 +111,32 @@ export async function adminLogin(email: string, password: string): Promise<strin
     return token;
   }
   throw new Error("Invalid credentials. Demo login: admin@udyaan.edu / udyaan-admin");
+}
+
+function requireProblemBackend() {
+  if (!hasBackend) throw new Error("Problem submissions are not available in this preview. Please try again on the live site.");
+}
+
+export async function submitProblem(brief: ProblemBrief): Promise<ProblemReceipt> {
+  requireProblemBackend();
+  return request<ProblemReceipt>("/problem-submissions", { method: "POST", body: JSON.stringify(brief), signal: AbortSignal.timeout(20000) });
+}
+
+export async function listProblemSubmissions(options: { page: number; status: ProblemStatus | ""; query: string }, signal?: AbortSignal): Promise<ProblemPage> {
+  requireProblemBackend();
+  const params = new URLSearchParams({ page: String(options.page), pageSize: "25", q: options.query });
+  if (options.status) params.set("status", options.status);
+  return request<ProblemPage>(`/problem-submissions?${params}`, { headers: authHeaders(), cache: "no-store", signal });
+}
+
+export async function getProblemSubmission(id: string, signal?: AbortSignal): Promise<ProblemSubmission> {
+  requireProblemBackend();
+  return request<ProblemSubmission>(`/problem-submissions/${encodeURIComponent(id)}`, { headers: authHeaders(), cache: "no-store", signal });
+}
+
+export async function reviewProblemSubmission(id: string, review: ProblemReview): Promise<ProblemSubmission> {
+  requireProblemBackend();
+  return request<ProblemSubmission>(`/problem-submissions/${encodeURIComponent(id)}`, { method: "PATCH", headers: authHeaders(), body: JSON.stringify(review), signal: AbortSignal.timeout(20000) });
 }
 
 // ---------- Form ----------

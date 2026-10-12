@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, Camera, CircleHelp, GitBranch, Handshake, Microscope, RefreshCw, Rocket, ScanLine, UserRound, Users, Wrench } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Camera, CircleHelp, GitBranch, Handshake, Microscope, Rocket, ScanLine, UserRound, Users, Wrench } from "lucide-react";
 import { Header } from "@/components/Brand";
 import { Footer } from "@/components/Footer";
 import { engineStages, type Problem } from "@/lib/problems";
@@ -63,7 +63,7 @@ export function Engine() {
         </ol>
       </section>)}
     </div>
-    <div className={styles.engineFeedback}><div><RefreshCw size={20} strokeWidth={1.5} aria-hidden="true" /><span>Build. Get feedback. Test again.</span></div><p>A venture is one possible outcome. Evidence decides the next move.</p></div>
+    <div className={styles.engineFeedback}><p>A venture is one possible outcome. Evidence decides the next move.</p></div>
   </div>;
 }
 

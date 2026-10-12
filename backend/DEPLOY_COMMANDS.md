@@ -1,5 +1,31 @@
 # Deploy runbook — AWS
 
+## Cost-reduced stack (Lightsail + Neon + Upstash)
+
+Replaces ECS Fargate + ALB + RDS + ElastiCache (~US$90-100/mo) with one
+Lightsail host running the API behind Caddy (auto-HTTPS), Neon Postgres and
+Upstash Redis (~US$7/mo). S3, SES and SSM stay. Scripts live in
+`deploy/lightsail/`; run them in order from `backend/`:
+
+```bash
+aws login --profile new-profile-name --region ap-south-1
+bash deploy/lightsail/provision.sh          # host, static IP, IAM user, copies ECS config to SSM /udyaan/lightsail/
+bash deploy/lightsail/set-external-urls.sh  # paste Neon (direct, not -pooler) + Upstash rediss:// URLs
+bash deploy/lightsail/migrate-db.sh         # stops ECS, copies RDS -> Neon, verifies row counts
+bash deploy/lightsail/deploy.sh             # ships image + env, starts API + Caddy, installs backfill cron
+# DNS: point api.udyaan.org A record at the static IP printed above; wait for /health over HTTPS
+bash deploy/lightsail/teardown-aws.sh       # deletes ALB, ECS, ElastiCache, RDS (final snapshot), NAT, etc.
+```
+
+Afterwards, pushes to `main` under `backend/` deploy via
+`.github/workflows/deploy-backend.yml`, which needs repo secrets
+`LIGHTSAIL_HOST` (static IP) and `LIGHTSAIL_SSH_KEY` (contents of
+`~/.ssh/udyaan-lightsail.pem`). Config changes: update the SSM parameter under
+`/udyaan/lightsail/` and re-run `deploy.sh`.
+
+The sections below describe the previous ECS stack.
+
+## Previous ECS stack
 The backend runs on **ECS Fargate** in `ap-south-1` (account `209483892786`),
 behind an ALB at `api.udyaan.org`, from an image in **ECR**, against **RDS
 Postgres**, with configuration in **SSM Parameter Store** under `/udyaan/*`.
@@ -37,6 +63,35 @@ Both paths re-register the *existing* task definition with only the image
 swapped. Environment variables and secret bindings are therefore never declared
 in the pipeline — change them on the task definition (or in SSM) instead, or
 they will be dropped from the running task.
+
+## Roll Out Problem Intake
+
+1. Deploy the backend first through the existing ECS workflow. Its PostgreSQL
+  submission tests must pass before an image is pushed.
+2. Keep the existing `DATABASE_URL`, `JWT_SECRET`, `ADMIN_EMAIL` and
+  `ADMIN_PASSWORD` SSM bindings. Use strong production values, TLS for RDS,
+  private database networking, encryption and backups. Do not enable the local
+  `PROBLEM_SUBMISSIONS_SQLITE_PATH` fallback in ECS.
+3. The API database user must have permission to create the
+  `udyaan_problem_submissions` and `udyaan_problem_intake_limits` tables and
+  indexes in its current schema. First access creates them under a transaction.
+4. Ensure `CORS_ORIGINS` includes `https://www.udyaan.org` and
+  `https://udyaan.org`. Add AWS WAF request-rate protection for the anonymous
+  `/problem-submissions` POST endpoint at the existing ALB; database quotas are
+  a fallback bound, not a substitute for edge abuse controls.
+5. Confirm the deployed OpenAPI document includes `/problem-submissions`, and
+  an unauthenticated GET returns 401. Do not include tokens, contact information
+  or database credentials in logs or deployment output.
+6. Deploy the frontend to Vercel with
+  `NEXT_PUBLIC_UDYAAN_API=https://api.udyaan.org` and the matching backend build.
+  Until both builds are deployed, the live site does not have this workflow.
+7. With an authorised test brief, verify its reference appears at
+  `https://www.udyaan.org/admin` under **Problems**. Mark it as test data and
+  remove it according to the team's retention procedure.
+
+No S3 bucket is used for these text briefs, and no SES notification email is
+sent. Submitted briefs and admin notes stay private. The public problem board
+continues to use curated records until a separate publishing workflow is added.
 
 ## Status and logs
 

@@ -8,8 +8,23 @@ async (page) => {
     await page.evaluate(() => document.fonts.ready);
     const hero = page.locator('section[aria-labelledby="hero-title"]');
     const bounds = await hero.boundingBox();
+    const trust = page.getByRole("region", { name: "Udyaan initiative and approach" });
+    const trustBounds = await trust.boundingBox();
     const viewport = page.viewportSize();
-    assert(Math.abs(bounds.y + bounds.height - viewport.height) < 2, `Navigation and hero must fill the ${viewport.width}x${viewport.height} viewport`);
+    assert(Math.abs(trustBounds.y + trustBounds.height - viewport.height) < 2, `Navigation, hero and trust strip must fill the ${viewport.width}x${viewport.height} viewport`);
+    assert(Math.abs(bounds.y + bounds.height - trustBounds.y) < 2, "The trust strip must sit directly below the hero");
+    assert(await hero.getByText("A JAIN university initiative", { exact: true }).count() === 0, "The repeated hero initiative line must be removed");
+    assert(await page.getByText("Learning meets real-world enterprise", { exact: true }).count() === 0, "The removed masthead line must not return");
+    for (const text of ["A JAIN university initiative", "Cross-disciplinary teams", "Evidence-led building", "Multiple paths forward"]) {
+      const item = trust.getByText(text, { exact: true });
+      assert(await item.isVisible(), `${text} must be visible`);
+      const itemBounds = await item.boundingBox();
+      assert(itemBounds.y >= 0 && itemBounds.y + itemBounds.height <= viewport.height + 1, `${text} must fit in the first viewport`);
+    }
+    const logo = trust.getByRole("img", { name: "JAIN Group" });
+    await page.waitForFunction(image => image.complete && image.naturalWidth > 0, await logo.elementHandle(), { timeout: 10000 });
+    const logoBounds = await logo.boundingBox();
+    assert(logoBounds.y + logoBounds.height <= viewport.height + 1, "JAIN logo must fit in the first viewport");
     for (const name of ["Explore problems", "Join Udyaan"]) {
       const action = await hero.getByRole("link", { name, exact: true }).boundingBox();
       assert(action.y + action.height <= viewport.height, `${name} must remain in the first viewport`);
@@ -34,6 +49,16 @@ async (page) => {
     assert((await phases.locator("h4").allTextContents()).join(",") === "Problem,People,Team,Build,Validate,Outcome,Venture", "The engine must preserve the seven-stage reading order");
     assert(await page.locator("#model li svg").count() === 7, "Each engine stage must have an icon");
     assert(await page.locator("#model").getByText("When the opportunity is validated", { exact: true }).count() === 1, "Venture continuation must be conditional");
+    assert(await page.getByText("Build. Get feedback. Test again.", { exact: true }).count() === 0, "The removed engine feedback line must not return");
+    const proof = page.locator("#journey");
+    const evidenceGates = proof.getByRole("list", { name: "Validation evidence gates" });
+    assert((await evidenceGates.locator("h3").allTextContents()).join(",") === "Technical,User,Market,Commercial", "Validation must preserve all four evidence gates");
+    assert(await evidenceGates.locator("li dd").count() === 4, "Every gate must include evidence to gather");
+    assert(await proof.getByRole("heading", { name: "Not enough evidence? Iterate." }).count() === 1, "Validation must allow iteration rather than imply automatic success");
+    await proof.getByRole("link", { name: "Inside the validation process" }).click();
+    await page.waitForURL("**/how-it-works#validation");
+    assert(await page.locator("#validation h2").count() === 1, "Validation link must reach the detailed evidence section");
+    await page.goto(origin);
     const faqs = page.locator("#faq details");
     const schema = await page.locator('script[type="application/ld+json"]').allTextContents();
     const faqSchema = schema.map(value => JSON.parse(value)).flatMap(value => value["@graph"] || []).find(value => value["@type"] === "FAQPage");
@@ -75,19 +100,15 @@ async (page) => {
     await page.getByRole("checkbox").check();
     await page.getByRole("button", { name: "Review your brief" }).click();
     await page.getByRole("heading", { name: "Your brief is ready to review." }).waitFor();
-    assert(await page.getByText(/Nothing has been sent yet/).isVisible(), "Email draft must not imply a completed submission");
-    const mail = await page.getByRole("link", { name: "Open email draft" }).evaluate(link => {
-      const url = new URL(link.href);
-      return { protocol: url.protocol, recipient: url.pathname, body: url.searchParams.get("body") };
-    });
-    assert(mail.protocol === "mailto:" && mail.recipient === "support@udyaan.org", "Draft must target the published contact");
-    assert(mail.body.includes("website-test@example.com"), "Draft must contain the contact details");
+    assert(await page.getByText(/Nothing has been sent yet/).isVisible(), "Review must not imply a completed submission");
+    assert(await page.getByRole("button", { name: "Submit problem", exact: true }).isEnabled(), "Reviewed brief must offer a real submission action");
+    assert((await page.locator("pre").innerText()).includes("website-test@example.com"), "Review must contain the contact details");
     const downloadEvent = page.waitForEvent("download");
     await page.getByRole("button", { name: "Download brief" }).click();
     assert((await downloadEvent).suggestedFilename() === "udyaan-problem-brief.txt", "Brief must be downloadable");
     await page.getByLabel("Problem title").fill("Updated process waste question");
-    assert(await page.getByRole("link", { name: "Open email draft" }).count() === 0, "Editing must invalidate an outdated email draft");
-    results.push("Company flow: required fields, review, honest email handoff, download, stale-draft invalidation");
+    assert(await page.getByRole("button", { name: "Submit problem", exact: true }).count() === 0, "Editing must invalidate an outdated reviewed brief");
+    results.push("Company flow: required fields, review, submission action, download, stale-draft invalidation (no live submission)");
 
     for (const width of [1440, 768, 390, 320]) {
       await page.setViewportSize({ width, height: width === 1440 ? 1000 : 844 });
@@ -96,7 +117,14 @@ async (page) => {
         assert(response.status() === 200, `${route} must return 200`);
         assert(await page.getByRole("heading", { level: 1 }).count() === 1, `${route} must have one h1`);
         assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${route} must not overflow at ${width}px`);
-        if (route === "/") await checkHero();
+        if (route === "/") {
+          await checkHero();
+          assert(await page.locator("#journey").evaluate(section => Array.from(section.querySelectorAll("h2, h3, p, dd, dt, figcaption")).every(element => element.scrollWidth <= element.clientWidth + 1)), `Validation text must fit at ${width}px`);
+          const image = await page.locator("#journey figure").boundingBox();
+          const gates = await page.getByRole("list", { name: "Validation evidence gates" }).boundingBox();
+          if (width <= 800) assert(gates.y >= image.y + image.height, "Validation gates must follow the image on smaller screens");
+          else assert(gates.x > image.x + image.width, "Desktop validation must use separate image and evidence columns");
+        }
         if (route === "/" || route === "/how-it-works") {
           const engineLayout = await page.locator("section[data-tone]").evaluateAll(sections => ({
             positions: sections.map(section => ({ left: section.getBoundingClientRect().left, top: section.getBoundingClientRect().top })),

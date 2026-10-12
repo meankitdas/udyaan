@@ -1,0 +1,48 @@
+# Production stack on the Lightsail host (/opt/udyaan). The image is built
+# elsewhere and loaded with `docker load`, so nothing is compiled on the box.
+services:
+  api:
+    image: udyaan-api:current
+    restart: unless-stopped
+    env_file:
+      - ./api.env
+    environment:
+      PORT: "8080"
+    volumes:
+      - api-data:/srv/data
+    mem_limit: 700m
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/healthz')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      API_DOMAIN: ${API_DOMAIN:-api.udyaan.org}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - api
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  api-data:
+  caddy-data:
+  caddy-config:

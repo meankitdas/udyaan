@@ -59,6 +59,7 @@ class Settings:
         # Survey storage. Shares the portal's Postgres instance rather than
         # running a second datastore for six documents.
         self.database_url = os.getenv("DATABASE_URL", "")
+        self.problem_submissions_sqlite_path = os.getenv("PROBLEM_SUBMISSIONS_SQLITE_PATH", "")
 
         # Azure OpenAI
         self.azure_openai_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT", "")

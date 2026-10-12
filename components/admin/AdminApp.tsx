@@ -10,8 +10,9 @@ import { ArrowUpRightIcon } from "@/components/Icons";
 import { StepIcon } from "@/components/survey/icons";
 import { QuestionBuilder } from "./QuestionBuilder";
 import { Candidates } from "./Candidates";
+import { ProblemSubmissions } from "./ProblemSubmissions";
 
-type Tab = "questions" | "candidates";
+type Tab = "questions" | "candidates" | "problems";
 
 function AdminLoadingSkeleton() {
   return (
@@ -85,9 +86,9 @@ function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
         transition={{ duration: 0.5, ease: "easeOut" }}
       >
         <p className="sv-kicker">Udyaan Admin</p>
-        <h1>Survey Console</h1>
+        <h1>Admin Console</h1>
         <p className="ad-login-sub">
-          Manage questions, review candidates, and run AI screening.
+          Review problem submissions, manage questions, and screen candidates.
           {!hasBackend && (
             <>
               <br />
@@ -137,7 +138,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
           <span className="ad-brand-dot" aria-hidden><StepIcon name="sprout" /></span>
           <div>
             <p className="sv-kicker">Udyaan Admin</p>
-            <strong>{form?.title ?? "Survey Console"}</strong>
+            <strong>{tab === "problems" ? "Problem submissions" : form?.title ?? "Admin Console"}</strong>
           </div>
         </div>
         <nav className="ad-head-item ad-tabs" aria-label="Admin sections">
@@ -146,6 +147,9 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
           </button>
           <button className={tab === "candidates" ? "ad-tab-active" : ""} onClick={() => setTab("candidates")}>
             Candidates
+          </button>
+          <button className={tab === "problems" ? "ad-tab-active" : ""} onClick={() => setTab("problems")}>
+            Problems
           </button>
         </nav>
         <div className="ad-head-item ad-top-actions">
@@ -163,7 +167,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
           exit={{ opacity: 0, y: -12 }}
           transition={{ duration: 0.28, ease: "easeOut" }}
         >
-          {tab === "questions" ? (
+          {tab === "problems" ? <ProblemSubmissions /> : tab === "questions" ? (
             form ? <QuestionBuilder form={form} onFormChange={setForm} /> : <AdminLoadingSkeleton />
           ) : (
             form ? <Candidates form={form} /> : <AdminLoadingSkeleton />

@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 
 from .config import get_settings
 from .rag.embeddings import get_vector_store
-from .routers import auth, forms, responses, screening, uploads
+from .routers import auth, forms, problems, responses, screening, uploads
 
 settings = get_settings()
 
@@ -54,6 +54,7 @@ app.include_router(forms.router)
 app.include_router(responses.router)
 app.include_router(screening.router)
 app.include_router(uploads.router)
+app.include_router(problems.router)
 
 # ---- Portal (role-based platform: orgs, projects, reports) merged from backend_dev ----
 # Mounted under /portal so its /auth/* routes never collide with the survey admin auth.
